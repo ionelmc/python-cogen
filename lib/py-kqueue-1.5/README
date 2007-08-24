@@ -1,0 +1,31 @@
+Python Extension Module for Kernel Queues
+Ben Woolley <ben@tautology.org>
+2005-01-15
+
+Updated the constants, removed the KQueue.py cruft, and changed it to
+the kqueue module instead of KQueue.
+
+David Gilbert <dave@daveg.ca>
+2004-11-23
+
+After a brief email dicussion with dwhite@freebsd.org, I took possession
+of this.  I don't have the ambition he states below, but I needed to add
+several different event types.  While adding the ones I required, I added
+others from the file.
+
+Doug White <dwhite@freebsd.org>
+July 18, 2000
+
+This is an early version of a Python module to handle kernel queues (kqueues) 
+as implemented by Johnathan Lemon (jlemon@freebsd.org).  Information on the 
+kqueue system and patches are at http://www.flugsvamp.com/~jlemon/fbsd/kq.txt.
+
+This version of PyKQueue, 1.2, supports the new kevent(2) API in FreeBSD 
+4.1-RELEASE and 5-CURRENT (osreldate 50011).  
+
+Sam Rushing and I are working on a totally revamped version of this module
+that pushes all the code into C instead of the split system used here.  
+The new module should be many times more efficient than this one. Stay tuned
+for details.
+
+Enjoy.
