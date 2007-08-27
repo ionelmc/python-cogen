@@ -1,8 +1,8 @@
 import sys, os
 sys.path.append(os.path.split(os.getcwd())[0])
 
-from cogen.web import *
-from cogen.core import *
+from cogen.core import Socket, GreedyScheduler
+from cStringIO import StringIO
 
 def server():
     srv = Socket.New()
