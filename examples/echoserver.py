@@ -1,6 +1,3 @@
-import sys, os
-sys.path.append(os.path.split(os.getcwd())[0])
-
 from cogen.core import Socket, GreedyScheduler
 from cStringIO import StringIO
 
@@ -27,7 +24,7 @@ def handler(sock, addr):
             sock.close()
             return
         wobj = yield Socket.Write(sock, robj.buff)
-            
+
 m = GreedyScheduler()
 m.add(server)
 m.run()
