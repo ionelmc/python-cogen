@@ -1,2 +1,3 @@
-__all__ = ["HTTPd", "BaseHTTPRequestHandler"]
-from httpd import *
+#~ __all__ = ["HTTPd", "BaseHTTPRequestHandler"]
+import httpd
+import wsgiserver

@@ -125,4 +125,4 @@ try:
     DefaultPooler = EpollPooler
 except ImportError:
     DefaultPooler = SelectPooler            
-print DefaultPooler
+#~ print DefaultPooler

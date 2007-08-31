@@ -1,3 +1,31 @@
+"""
+Shameless rip from CherryPy's WSGI server, removed the SSL stuff
+
+Example usage
+    from cogen.core import Socket, GreedyScheduler
+    from cogen.web import wsgiserver
+    
+    def my_crazy_app(environ, start_response):
+        status = '200 OK'
+        response_headers = [('Content-type','text/plain')]
+        start_response(status, response_headers)
+        return ['Hello world!\n']
+
+    server = wsgiserver.WSGIServer(
+                ('localhost', 8070), my_crazy_app,
+                server_name='localhost')
+    m = GreedyScheduler()
+    m.add(server.start)
+    try:
+        m.run()
+    except:
+        pass
+
+TODO:
+    - check some socket exceptions (connection reset by peer?)
+    - 
+"""
+
 import base64
 import Queue
 import os
@@ -15,6 +43,11 @@ import time
 import traceback
 from urllib import unquote
 from urlparse import urlparse
+if __name__ == "__main__":
+    import sys, os
+    sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
+
+from cogen.core import Socket, Events
 
 comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
     'ACCEPT-LANGUAGE', 'ACCEPT-RANGES', 'ALLOW', 'CACHE-CONTROL',
@@ -64,7 +97,6 @@ class HTTPRequest(object):
     
     A single HTTP connection may consist of multiple request/response pairs.
     
-    sendall: the 'sendall' method from the connection's fileobject.
     wsgi_app: the WSGI application to call.
     environ: a partial WSGI environ (server and connection entries).
         The caller MUST set the following entries:
@@ -116,7 +148,7 @@ class HTTPRequest(object):
         # and doesn't need the client to request or acknowledge the close
         # (although your TCP stack might suffer for it: cf Apache's history
         # with FIN_WAIT_2).
-        request_line = yield Socket.ReadLine(t.sock)
+        request_line = (yield Socket.ReadLine(t.sock)).buff
         if not request_line:
             # Force t.ready = False so the connection will close.
             t.ready = False
@@ -127,7 +159,7 @@ class HTTPRequest(object):
             # stream at the beginning of a message and receives a CRLF
             # first, it should ignore the CRLF."
             # But only ignore one leading line! else we enable a DoS.
-            request_line = yield Socket.ReadLine(t.sock)
+            request_line = (yield Socket.ReadLine(t.sock)).buff
             if not request_line:
                 t.ready = False
                 return
@@ -265,7 +297,7 @@ class HTTPRequest(object):
         environ = t.environ
         
         while True:
-            line = t.rfile.readline()
+            line = (yield Socket.ReadLine(t.sock)).buff
             if not line:
                 # No more data--illegal end of headers
                 raise ValueError("Illegal end of headers.")
@@ -300,27 +332,27 @@ class HTTPRequest(object):
         cl = 0
         data = StringIO.StringIO()
         while True:
-            line = (yield Socket.ReadLine(t.sock)).strip().split(";", 1)
+            line = (yield Socket.ReadLine(t.sock)).buff.strip().split(";", 1)
             chunk_size = int(line.pop(0), 16)
             if chunk_size <= 0:
                 break
 ##            if line: chunk_extension = line[0]
             cl += chunk_size
-            data.write(t.rfile.read(chunk_size))
-            crlf = t.rfile.read(2)
+            data.write((yield Socket.ReadAll(t.sock,chunk_size)).buff)
+            crlf = (yield Socket.ReadAll(t.sock,2)).buff
             if crlf != "\r\n":
-                t.simple_response("400 Bad Request",
+                yield Events.Call(t.simple_response, "400 Bad Request",
                                      "Bad chunked transfer coding "
                                      "(expected '\\r\\n', got %r)" % crlf)
                 return
         
         # Grab any trailer headers
-        t.read_headers()
+        yield Events.Call(t.read_headers)
         
         data.seek(0)
         t.environ["wsgi.input"] = data
         t.environ["CONTENT_LENGTH"] = str(cl) or ""
-        return True
+        raise StopIteration(True)
     
     def respond(t):
         """Call the appropriate WSGI app and write its iterable output."""
@@ -334,15 +366,15 @@ class HTTPRequest(object):
                 # a NON-EMPTY string, or upon the application's first
                 # invocation of the write() callable." (PEP 333)
                 if chunk:
-                    t.write(chunk)
+                    yield Events.Call(t.write, chunk)
         finally:
             if hasattr(response, "close"):
-                response.close()
+                yield Events.Call(response.close)
         if (t.ready and not t.sent_headers):
             t.sent_headers = True
             t.send_headers()
         if t.chunked_write:
-            t.sendall("0\r\n\r\n")
+            yield Socket.WriteAll(t.sock, "0\r\n\r\n")
     
     def simple_response(t, status, msg=""):
         """Write a simple response back to the client."""
@@ -388,13 +420,13 @@ class HTTPRequest(object):
         
         if not t.sent_headers:
             t.sent_headers = True
-            t.send_headers()
+            yield Events.Call(t.send_headers)
         
         if t.chunked_write and chunk:
             buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-            t.sendall("".join(buf))
+            yield Socket.WriteAll(t.sock, "".join(buf))
         else:
-            t.sendall(chunk)
+            yield Socket.WriteAll(t.sock, chunk)
     
     def send_headers(t):
         """Assert, process, and send the HTTP response message-headers."""
@@ -444,7 +476,7 @@ class HTTPRequest(object):
             else:
                 raise
         buf.append("\r\n")
-        t.sendall("".join(buf))
+        yield Socket.WriteAll(t.sock,"".join(buf))
 
 class HTTPConnection(object):
     """An HTTP connection (active socket).
@@ -453,8 +485,7 @@ class HTTPConnection(object):
     wsgi_app: the WSGI application for this server/connection.
     environ: a WSGI environ template. This will be copied for each request.
     
-    rfile: a fileobject for reading from the socket.
-    sendall: a function for writing (+ flush) to the socket.
+    sock: the socket.
     """
     
     rbufsize = -1
@@ -489,29 +520,29 @@ class HTTPConnection(object):
                 req = t.RequestHandlerClass(t.sock, t.environ,
                                                t.wsgi_app)
                 # This order of operations should guarantee correct pipelining.
-                req.parse_request()
+                yield Events.Call(req.parse_request)
                 if not req.ready:
                     return
-                req.respond()
+                yield Events.Call(req.respond)
                 if req.close_connection:
                     return
         except socket.error, e:
             errno = e.args[0]
             if errno not in socket_errors_to_ignore:
                 if req:
-                    req.simple_response("500 Internal Server Error",
+                    yield Events.Call(req.simple_response, "500 Internal Server Error",
                                         format_exc())
             return
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
             if req:
-                req.simple_response("500 Internal Server Error", format_exc())
+                yield Events.Call(req.simple_response, "500 Internal Server Error", format_exc())
     
     def close(t):
         """Close the socket underlying this connection."""
-        t.rfile.close()
         t.socket.close()
+        yield
 
 
 def format_exc(limit=None):
@@ -551,7 +582,7 @@ class WSGIServer(object):
     
     protocol = "HTTP/1.1"
     _bind_addr = "localhost"
-    version = "CherryPy/3.1alpha"
+    version = "cogen"
     ready = False
     ConnectionClass = HTTPConnection
     environ = {}
@@ -668,7 +699,8 @@ class WSGIServer(object):
         
         t.ready = True
         while t.ready:
-            s, addr = yield Socket.Accept(t.socket)
+            obj = yield Socket.Accept(t.socket)
+            s, addr = obj.conn, obj.addr
             if not t.ready:
                 return
             #TODO: other way to timeout connections
@@ -711,4 +743,38 @@ class WSGIServer(object):
         #~ t.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
         t.socket.bind(t.bind_addr)
     
-    
+def main():    
+    from cogen.core import Socket, GreedyScheduler, Scheduler
+    from cogen.web import wsgiserver
+    #~ from cogen.web import httpd
+    def my_crazy_app(environ, start_response):
+        status = '200 OK'
+        response_headers = [('Content-type','text/plain')]
+        start_response(status, response_headers)
+        return ['Hello world!\n']
+
+    server = wsgiserver.WSGIServer(
+                ('localhost', 8070), my_crazy_app,
+                server_name='localhost')
+    m = GreedyScheduler()
+    m.add(server.start)
+    try:
+        m.run()
+    except:
+        pass
+        
+        
+if __name__ == "__main__":
+    #~ main()
+    import hotshot, hotshot.stats
+    prof = hotshot.Profile("stones.prof")
+    prof.runcall(main)
+    prof.close()
+    stats = hotshot.stats.load("stones.prof")
+    stats.strip_dirs()
+    stats.sort_stats('time', 'calls')
+    stats.print_stats(200)
+    #~ import pycallgraph
+    #~ pycallgraph.start_trace()
+    #~ main()
+    #~ pycallgraph.make_dot_graph('basic.png')

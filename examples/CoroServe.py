@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from cogen.web import *
+from cogen.web.httpd import *
 from cogen.core import *
 import sys
 

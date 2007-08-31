@@ -3,6 +3,7 @@ sys.path.append(os.path.split(os.getcwd())[0])
 
 from cogen.core import Socket, GreedyScheduler
 from cogen.web import wsgiserver
+#~ from cogen.web import httpd
 
 def my_crazy_app(environ, start_response):
     status = '200 OK'
@@ -13,3 +14,6 @@ def my_crazy_app(environ, start_response):
 server = wsgiserver.WSGIServer(
             ('localhost', 8070), my_crazy_app,
             server_name='localhost')
+m = GreedyScheduler()
+m.add(server.start)
+m.run()

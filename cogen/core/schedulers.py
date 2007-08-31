@@ -1,3 +1,5 @@
+# todo: remove errored coros
+
 import socket
 import select
 import collections
@@ -20,8 +22,10 @@ class Scheduler:
         t.sigwait = collections.defaultdict(collections.deque)
         t.diewait = collections.defaultdict(collections.deque)
         t.timewait = [] # heapq
+        t.calls = {}
         t.pool = pooler()
         t.idle = 0
+        t.timerc = 1
         
     def gen(t, coro, *args, **kws):
         if not type(coro)==types.GeneratorType: # just in case
@@ -29,27 +33,33 @@ class Scheduler:
         else:
             return coro
     def add(t, coro, *args, **kws):
-        #~ print 'adding coro', coro
+        #~ print '> Adding coro:',coro,
         coro = t.gen(coro, *args, **kws)
+        #~ print ' gen:',coro
+        assert coro
         t.active.append( (None, coro) )
-        
         return coro
+
     def handle_error(t, coro, inner=None):        
         print 
         print '-'*40
         print 'Exception happened during processing of coroutine.'
-        #~ if isinstance(inner, exceptions.Exception):
-            #~ print ' -- Inner exception -- '
-            #~ traceback.print_exception(*inner.message)
-            #~ print ' --------------------- ' 
         traceback.print_exc()
-        print "   BTW, Coroutine #%s died." % coro
+        print "   BTW, Coroutine #%s died. " % coro
+        if isinstance(inner, exceptions.Exception):
+            print ' -- Inner exception -- '
+            traceback.print_exception(*inner.message)
+            print ' --------------------- ' 
+        else:
+            print "Operation was: %s" % inner
         print '-'*40
     def run(t):
-        #~ while t.active or t.pool or t.timewait:
-        while 1:
-            #~ print len(t.active), len(t.pool.reads), len(t.pool.writes), len(t.timewait)
+        while t.active or t.pool or t.timewait:
+        #~ while 1:
+            #~ print len(t.active), len(t.pool), len(t.timewait)
             if t.active:
+                print len(t.active), len(t.calls), len(t.pool), t.next_timer_delta()
+            
                 _op, coro = t.active.popleft()
                 try:
                     if isinstance(_op, exceptions.Exception):
@@ -58,6 +68,11 @@ class Scheduler:
                         op = coro.send(_op)                    
                     #~ print '!', coro, _op, op
                 except StopIteration, e:
+                    if t.calls.has_key(coro):
+                        wakeup = t.calls[coro]
+                        wakeup[0].returns = e.message
+                        t.active.appendleft(wakeup)
+                        del t.calls[coro]
                     if t.diewait.has_key(coro):
                         for wakeup in t.diewait[coro]:
                             wakeup[0].returns = e.message
@@ -78,7 +93,7 @@ class Scheduler:
                         t.active.append((None, coro))
                         del t.sigwait[op.name]
                     elif isinstance(op, Events.Call):
-                        t.diewait[ t.add(*op.args, **op.kws) ].append((op, coro))
+                        t.calls[ t.add(*op.args, **op.kws) ]= op, coro
                     elif isinstance(op, Events.Join):
                         t.diewait[ op.coro ].append((op, coro))
                     elif isinstance(op, Events.Sleep):
@@ -96,6 +111,7 @@ class Scheduler:
                 t.active.appendleft((op, op.coro))
     def next_timer_delta(t): 
         #~ print t.active
+        #~ t.timerc -= 1
         if t.timewait and not t.active:
             return (datetime.datetime.now() - t.timewait[0].wake_time).microseconds
         else:
@@ -111,34 +127,46 @@ class Scheduler:
 class GreedyScheduler(Scheduler):
     def run(t):
         #~ print 'RUN'
-        #~ import win32console
-        #~ t.max=0
-        #~ while t.active or t.pool:
+        import win32console
+        t.max_calls=0
+        t.max_active=0
+        #~ while t.active or t.pool or t.timewait:
         while 1:
-            #~ print t.active, t.pool
             if t.active:
                 _op, coro = t.active.popleft()
                 op = None
                 while True:
-                    #~ t.max |= len(t.active)
-                    #~ win32console.SetConsoleTitle("%3d [%3d] [%3d] [%3d] [%3d]" % (len(t.active),t.max, 
-                        #~ t.pool.max_ready_to_read,
-                        #~ t.pool.max_ready_to_write,
-                        #~ t.pool.max_in_error,
-                    #~ ))  
-                    #~ print t.active
+                    print len(t.active), len(t.calls), len(t.pool), t.next_timer_delta()
+            
+                    t.max_active |= len(t.active)
+                    t.max_calls |= len(t.calls)
+                    win32console.SetConsoleTitle("[active: %3d] [max active: %3d] [max call stack: %3d] [timer: %5s]" % (
+                        len(t.active),
+                        t.max_active, 
+                        t.max_calls,
+                        0
+                    ))  
+                    #~ print t.active, t.diewait
                     try:
                         if isinstance(_op, exceptions.Exception):
-                            op = coro.throw(*_op.message)
+                            op = coro.throw(_op.message[0])
                         else:
                             op = coro.send(_op)
-                        #~ print '!', coro, _op, op
+                        print '!', coro, _op, op
                         
                     except StopIteration, e:
+                        print ">", repr(e)
+                        if t.calls.has_key(coro):
+                            wakeup = t.calls[coro]
+                            wakeup[0].returns = e.message
+                            t.active.appendleft(wakeup)
+                            del t.calls[coro]
+                            del wakeup
                         if t.diewait.has_key(coro):
                             for wakeup in t.diewait[coro]:
                                 wakeup[0].returns = e.message
                             t.active.extendleft(t.diewait[coro])
+                            del wakeup
                             del t.diewait[coro]
                         break
                     except:
@@ -166,7 +194,18 @@ class GreedyScheduler(Scheduler):
                             del t.sigwait[op.name]
                             break
                         elif isinstance(op, Events.Call):
-                            t.diewait[ t.add(*op.args, **op.kws) ].appendleft((op, coro))
+                            print '-------------------'
+                            #~ t.diewait[ t.add(*op.args, **op.kws) ].appendleft((op, coro))
+                            #~ break
+                            newcoro = t.gen(*op.args, **op.kws) #t.active.append( (None, newcoro) )
+                            print t.active, op, coro, newcoro
+                            
+                            t.calls[ newcoro ] = op, coro
+                            #~ _op = op = None
+                            #~ coro = newcoro
+                            #~ del newcoro
+                            #~ continue
+                            t.active.appendleft( (None, newcoro) )
                             break
                         elif isinstance(op, Events.Join):
                             t.diewait[ op.coro ].append((op, coro))
@@ -241,16 +280,26 @@ if __name__ == "__main__":
         yield Events.Sleep(datetime.timedelta(milliseconds=100))
         print "coroC END"
         
-    m = Scheduler()
+    m = GreedyScheduler()
     #~ m.add(coro1)
     #~ m.add(coro2)
     #~ m.add(coro3)
     #~ coro4_instance = m.add(coro4)
     #~ m.add(coro5)
-    m.add(coroA)
-    m.add(coroB)
-    m.add(coroC)
-    
+    #~ m.add(coroA)
+    #~ m.add(coroB)
+    #~ m.add(coroC)
+    def A():
+        yield 'a'
+        yield 'A'
+        return
+    def B():
+        yield 'b'
+        raise StopIteration('B')
+    def T():
+        print "call to A returns: %r"%(yield Events.Call(A)).returns
+        print "call to B returns: %r"%(yield Events.Call(B)).returns
+    m.add(T)
     m.run()
 
     #~ print isinstance(Socket.Read(),(Socket.Read,Socket.Read,Socket.Write,Socket.Accept))
