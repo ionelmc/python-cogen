@@ -217,6 +217,7 @@ class BaseHTTPRequestHandler:
             return
         method = getattr(t, mname)
         yield Events.Call(method)
+        t.request.close()
 
 
     def send_error(t, code, message=None):

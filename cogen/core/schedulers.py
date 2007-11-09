@@ -11,19 +11,19 @@ import datetime
 import heapq
 import exceptions
 from cStringIO import StringIO
-from poolers import DefaultPooler, Socket
+from pollers import DefaultPoller, Socket
 from lib import *
 import events as Events
             
             
 class Scheduler:
-    def __init__(t, pooler=DefaultPooler):
+    def __init__(t, poller=DefaultPoller):
         t.active = collections.deque()
         t.sigwait = collections.defaultdict(collections.deque)
         t.diewait = collections.defaultdict(collections.deque)
         t.timewait = [] # heapq
         t.calls = {}
-        t.pool = pooler()
+        t.poll = poller()
         t.idle = 0
         t.timerc = 1
         
@@ -54,11 +54,11 @@ class Scheduler:
             print "Operation was: %s" % inner
         print '-'*40
     def run(t):
-        while t.active or t.pool or t.timewait:
+        while t.active or t.poll or t.timewait:
         #~ while 1:
-            #~ print len(t.active), len(t.pool), len(t.timewait)
+            #~ print len(t.active), len(t.poll), len(t.timewait)
             if t.active:
-                print len(t.active), len(t.calls), len(t.pool), t.next_timer_delta()
+                print len(t.active), len(t.calls), len(t.poll), t.next_timer_delta()
             
                 _op, coro = t.active.popleft()
                 try:
@@ -83,7 +83,7 @@ class Scheduler:
                 else:
                     if op.__class__ in Socket.ops:
                         #~ print '> add socket op:', op
-                        r = t.pool.add(op, coro)
+                        r = t.poll.add(op, coro)
                         if r:
                             t.active.appendleft((r, coro))
                     elif isinstance(op, Events.WaitForSignal):
@@ -101,7 +101,7 @@ class Scheduler:
                         heapq.heappush(t.timewait, op)
                     else:
                         t.active.append((op, coro))
-            t.run_pooler()
+            t.run_poller()
             t.run_timer()
     def run_timer(t):
         if t.timewait:
@@ -119,9 +119,9 @@ class Scheduler:
                 return None
             else:
                 return -1
-    def run_pooler(t):
-        for ev in t.pool.run(timeout = t.next_timer_delta()):
-            #~ print "EVENT:",ev
+    def run_poller(t):
+        for ev in t.poll.run(timeout = t.next_timer_delta()):
+            print "EVENT:",ev
             obj, coro = ev
             t.active.appendleft( ev )
 class GreedyScheduler(Scheduler):
@@ -130,13 +130,13 @@ class GreedyScheduler(Scheduler):
         import win32console
         t.max_calls=0
         t.max_active=0
-        #~ while t.active or t.pool or t.timewait:
-        while 1:
+        while t.active or t.poll or t.timewait:
+        #~ while 1:
             if t.active:
                 _op, coro = t.active.popleft()
                 op = None
                 while True:
-                    print len(t.active), len(t.calls), len(t.pool), t.next_timer_delta()
+                    #~ print len(t.active), len(t.calls), len(t.poll), t.next_timer_delta()
             
                     t.max_active |= len(t.active)
                     t.max_calls |= len(t.calls)
@@ -152,10 +152,10 @@ class GreedyScheduler(Scheduler):
                             op = coro.throw(_op.message[0])
                         else:
                             op = coro.send(_op)
-                        print '!', coro, _op, op
+                        #~ print '!', coro, _op, op
                         
                     except StopIteration, e:
-                        print ">", repr(e)
+                        #~ print ">", repr(e)
                         if t.calls.has_key(coro):
                             wakeup = t.calls[coro]
                             wakeup[0].returns = e.message
@@ -176,11 +176,12 @@ class GreedyScheduler(Scheduler):
                         #~ if op is None:
                             #~ t.active.append((op, coro))
                         if op.__class__ in Socket.ops:
-                            #~ print '> add socket op:', op
-                            r = t.pool.add(op, coro)
+                            print 'ADDING SOCKET OP:', op
+                            r = t.poll.add(op, coro)
                             #~ print 'R',r
                             if r:
                                 _op = r
+                                print 'CONTINUE'
                                 continue
                             else:
                                 #~ print '#~ t.active.append((op, coro))'
@@ -194,11 +195,11 @@ class GreedyScheduler(Scheduler):
                             del t.sigwait[op.name]
                             break
                         elif isinstance(op, Events.Call):
-                            print '-------------------'
+                            print 'Call from', op
                             #~ t.diewait[ t.add(*op.args, **op.kws) ].appendleft((op, coro))
                             #~ break
                             newcoro = t.gen(*op.args, **op.kws) #t.active.append( (None, newcoro) )
-                            print t.active, op, coro, newcoro
+                            #~ print t.active, op, coro, newcoro
                             
                             t.calls[ newcoro ] = op, coro
                             #~ _op = op = None
@@ -217,15 +218,16 @@ class GreedyScheduler(Scheduler):
                             pass
                             #~ t.active.append((op, coro))
                     _op = op
-            #~ print '> POOLER'
-            t.run_pooler()
+            #~ print '> POLLER'
+            t.run_poller()
             #~ print '> TIMER'
             t.run_timer()
-            #~ print '> DONE', len(t.pool)
+            #~ print '> DONE', len(t.poll)
             
             
 
 if __name__ == "__main__":
+    
     def coro1(*args):
         print "coro1 start, args:", args
         for i in range(10):
@@ -284,11 +286,11 @@ if __name__ == "__main__":
     #~ m.add(coro1)
     #~ m.add(coro2)
     #~ m.add(coro3)
-    #~ coro4_instance = m.add(coro4)
-    #~ m.add(coro5)
-    #~ m.add(coroA)
-    #~ m.add(coroB)
-    #~ m.add(coroC)
+    coro4_instance = m.add(coro4)
+    m.add(coro5)
+    m.add(coroA)
+    m.add(coroB)
+    m.add(coroC)
     def A():
         yield 'a'
         yield 'A'
@@ -299,7 +301,7 @@ if __name__ == "__main__":
     def T():
         print "call to A returns: %r"%(yield Events.Call(A)).returns
         print "call to B returns: %r"%(yield Events.Call(B)).returns
-    m.add(T)
+    #~ m.add(T)
     m.run()
 
     #~ print isinstance(Socket.Read(),(Socket.Read,Socket.Read,Socket.Write,Socket.Accept))

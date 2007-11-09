@@ -1,13 +1,15 @@
-from corosive.web import *
-from corosive.core import *
-import sys
 import os 
+import sys
+sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
+print sys.path
+from cogen.web import *
+from cogen.core import *
 import thread
 import random
 
 from socket import *
 from cStringIO import StringIO
-from time import sleep
+from time import sleep  
 
 
 
@@ -24,7 +26,7 @@ class SocketTest_MixIn:
                 traceback.print_exc()
         t.m_run = thread.start_new_thread(run, ())
     def tearDown(t):
-        assert len(t.m.pool) == 0
+        assert len(t.m.poll) == 0
         assert len(t.m.active) == 0
     def test_read_lines(t):
         t.waitobj = None
@@ -37,7 +39,7 @@ class SocketTest_MixIn:
             t.waitobj = Socket.ReadLine(sock=obj.conn, len=1024) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
-                                    #   check pooler, send NL, check again
+                                    #   check poller, send NL, check again
             t.recvobj = yield t.waitobj
             try: 
                 # test for readline overflow'
@@ -57,10 +59,10 @@ class SocketTest_MixIn:
         sock.send("X"*512)
         sleep(0.5)
         t.assert_(coro not in t.m.active)
-        t.assert_(t.m.pool.waiting(coro) is t.waitobj)            
+        t.assert_(t.m.poll.waiting(coro) is t.waitobj)            
         sock.send("\n")
         sleep(0.5)
-        t.assert_(len(t.m.pool)==1)
+        t.assert_(len(t.m.poll)==1)
         t.assertEqual(t.waitobj.buff, "X"*512+"\n")
         sleep(0.5)
         sock.send("X"*1024)
@@ -72,7 +74,7 @@ class SocketTest_MixIn:
         sock.send(a_line*3)
         sleep(0.5)
         t.assertEqual(map(lambda x: x.buff,t.recvobj2), [a_line,a_line,a_line])
-        t.assert_(len(t.m.pool)==0)
+        t.assert_(len(t.m.poll)==0)
     def test_read_all(t):
         def reader():
             srv = Socket.New()

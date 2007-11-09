@@ -14,7 +14,7 @@ from cStringIO import StringIO
 from lib import *
 import socketwrappers as Socket
 
-class Pooler:
+class Poller:
     def run_once(t, sock, sockets):           
         obj, coro = pair = sockets[sock]
         del sockets[sock]
@@ -35,7 +35,7 @@ class Pooler:
         except:
             r = Exception(sys.exc_info())
         return r
-class SelectPooler(Pooler):
+class SelectPoller(Poller):
     def __init__(t):
         t.read_sockets = {}
         t.write_sockets = {}
@@ -48,7 +48,7 @@ class SelectPooler(Pooler):
                 if x is coro:
                     return obj
     def add(t, obj, coro):
-        #~ print 'ADD pool coro', obj, coro
+        #~ print 'ADD poll coro', obj, coro
         #~ print '>', r
         r = t.try_run_obj(obj)
         if r: 
@@ -65,9 +65,14 @@ class SelectPooler(Pooler):
     def run(t, timeout = 0):
         timeout = (timeout and timeout>0 and timeout/1000000) or (timeout and 0.02 or 0)
         #~ timeout = timeout and (timeout,) or (0,)
-        #~ print "RUNRUN", timeout, t.read_sockets, t.write_sockets
+        #~ if timeout == -1:
+            #~ timeout_param = ()
+        #~ else:
+            #~ timeout_param = (timeout and timeout/1000000 or 0,)
+        #~ timeout_param = (timeout,)
+        print "RUNRUN", timeout, t.read_sockets, t.write_sockets
         if t.read_sockets or t.write_sockets:
-            ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], timeout)
+            ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], *timeout_param)
             for sock in ready_to_read: 
                 result = t.run_once(sock, t.read_sockets)
                 #~ print '!!!', sock, result
@@ -78,9 +83,10 @@ class SelectPooler(Pooler):
                 if result:
                     yield result
         else:
+            return
             time.sleep(timeout/1000000)
             
-class EpollPooler(Pooler):
+class EpollPoller(Poller):
     def __init__(t, default_size = 20):
         t.fds = {}
         t.epoll_fd = epoll.epoll_create(default_size)
@@ -122,7 +128,7 @@ class EpollPooler(Pooler):
             time.sleep(timeout/1000000)
 try:
     import epoll
-    DefaultPooler = EpollPooler
+    DefaultPoller = EpollPoller
 except ImportError:
-    DefaultPooler = SelectPooler            
-#~ print DefaultPooler
+    DefaultPoller = SelectPoller            
+#~ print DefaultPoller

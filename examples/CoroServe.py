@@ -14,7 +14,7 @@ import sys
 def test(ServerClass = HTTPd, protocol="HTTP/1.0"):
     class HandlerClass(BaseHTTPRequestHandler):
         def version_string(t):
-            return "%s[%s,%s] %s" % (t.server_version, t.server.m.__class__.__name__, t.server.m.pool.__class__.__name__, t.sys_version)
+            return "%s[%s,%s] %s" % (t.server_version, t.server.m.__class__.__name__, t.server.m.poll.__class__.__name__, t.sys_version)
         def do_GET(t):
             yield Events.Call(t.send_response,200)
             yield Events.Call(t.send_header,"Content-type", "text/html")
@@ -30,6 +30,7 @@ def test(ServerClass = HTTPd, protocol="HTTP/1.0"):
 
                 Nulla quis felis. Mauris ultrices, arcu ut blandit eleifend, arcu odio porta libero, a posuere mi nisi nec elit. Phasellus in neque. In diam eros, venenatis quis, consectetuer et, ultrices non, arcu. Ut pretium, turpis a imperdiet suscipit, sapien tellus venenatis urna, feugiat egestas ante neque a orci. Cras orci sapien, porta et, pharetra sit amet, dignissim nonummy, lacus. Suspendisse facilisis turpis quis ante venenatis egestas. Sed et magna nec eros suscipit varius. Aliquam eu pede ut lectus rutrum bibendum. Ut ac tellus. Fusce porta dictum augue. Nunc vel nibh nec nulla pulvinar tempus. Mauris in tortor. Proin vehicula. Pellentesque consequat. Sed metus augue, condimentum eget, iaculis a, aliquam in, tellus.
             """)
+            print '---- DONE ----'
     if sys.argv[1:]:
         port = int(sys.argv[1])
     else:

@@ -1,5 +1,6 @@
 import socket
 import errno
+import exceptions
 class WrappedSocket(socket.socket):
     __name__ = "Socket"
     """

@@ -765,15 +765,15 @@ def main():
         
         
 if __name__ == "__main__":
-    #~ main()
-    import hotshot, hotshot.stats
-    prof = hotshot.Profile("stones.prof")
-    prof.runcall(main)
-    prof.close()
-    stats = hotshot.stats.load("stones.prof")
-    stats.strip_dirs()
-    stats.sort_stats('time', 'calls')
-    stats.print_stats(200)
+    main()
+    #~ import hotshot, hotshot.stats
+    #~ prof = hotshot.Profile("stones.prof")
+    #~ prof.runcall(main)
+    #~ prof.close()
+    #~ stats = hotshot.stats.load("stones.prof")
+    #~ stats.strip_dirs()
+    #~ stats.sort_stats('time', 'calls')
+    #~ stats.print_stats(200)
     #~ import pycallgraph
     #~ pycallgraph.start_trace()
     #~ main()
