@@ -9,6 +9,8 @@ class Signal:
         t.name = name
 class Call(SimpleArgs):
     pass    
+class AddCoro(SimpleArgs):
+    pass    
 class Join:
     def __init__(t, coro):
         t.coro = coro

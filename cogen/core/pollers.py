@@ -17,12 +17,13 @@ import socketwrappers as Socket
 class Poller:
     def run_once(t, sock, sockets):           
         obj, coro = pair = sockets[sock]
-        del sockets[sock]
+        
         try:
             obj = obj.run()
             
             if obj:
                 #~ print "RETURN"
+                del sockets[sock]
                 return obj, coro
             else:
                 sockets[sock] = pair
@@ -47,10 +48,10 @@ class SelectPoller(Poller):
                 obj, coro = socks[i]
                 if x is coro:
                     return obj
-    def add(t, obj, coro):
+    def add(t, obj, coro, run_obj=True):
         #~ print 'ADD poll coro', obj, coro
         #~ print '>', r
-        r = t.try_run_obj(obj)
+        r = run_obj and t.try_run_obj(obj) or False
         if r: 
             #~ if 
             return r
@@ -64,13 +65,13 @@ class SelectPoller(Poller):
         
     def run(t, timeout = 0):
         timeout = (timeout and timeout>0 and timeout/1000000) or (timeout and 0.02 or 0)
-        #~ timeout = timeout and (timeout,) or (0,)
+        timeout_param = (timeout,)
         #~ if timeout == -1:
             #~ timeout_param = ()
         #~ else:
             #~ timeout_param = (timeout and timeout/1000000 or 0,)
-        #~ timeout_param = (timeout,)
-        print "RUNRUN", timeout, t.read_sockets, t.write_sockets
+        
+        #~ print "RUNRUN", timeout, t.read_sockets, t.write_sockets
         if t.read_sockets or t.write_sockets:
             ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], *timeout_param)
             for sock in ready_to_read: 

@@ -58,7 +58,7 @@ class Scheduler:
         #~ while 1:
             #~ print len(t.active), len(t.poll), len(t.timewait)
             if t.active:
-                print len(t.active), len(t.calls), len(t.poll), t.next_timer_delta()
+                #~ print len(t.active), len(t.calls), len(t.poll), t.next_timer_delta()
             
                 _op, coro = t.active.popleft()
                 try:
@@ -92,6 +92,9 @@ class Scheduler:
                         t.active.extend(t.sigwait[op.name])
                         t.active.append((None, coro))
                         del t.sigwait[op.name]
+                    elif isinstance(op, Events.AddCoro):
+                        t.active.append( (None, t.gen(*op.args, **op.kws)) )
+                        t.active.append( (None, coro))
                     elif isinstance(op, Events.Call):
                         t.calls[ t.add(*op.args, **op.kws) ]= op, coro
                     elif isinstance(op, Events.Join):
@@ -103,6 +106,7 @@ class Scheduler:
                         t.active.append((op, coro))
             t.run_poller()
             t.run_timer()
+        print len(t.active), len(t.poll), len(t.timewait)
     def run_timer(t):
         if t.timewait:
             now = datetime.datetime.now() 
@@ -176,16 +180,17 @@ class GreedyScheduler(Scheduler):
                         #~ if op is None:
                             #~ t.active.append((op, coro))
                         if op.__class__ in Socket.ops:
-                            print 'ADDING SOCKET OP:', op
+                            #~ print 'ADDING SOCKET OP:', op
                             r = t.poll.add(op, coro)
-                            #~ print 'R',r
                             if r:
                                 _op = r
-                                print 'CONTINUE'
+                                #~ print 'CONTINUE'
                                 continue
                             else:
-                                #~ print '#~ t.active.append((op, coro))'
                                 break
+                        elif isinstance(op, Events.AddCoro):
+                            t.active.append( (None, t.gen(*op.args, **op.kws)) )
+                            
                         elif isinstance(op, Events.WaitForSignal):
                             t.sigwait[op.name].append((op, coro))
                             break
@@ -195,17 +200,9 @@ class GreedyScheduler(Scheduler):
                             del t.sigwait[op.name]
                             break
                         elif isinstance(op, Events.Call):
-                            print 'Call from', op
-                            #~ t.diewait[ t.add(*op.args, **op.kws) ].appendleft((op, coro))
-                            #~ break
+                            #~ print 'Call from', op
                             newcoro = t.gen(*op.args, **op.kws) #t.active.append( (None, newcoro) )
-                            #~ print t.active, op, coro, newcoro
-                            
                             t.calls[ newcoro ] = op, coro
-                            #~ _op = op = None
-                            #~ coro = newcoro
-                            #~ del newcoro
-                            #~ continue
                             t.active.appendleft( (None, newcoro) )
                             break
                         elif isinstance(op, Events.Join):

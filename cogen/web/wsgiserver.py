@@ -645,7 +645,12 @@ class WSGIServer(object):
         IPv6. The empty string or None are not allowed.
         
         For UNIX sockets, supply the filename as a string.""")
-    
+    def handle(t,conn):
+        try:
+            print 'Comunicating.'
+            yield Events.Call(conn.communicate)
+        finally:
+            yield Events.Call(conn.close)
     def start(t):
         """Run the server forever."""
         # We don't have to trap KeyboardInterrupt or SystemExit here,
@@ -699,6 +704,7 @@ class WSGIServer(object):
         
         t.ready = True
         while t.ready:
+            print 'Accepting.'
             obj = yield Socket.Accept(t.socket)
             s, addr = obj.conn, obj.addr
             if not t.ready:
@@ -728,10 +734,7 @@ class WSGIServer(object):
             
             conn = t.ConnectionClass(s, t.wsgi_app, environ)
             
-            try:
-                yield Events.Call(conn.communicate)
-            finally:
-                yield Events.Call(conn.close)
+            yield Events.AddCoro(t.handle, conn)
             #TODO: how scheduling ?
 
    
@@ -757,6 +760,7 @@ def main():
                 ('localhost', 8070), my_crazy_app,
                 server_name='localhost')
     m = GreedyScheduler()
+    #~ m = Scheduler()
     m.add(server.start)
     try:
         m.run()
