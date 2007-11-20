@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-2 -*-
+# -*- coding: utf-8 -*-
 '''
 Description, TODO
 
@@ -7,7 +7,7 @@ Simple usage:
     TODO
     
     
-Copyright (c) 2007, Mãrieº Ionel Cristian
+Copyright (c) 2007, MÄƒrieÅŸ Ionel Cristian
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
-__author__ = "Mãrieº Ionel Cristian"
-__email__ = "stephen_purcell at yahoo dot com"
+__author__ = "MÄƒrieÅŸ Ionel Cristian"
+__email__ = "ionel.mc at gmail dot com"
 __version__ = "$Revision$"
+__svnid__ = "$Id$"
 import core
 import web
