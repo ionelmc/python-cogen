@@ -16,7 +16,7 @@ from lib import *
 import events as Events
             
             
-class Scheduler:
+class BaseScheduler:
     def __init__(t, poller=DefaultPoller):
         t.active = collections.deque()
         t.sigwait = collections.defaultdict(collections.deque)
@@ -32,14 +32,19 @@ class Scheduler:
             return coro(*args, **kws)
         else:
             return coro
+            
     def add(t, coro, *args, **kws):
-        #~ print '> Adding coro:',coro,
         coro = t.gen(coro, *args, **kws)
-        #~ print ' gen:',coro
         assert coro
         t.active.append( (None, coro) )
         return coro
-
+        
+    def add_first(t, coro, *args, **kws):
+        coro = t.gen(coro, *args, **kws)
+        assert coro
+        t.active.appendleft( (None, coro) )
+        return coro
+        
     def handle_error(t, coro, inner=None):        
         print 
         print '-'*40
@@ -53,6 +58,29 @@ class Scheduler:
         else:
             print "Operation was: %s" % inner
         print '-'*40
+    def run_timer(t):
+        if t.timewait:
+            now = datetime.datetime.now() 
+            while t.timewait and t.timewait[0].wake_time <= now:
+                op = heapq.heappop(t.timewait)
+                t.active.appendleft((op, op.coro))
+    def next_timer_delta(t): 
+        #~ print t.active
+        #~ t.timerc -= 1
+        if t.timewait and not t.active:
+            return (datetime.datetime.now() - t.timewait[0].wake_time).microseconds
+        else:
+            if t.active:
+                return None
+            else:
+                return -1
+    def run_poller(t):
+        for ev in t.poll.run(timeout = t.next_timer_delta()):
+            #~ print "EVENT:",ev
+            obj, coro = ev
+            t.active.appendleft( ev )
+
+class NiceScheduler(BaseScheduler):
     def run(t):
         while t.active or t.poll or t.timewait:
         #~ while 1:
@@ -107,28 +135,9 @@ class Scheduler:
             t.run_poller()
             t.run_timer()
         print len(t.active), len(t.poll), len(t.timewait)
-    def run_timer(t):
-        if t.timewait:
-            now = datetime.datetime.now() 
-            while t.timewait and t.timewait[0].wake_time <= now:
-                op = heapq.heappop(t.timewait)
-                t.active.appendleft((op, op.coro))
-    def next_timer_delta(t): 
-        #~ print t.active
-        #~ t.timerc -= 1
-        if t.timewait and not t.active:
-            return (datetime.datetime.now() - t.timewait[0].wake_time).microseconds
-        else:
-            if t.active:
-                return None
-            else:
-                return -1
-    def run_poller(t):
-        for ev in t.poll.run(timeout = t.next_timer_delta()):
-            print "EVENT:",ev
-            obj, coro = ev
-            t.active.appendleft( ev )
-class GreedyScheduler(Scheduler):
+
+
+class GreedyScheduler(BaseScheduler):
     def run(t):
         #~ print 'RUN'
         import win32console
@@ -221,8 +230,103 @@ class GreedyScheduler(Scheduler):
             t.run_timer()
             #~ print '> DONE', len(t.poll)
             
+class Scheduler(BaseScheduler):            
+    def run_coro(t, coro, _op):
+        try:
+            if isinstance(_op, exceptions.Exception):
+                op = coro.throw(_op.message[0])
+            else:
+                op = coro.send(_op)
             
-
+        except StopIteration, e:
+            if t.calls.has_key(coro):
+                wakeup = t.calls[coro]
+                wakeup[0].returns = e.message
+                t.active.appendleft(wakeup)
+                del t.calls[coro]
+                del wakeup
+            if t.diewait.has_key(coro):
+                for wakeup in t.diewait[coro]:
+                    wakeup[0].returns = e.message
+                t.active.extendleft(t.diewait[coro])
+                del wakeup
+                del t.diewait[coro]
+            
+        except:
+            t.handle_error(coro, _op)
+        else:
+            return op or Events.Pass
+    def run_ops(t, prio, coro, op):
+        #~ print '-run_op', prio,coro,op
+        if isinstance(op, Socket.ops):
+        #~ if op.__class__ in Socket.ops:
+            r = t.poll.add(op, coro)
+            if r:
+                #~ print '\n>>r', prio, coro, op, r
+                if prio:
+                    return r
+                else:
+                    t.active.appendleft((r, coro))
+        elif isinstance(op, Events.AddCoro):
+            t.active.append( (None, t.gen(*op.args, **op.kws)) )
+            if prio:
+                return op
+            else:
+                t.active.append( (None, coro))
+        elif isinstance(op, Events.WaitForSignal):
+            t.sigwait[op.name].append((op, coro))
+        elif isinstance(op, Events.Signal):
+            if prio:
+                t.active.appendleft((None, coro))
+                t.active.extendleft(t.sigwait[op.name])
+            else:
+                t.active.append((None, coro))
+                t.active.extend(t.sigwait[op.name])
+            del t.sigwait[op.name]
+        elif isinstance(op, Events.Call):
+            if prio:
+                t.calls[ t.add_first(*op.args, **op.kws) ] = op, coro
+            else:
+                t.calls[ t.add(*op.args, **op.kws) ] = op, coro
+        elif isinstance(op, Events.Join):
+            t.diewait[ op.coro ].append((op, coro))
+        elif isinstance(op, Events.Sleep):
+            op.coro = coro
+            heapq.heappush(t.timewait, op)
+        else:
+            if not prio:
+                t.active.append((op, coro))        
+    def run(t):
+        while t.active or t.poll or t.timewait:
+            #~ print 'RUN LOOP'
+            if t.active:
+                #~ print '1', t.active
+                _op, coro = t.active.popleft()
+                while True:
+                    #~ print '2', t.active
+                    op = t.run_coro(coro, _op)
+                    #~ print "Sending %s to coro %s, %s returned." % (_op, coro, op)
+                    if op is Events.Pass:
+                        t.active.append((op, coro))
+                        break
+                    prio = None
+                    if isinstance(op, types.TupleType):
+                        try:
+                            prio, op = op
+                        except ValueError:
+                            #~ print 'fuck'
+                            t.run_coro(t, coro, Exception("Bad op"))
+                    
+                    if op:
+                        _op = t.run_ops(prio, coro, op)
+                        #~ print ">_OP", op, _op
+                        if not _op:
+                            break  
+                    else:
+                        break
+            t.run_poller()
+            t.run_timer()
+        print 'SCHEDULER IS DEAD'
 if __name__ == "__main__":
     
     def coro1(*args):
@@ -279,7 +383,7 @@ if __name__ == "__main__":
         yield Events.Sleep(datetime.timedelta(milliseconds=100))
         print "coroC END"
         
-    m = GreedyScheduler()
+    m = Scheduler()
     #~ m.add(coro1)
     #~ m.add(coro2)
     #~ m.add(coro3)

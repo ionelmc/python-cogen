@@ -29,6 +29,7 @@ class Poller:
                 sockets[sock] = pair
         except:
             #~ print "EXC RETURN"
+            del sockets[sock]
             return Exception(sys.exc_info()), coro
     def try_run_obj(t, obj):
         try:
@@ -56,6 +57,7 @@ class SelectPoller(Poller):
             #~ if 
             return r
         else:
+            #~ print t.read_sockets, obj
             if obj.__class__ in Socket.read_ops:
                 assert obj.sock not in t.read_sockets
                 t.read_sockets[obj.sock] = obj, coro

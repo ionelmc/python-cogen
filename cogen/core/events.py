@@ -16,6 +16,9 @@ class Join:
         t.coro = coro
 class Semaphore:
     pass #todo
+
+class Pass:
+    pass #todo
     
 class Sleep:
     def __init__(t, val):

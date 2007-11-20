@@ -1,10 +1,10 @@
 import os 
 import sys
 sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
-print sys.path
+#~ print sys.path
 from cogen.web import *
 from cogen.core import *
-import thread
+import thread, threading
 import random
 
 from socket import *
@@ -20,12 +20,16 @@ class SocketTest_MixIn:
         t.m = t.scheduler()
         def run():
             try:
+                time.sleep(1)
                 t.m.run()
             except:
                 import traceback
                 traceback.print_exc()
-        t.m_run = thread.start_new_thread(run, ())
+        t.m_run = threading.Thread(target=run)
+        
     def tearDown(t):
+        #~ print t.m.active, t.m.poll
+        
         assert len(t.m.poll) == 0
         assert len(t.m.active) == 0
     def test_read_lines(t):
@@ -54,6 +58,8 @@ class SocketTest_MixIn:
                 (yield Socket.ReadLine(obj.conn, 1024))
             )
         coro = t.m.add(reader)
+        t.m_run.start()
+        sleep(0.1)
         sock = socket()
         sock.connect(t.local_addr)
         sock.send("X"*512)
@@ -72,9 +78,10 @@ class SocketTest_MixIn:
         sleep(0.5)
         a_line = "X"*64+"\n"
         sock.send(a_line*3)
-        sleep(0.5)
+        sleep(1.5)
         t.assertEqual(map(lambda x: x.buff,t.recvobj2), [a_line,a_line,a_line])
         t.assert_(len(t.m.poll)==0)
+        t.failIf(t.m_run.isAlive())
     def test_read_all(t):
         def reader():
             srv = Socket.New()
@@ -85,6 +92,7 @@ class SocketTest_MixIn:
             t.recvobj = yield Socket.Read(obj.conn, 1024*4)
             t.recvobj_all = yield Socket.ReadAll(obj.conn, 1024**2-1024*4)
         coro = t.m.add(reader)
+        t.m_run.start()
         sock = socket()
         sock.connect(t.local_addr)
         sent = 0
@@ -97,9 +105,12 @@ class SocketTest_MixIn:
         t.assert_(len(t.recvobj.buff)<=1024*4)
         sleep(1)
         t.assertEqual(len(t.recvobj_all.buff)+len(t.recvobj.buff),1024**2)
+        t.failIf(t.m_run.isAlive())
     def test_write_all(t):
         def writer():
-            obj = yield Socket.Connect(Socket.New(), t.local_addr)        
+            #~ print 'connecting'
+            obj = yield Socket.Connect(Socket.New(), t.local_addr)    
+            #~ print 'connected', obj            
             #~ t.writeobj = yield Socket.WriteAll(obj.sock, 'X'*(1024**2)*100)
             #~ print t.writeobj, t.writeobj.sent
             t.writeobj = yield Socket.Write(obj.sock, 'X'*(1024**2))
@@ -114,9 +125,12 @@ class SocketTest_MixIn:
         srv.bind(t.local_addr)
         srv.listen(0)
         coro = t.m.add(writer)
+        t.m_run.start()
         sleep(1)
         while 1:
             sleep(0.2)
+            #~ print t.m_run.isAlive()
+            #~ print t.m_run
             try:
                 cli, addr = srv.accept()    
                 break
@@ -143,9 +157,19 @@ class SocketTest_MixIn:
                 else:
                     raise
         t.assertEqual(t.writeobj.sent+t.writeobj_all.sent, total)
-class GreedyScheduler_SocketTest(SocketTest_MixIn, unittest.TestCase):
-    scheduler = GreedyScheduler
-class Scheduler_SocketTest(SocketTest_MixIn, unittest.TestCase):
+        t.failIf(t.m_run.isAlive())
+class PrioMixIn:
+    prio = True
+class NoPrioMixIn:
+    prio = False
+    
+#~ class GreedyScheduler_SocketTest(SocketTest_MixIn, unittest.TestCase):
+    #~ scheduler = GreedyScheduler
+#~ class NiceScheduler_SocketTest(SocketTest_MixIn, unittest.TestCase):
+    #~ scheduler = NiceScheduler
+class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 #~ def suite():
     #~ return unittest.TestSuite([
