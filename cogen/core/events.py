@@ -1,5 +1,16 @@
 import datetime
-from lib import *
+
+class SimpleAttrib:
+    def __init__(t, **kws):
+        t.__dict__.update(kws)
+class SimpleArgs:
+    def __init__(t, *args, **kws):
+        t.args = args
+        t.kws = kws
+    def __repr__(t):
+        return '<SimpleArgs args:%r kws:%r>' % (t.args, t.kws)
+
+
 
 class WaitForSignal:
     def __init__(t, name):
@@ -8,17 +19,19 @@ class Signal:
     def __init__(t, name):
         t.name = name
 class Call(SimpleArgs):
-    pass    
-class AddCoro(SimpleArgs):
-    pass    
+    pass
+    
+class AddCoro:
+    def __init__(t, *args, **kws):
+        t.args = args
+        t.keep_running = kws.get('keep_running', True)
+    
 class Join:
     def __init__(t, coro):
         t.coro = coro
 class Semaphore:
     pass #todo
 
-class Pass:
-    pass #todo
     
 class Sleep:
     def __init__(t, val):

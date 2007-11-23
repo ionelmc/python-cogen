@@ -15,6 +15,10 @@ from lib import *
 import socketwrappers as Socket
 
 class Poller:
+    """
+    A poller just checks if there are ready-sockets for the operations.
+    The operations are not done here, they are done in the socket ops instances.
+    """
     def run_once(t, sock, sockets):           
         obj, coro = pair = sockets[sock]
         
@@ -22,13 +26,11 @@ class Poller:
             obj = obj.run()
             
             if obj:
-                #~ print "RETURN"
                 del sockets[sock]
                 return obj, coro
             else:
                 sockets[sock] = pair
         except:
-            #~ print "EXC RETURN"
             del sockets[sock]
             return Exception(sys.exc_info()), coro
     def try_run_obj(t, obj):
@@ -50,14 +52,10 @@ class SelectPoller(Poller):
                 if x is coro:
                     return obj
     def add(t, obj, coro, run_obj=True):
-        #~ print 'ADD poll coro', obj, coro
-        #~ print '>', r
         r = run_obj and t.try_run_obj(obj) or False
         if r: 
-            #~ if 
             return r
         else:
-            #~ print t.read_sockets, obj
             if obj.__class__ in Socket.read_ops:
                 assert obj.sock not in t.read_sockets
                 t.read_sockets[obj.sock] = obj, coro
@@ -67,18 +65,12 @@ class SelectPoller(Poller):
         
     def run(t, timeout = 0):
         timeout = (timeout and timeout>0 and timeout/1000000) or (timeout and 0.02 or 0)
-        timeout_param = (timeout,)
-        #~ if timeout == -1:
-            #~ timeout_param = ()
-        #~ else:
-            #~ timeout_param = (timeout and timeout/1000000 or 0,)
-        
-        #~ print "RUNRUN", timeout, t.read_sockets, t.write_sockets
+        # set a small step for timeout if it's negative (meaning there are no active coros but there are waiting ones in the socket poll)
+        #                            0 if it's none (there are active coros, we don't want to waste time in the poller)
         if t.read_sockets or t.write_sockets:
-            ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], *timeout_param)
+            ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], timeout)
             for sock in ready_to_read: 
                 result = t.run_once(sock, t.read_sockets)
-                #~ print '!!!', sock, result
                 if result:
                     yield result
             for sock in ready_to_write: 
@@ -101,9 +93,7 @@ class EpollPoller(Poller):
             if x is coro:
                 return obj
     def add(t, obj, coro):
-        #print obj
         r = t.try_run_obj(obj)
-        #print r
         if r: 
             return r
         else:
@@ -118,10 +108,8 @@ class EpollPoller(Poller):
                 epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLOUT)
     def run(t, timeout = 0):
         timeout = (timeout and timeout>0 and timeout/1000) or (timeout or 0)
-        #print 'run', timeout
         if t.fds:
             events = epoll.epoll_wait(t.epoll_fd, 10, timeout)
-            #print events
             for ev, fd in events:
                 result = t.run_once(fd, t.fds)
                 if result:
@@ -134,4 +122,3 @@ try:
     DefaultPoller = EpollPoller
 except ImportError:
     DefaultPoller = SelectPoller            
-#~ print DefaultPoller

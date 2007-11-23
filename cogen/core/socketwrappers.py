@@ -16,7 +16,7 @@ class WrappedSocket(socket.socket):
         t.rl_pending = ''
 New = WrappedSocket
 
-class Operation: #(SimpleAttrib):
+class Operation:
     def try_run(t):
         try:
             return t.run()

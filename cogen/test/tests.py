@@ -28,34 +28,33 @@ class SocketTest_MixIn:
         t.m_run = threading.Thread(target=run)
         
     def tearDown(t):
-        #~ print t.m.active, t.m.poll
+        pass
         
-        assert len(t.m.poll) == 0
-        assert len(t.m.active) == 0
     def test_read_lines(t):
         t.waitobj = None
+        @coroutine
         def reader():
             srv = Socket.New()
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
-            obj = yield Socket.Accept(srv)
+            obj = yield t.prio, Socket.Accept(srv)
             t.waitobj = Socket.ReadLine(sock=obj.conn, len=1024) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
-            t.recvobj = yield t.waitobj
+            t.recvobj = yield t.prio, t.waitobj
             try: 
                 # test for readline overflow'
-                t.waitobj2 = yield Socket.ReadLine(sock=obj.conn, len=512)
+                t.waitobj2 = yield t.prio, Socket.ReadLine(sock=obj.conn, len=512)
             except exceptions.OverflowError, e:
                 t.waitobj2 = "OK"
-                t.waitobj_cleanup = yield Socket.Read(sock=obj.conn, len=1024*8) 
+                t.waitobj_cleanup = yield t.prio, Socket.Read(sock=obj.conn, len=1024*8) 
                                         # eat up the remaining data waiting on socket
             t.recvobj2 = (
-                (yield Socket.ReadLine(obj.conn, 1024)),
-                (yield Socket.ReadLine(obj.conn, 1024)),
-                (yield Socket.ReadLine(obj.conn, 1024))
+                (yield t.prio, Socket.ReadLine(obj.conn, 1024)),
+                (yield t.prio, Socket.ReadLine(obj.conn, 1024)),
+                (yield t.prio, Socket.ReadLine(obj.conn, 1024))
             )
         coro = t.m.add(reader)
         t.m_run.start()
@@ -80,19 +79,22 @@ class SocketTest_MixIn:
         sock.send(a_line*3)
         sleep(1.5)
         t.assertEqual(map(lambda x: x.buff,t.recvobj2), [a_line,a_line,a_line])
-        t.assert_(len(t.m.poll)==0)
+        t.assertEqual(len(t.m.poll), 0)
+        t.assertEqual(len(t.m.active), 0)
         t.failIf(t.m_run.isAlive())
     def test_read_all(t):
+        @coroutine
         def reader():
             srv = Socket.New()
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
-            obj = yield Socket.Accept(srv)
-            t.recvobj = yield Socket.Read(obj.conn, 1024*4)
-            t.recvobj_all = yield Socket.ReadAll(obj.conn, 1024**2-1024*4)
+            obj = yield t.prio, Socket.Accept(srv)
+            t.recvobj = yield t.prio, Socket.Read(obj.conn, 1024*4)
+            t.recvobj_all = yield t.prio, Socket.ReadAll(obj.conn, 1024**2-1024*4)
         coro = t.m.add(reader)
         t.m_run.start()
+        sleep(0.1)
         sock = socket()
         sock.connect(t.local_addr)
         sent = 0
@@ -105,8 +107,11 @@ class SocketTest_MixIn:
         t.assert_(len(t.recvobj.buff)<=1024*4)
         sleep(1)
         t.assertEqual(len(t.recvobj_all.buff)+len(t.recvobj.buff),1024**2)
+        t.assertEqual(len(t.m.poll), 0)
+        t.assertEqual(len(t.m.active), 0)
         t.failIf(t.m_run.isAlive())
     def test_write_all(t):
+        @coroutine
         def writer():
             #~ print 'connecting'
             obj = yield Socket.Connect(Socket.New(), t.local_addr)    
@@ -157,25 +162,82 @@ class SocketTest_MixIn:
                 else:
                     raise
         t.assertEqual(t.writeobj.sent+t.writeobj_all.sent, total)
+        t.assertEqual(len(t.m.poll), 0)
+        t.assertEqual(len(t.m.active), 0)
         t.failIf(t.m_run.isAlive())
+class SchedulerTest_MixIn:
+    def setUp(t):
+        t.m = t.scheduler()
+        t.msgs = []
+        
+    def tearDown(t):
+        pass
+    def test_signal(t):
+        @coroutine
+        def signalee():
+            t.msgs.append(1)
+            yield Events.WaitForSignal("test_sig")
+            t.msgs.append(3)
+        @coroutine
+        def signaler():
+            t.msgs.append(2)
+            yield Events.Signal("test_sig")
+            t.msgs.append(4)
+        t.m.add(signalee)
+        t.m.add(signaler)
+        t.m.run()
+        t.assertEqual(t.msgs, [1,2,3,4])
+    def test_add_coro(t):
+        @coroutine
+        def added():
+            t.msgs.append(2)
+        def adder(c):
+            t.msgs.append(1)
+            yield Events.AddCoro(c)
+            t.msgs.append(3)
+        t.m.add(coroutine(adder(added)))
+        t.m.run()
+        t.assertEqual(t.msgs, [1,2,3])
+    def test_call(t):
+        @coroutine
+        def caller():
+            t.msgs.append(1)
+            ret = yield Events.Call(callee_1)
+            t.msgs.append(ret)
+            yield Events.Call(callee_2)
+            t.msgs.append(3)
+            yield Events.Call(callee_3)
+            t.msgs.append(3)
+            yield Events.Call(callee_4)
+            t.msgs.append(3)
+        @coroutine
+        def callee_1():
+            raise StopIteration("return_val")
+        @coroutine
+        def callee_2():
+            pass
+        @coroutine
+        def callee_3():
+            pass
+        @coroutine
+        def callee_4():
+            pass
+        t.m.add(caller)
+        t.m.run()
+        
+        print t.msgs
 class PrioMixIn:
     prio = True
 class NoPrioMixIn:
     prio = False
     
-#~ class GreedyScheduler_SocketTest(SocketTest_MixIn, unittest.TestCase):
-    #~ scheduler = GreedyScheduler
-#~ class NiceScheduler_SocketTest(SocketTest_MixIn, unittest.TestCase):
-    #~ scheduler = NiceScheduler
+class SchedulerTest(SchedulerTest_MixIn, unittest.TestCase):
+    scheduler = Scheduler
 class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
-#~ def suite():
-    #~ return unittest.TestSuite([
-        #~ GreedyScheduler_SocketTest,
-        #~ Scheduler_SocketTest
-    #~ ])
+
 if __name__ == '__main__':
     sys.argv.append('-v')
     unittest.main()

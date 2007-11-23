@@ -7,7 +7,7 @@ import time
 import socket # For gethostbyaddr()
 import mimetools
 from cStringIO import StringIO
-from cogen.core import Scheduler, GreedyScheduler, Socket, Events
+from cogen.core import Scheduler, Socket, Events
 
 # Default error message
 DEFAULT_ERROR_MESSAGE = """\
@@ -65,9 +65,10 @@ class HTTPd:
             #~ print handler
             t.m.add(handler.finish,t.m.add(handler.run))
             yield
-    def quickstart(t, manager=GreedyScheduler, **kw):
+    def quickstart(t, manager=Scheduler, **kw):
         
         t.m = manager(**kw)
+        t.m.default_prio = 1
         t.m.add(t.serve_forever)
         try:
             t.m.run()

@@ -6,7 +6,9 @@ Simple usage:
 
     TODO
     
-    
+'''
+
+__license__ = '''
 Copyright (c) 2007, Mărieş Ionel Cristian
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,5 +34,5 @@ __author__ = "Mărieş Ionel Cristian"
 __email__ = "ionel.mc at gmail dot com"
 __version__ = "$Revision$"
 __svnid__ = "$Id$"
+
 import core
-import web
