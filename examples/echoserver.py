@@ -1,9 +1,10 @@
 import sys, os
 sys.path.append(os.path.split(os.getcwd())[0])
 
-from cogen.core import Socket, GreedyScheduler
+from cogen.core import Socket, Scheduler, coroutine
 from cStringIO import StringIO
 
+@coroutine
 def server():
     srv = Socket.New()
     srv.setblocking(0)
@@ -13,7 +14,7 @@ def server():
         print "Listening..."
         obj = yield Socket.Accept(srv)
         print "Connection from %s:%s" % obj.addr
-        m.add(handler, obj.conn, obj.addr)
+        m.add(coroutine(handler(obj.conn, obj.addr)))
         yield
         
 def handler(sock, addr):
@@ -28,6 +29,6 @@ def handler(sock, addr):
             return
         wobj = yield Socket.Write(sock, robj.buff)
 
-m = GreedyScheduler()
+m = Scheduler()
 m.add(server)
 m.run()
