@@ -8,7 +8,7 @@ class SimpleArgs:
         t.args = args
         t.kws = kws
     def __repr__(t):
-        return '<SimpleArgs args:%r kws:%r>' % (t.args, t.kws)
+        return '<%s args:%r kws:%r>' % (t.__class__.__name__, t.args, t.kws)
 
 
 
@@ -24,7 +24,15 @@ class Call(SimpleArgs):
 class AddCoro:
     def __init__(t, *args, **kws):
         t.args = args
-        t.keep_running = kws.get('keep_running', True)
+
+class Pass:
+    def __init__(t, coro, op = None):
+        t.coro = coro
+        t.op = op
+    
+class Complete:
+    def __init__(t, *args):
+        t.args = args
     
 class Join:
     def __init__(t, coro):

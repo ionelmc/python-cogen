@@ -1,13 +1,13 @@
 __version__ = "0.1"
 
-__all__ = ["HTTPd", "BaseHTTPRequestHandler"]
+__all__ = ["HTTPServer", "BaseHTTPRequestHandler"]
 
 import sys
 import time
 import socket # For gethostbyaddr()
 import mimetools
 from cStringIO import StringIO
-from cogen.core import Scheduler, Socket, Events
+from cogen.core import Scheduler, Socket, Events, coroutine
 
 # Default error message
 DEFAULT_ERROR_MESSAGE = """\
@@ -25,7 +25,7 @@ DEFAULT_ERROR_MESSAGE = """\
 def _quote_html(html):
     return html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-class HTTPd:
+class HTTPServer:
 
     address_family = socket.AF_INET
     socket_type = socket.SOCK_STREAM
@@ -52,6 +52,7 @@ class HTTPd:
         t.socket.listen(t.request_queue_size)
     def server_close(t):
         t.socket.close()
+    @coroutine
     def serve_forever(t):
         """Handle one request at a time until doomsday."""
         while 1:

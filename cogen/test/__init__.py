@@ -173,29 +173,38 @@ class SchedulerTest_MixIn:
     def tearDown(t):
         pass
     def test_signal(t):
+        class X:
+            pass
+        x = X()
         @coroutine
         def signalee():
             t.msgs.append(1)
             yield Events.WaitForSignal("test_sig")
             t.msgs.append(3)
+            yield Events.WaitForSignal(x)
+            t.msgs.append(5)
         @coroutine
         def signaler():
             t.msgs.append(2)
             yield Events.Signal("test_sig")
             t.msgs.append(4)
+            yield Events.Signal(x)
+            t.msgs.append(6)
+            
         t.m.add(signalee)
         t.m.add(signaler)
         t.m.run()
-        t.assertEqual(t.msgs, [1,2,3,4])
+        t.assertEqual(t.msgs, [1,2,3,4,5,6])
     def test_add_coro(t):
         @coroutine
         def added():
             t.msgs.append(2)
+        @coroutine
         def adder(c):
             t.msgs.append(1)
             yield Events.AddCoro(c)
             t.msgs.append(3)
-        t.m.add(coroutine(adder(added)))
+        t.m.add(adder, added)
         t.m.run()
         t.assertEqual(t.msgs, [1,2,3])
     def test_call(t):
@@ -203,22 +212,28 @@ class SchedulerTest_MixIn:
         def caller():
             t.msgs.append(1)
             ret = yield Events.Call(callee_1)
-            t.msgs.append(ret)
-            yield Events.Call(callee_2)
-            t.msgs.append(3)
-            yield Events.Call(callee_3)
-            t.msgs.append(3)
-            yield Events.Call(callee_4)
+            t.msgs.append(ret.result)
+            ret = yield Events.Call(callee_2)
+            t.msgs.append(ret.result is None and 3 or -1)
+            try:
+                ret = yield Events.Call(callee_3)
+            except Exception, e:
+                t.msgs.append(e.message=='some_message' and 4 or -1)
+             
+            ret = yield Events.Call(callee_4)
             t.msgs.append(3)
         @coroutine
         def callee_1():
-            raise StopIteration("return_val")
+            raise StopIteration(2)
         @coroutine
         def callee_2():
             pass
         @coroutine
         def callee_3():
-            pass
+            yield
+            raise Exception("some_message")
+            yield
+            
         @coroutine
         def callee_4():
             pass

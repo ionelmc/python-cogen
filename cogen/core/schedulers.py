@@ -27,14 +27,16 @@ class Scheduler:
         t.idle = 0
         t.timerc = 1
         
+    def _init_coro(t, coro, *args, **kws):
+        return coro(*args, **kws)
             
     def add(t, coro, *args, **kws):
-        assert hasattr(coro, 'run_op')
+        coro = t._init_coro(coro, *args, **kws)
         t.active.append( (None, coro) )
         return coro
         
     def add_first(t, coro, *args, **kws):
-        assert hasattr(coro, 'run_op')
+        coro = t._init_coro(coro, *args, **kws)
         t.active.appendleft( (None, coro) )
         return coro
         
@@ -67,23 +69,27 @@ class Scheduler:
             if r:
                 #~ print '\n>>r', prio, coro, op, r
                 if prio:
-                    return r
+                    return coro, r
                 else:
                     t.active.appendleft((r, coro))
+        elif isinstance(op, Events.Pass):
+            #~ print "Passing %r %r" % (op.coro, op.op)
+            return op.coro, op.op
         elif isinstance(op, Events.AddCoro):
-            #~ print '-', op.args
             for i in op.args:
-                if isinstance(i, Coroutine):
-                    i = (None, i)
                 if prio:
-                    t.active.appendleft(i)
+                    t.add_first(i)
                 else:
-                    t.active.append(i)
-            if op.keep_running:
-                if prio:
-                    return op
-                else:
-                    t.active.append( (None, coro))
+                    t.add(i)
+            if prio:
+                return coro, op
+            else:
+                t.active.append( (None, coro))
+        elif isinstance(op, Events.Complete):
+            if prio:
+                t.active.extendleft(op.args)
+            else:
+                t.active.extend(op.args)
         elif isinstance(op, Events.WaitForSignal):
             t.sigwait[op.name].append((op, coro))
         elif isinstance(op, Events.Signal):
@@ -96,9 +102,12 @@ class Scheduler:
             del t.sigwait[op.name]
         elif isinstance(op, Events.Call):
             if prio:
-                t.calls[ t.add_first(*op.args, **op.kws) ] = op, coro
+                callee = t.add_first(*op.args, **op.kws)
             else:
-                t.calls[ t.add(*op.args, **op.kws) ] = op, coro
+                callee = t.add(*op.args, **op.kws) 
+            callee.caller = coro
+            callee.prio = prio
+            del callee
         elif isinstance(op, Events.Join):
             t.diewait[ op.coro ].append((op, coro))
         elif isinstance(op, Events.Sleep):
@@ -106,15 +115,17 @@ class Scheduler:
             heapq.heappush(t.timewait, op)
         else:
             if not prio:
-                t.active.append((op, coro))        
+                t.active.append((op, coro))
+        return None, None
+        
     def run(t):
         while t.active or t.poll or t.timewait:
             if t.active:
-                #~ print '>',t.active[0]
                 _op, coro = t.active.popleft()
                 while True:
+                    #~ print ">Sending %s to coro %s, " % (_op, coro),
                     op = coro.run_op(_op)
-                    #~ print "Sending %s to coro %s, %s returned." % (_op, coro, op)
+                    #~ print op, "returned."
                     if op is None:
                         t.active.append((op, coro))
                         break
@@ -123,15 +134,11 @@ class Scheduler:
                         try:
                             prio, op = op
                         except ValueError:
-                            #~ print 'fuck'
                             t.run_coro(t, coro, Exception("Bad op"))
-                    #~ if op:
-                    _op = t.run_ops(prio, coro, op)
-                    #~ print ">_OP", op, _op
+                    coro, _op = t.run_ops(prio, coro, op)
                     if not _op:
                         break  
-                    #~ else:
-                        #~ break
+                    
             t.run_poller()
             t.run_timer()
         #~ print 'SCHEDULER IS DEAD'
