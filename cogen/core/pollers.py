@@ -11,8 +11,7 @@ import errno
 import exceptions
 from cStringIO import StringIO
 
-from lib import *
-import socketwrappers as Socket
+import sockets
 
 class Poller:
     """
@@ -56,10 +55,10 @@ class SelectPoller(Poller):
         if r: 
             return r
         else:
-            if obj.__class__ in Socket.read_ops:
+            if obj.__class__ in sockets.read_ops:
                 assert obj.sock not in t.read_sockets
                 t.read_sockets[obj.sock] = obj, coro
-            if obj.__class__ in Socket.write_ops:
+            if obj.__class__ in sockets.write_ops:
                 assert obj.sock not in t.write_sockets
                 t.write_sockets[obj.sock] = obj, coro
         
@@ -99,11 +98,11 @@ class EpollPoller(Poller):
         else:
             fd = obj.sock.fileno()
                 
-            if obj.__class__ in Socket.read_ops:
+            if obj.__class__ in sockets.read_ops:
                 assert fd not in t.fds
                 t.fds[fd] = obj, coro
                 epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLIN)
-            if obj.__class__ in Socket.write_ops:
+            if obj.__class__ in sockets.write_ops:
                 t.fds[fd] = obj, coro
                 epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLOUT)
     def run(t, timeout = 0):

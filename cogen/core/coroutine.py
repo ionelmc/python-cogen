@@ -1,6 +1,6 @@
 import types
 import sys
-import events as Events
+import events
 
 def coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -47,7 +47,7 @@ class Coroutine:
         if t.waiters:
             coros.extend(t.waiters)
         t.waiters = None
-        return Events.Complete(*coros)
+        return events.Complete(*coros)
     def run_op(t, op):        
         #~ print 'Run op: %r on coro: %r' % (op, t)
         assert t.state < t.STATE_COMPLETED
@@ -82,7 +82,7 @@ class Coroutine:
             t.state = t.STATE_FAILED
             t.exception = Exception(sys.exc_info())
             if t.caller:
-                rop = t.prio, Events.Pass(t.caller, t.exception)
+                rop = t.prio, events.Pass(t.caller, t.exception)
             else:
                 t.handle_error(op)
                 rop = t._run_completion()

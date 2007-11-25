@@ -11,9 +11,10 @@ import heapq
 from cStringIO import StringIO
 
 
-from coroutine import coroutine, Coroutine
-from pollers import DefaultPoller, Socket
-import events as Events
+from coroutine import coroutine
+from pollers import DefaultPoller
+import events
+import sockets
             
 class Scheduler:
     default_prio = None
@@ -63,8 +64,8 @@ class Scheduler:
 
     def run_ops(t, prio, coro, op):
         #~ print '-run_op', prio,coro,op
-        if isinstance(op, Socket.ops):
-        #~ if op.__class__ in Socket.ops:
+        if isinstance(op, sockets.ops):
+        #~ if op.__class__ in sockets.ops:
             r = t.poll.add(op, coro)
             if r:
                 #~ print '\n>>r', prio, coro, op, r
@@ -72,10 +73,10 @@ class Scheduler:
                     return coro, r
                 else:
                     t.active.appendleft((r, coro))
-        elif isinstance(op, Events.Pass):
+        elif isinstance(op, events.Pass):
             #~ print "Passing %r %r" % (op.coro, op.op)
             return op.coro, op.op
-        elif isinstance(op, Events.AddCoro):
+        elif isinstance(op, events.AddCoro):
             for i in op.args:
                 if prio:
                     t.add_first(i)
@@ -85,14 +86,14 @@ class Scheduler:
                 return coro, op
             else:
                 t.active.append( (None, coro))
-        elif isinstance(op, Events.Complete):
+        elif isinstance(op, events.Complete):
             if prio:
                 t.active.extendleft(op.args)
             else:
                 t.active.extend(op.args)
-        elif isinstance(op, Events.WaitForSignal):
+        elif isinstance(op, events.WaitForSignal):
             t.sigwait[op.name].append((op, coro))
-        elif isinstance(op, Events.Signal):
+        elif isinstance(op, events.Signal):
             if prio:
                 t.active.appendleft((None, coro))
                 t.active.extendleft(t.sigwait[op.name])
@@ -100,7 +101,7 @@ class Scheduler:
                 t.active.extend(t.sigwait[op.name])
                 t.active.append((None, coro))
             del t.sigwait[op.name]
-        elif isinstance(op, Events.Call):
+        elif isinstance(op, events.Call):
             if prio:
                 callee = t.add_first(*op.args, **op.kws)
             else:
@@ -108,9 +109,9 @@ class Scheduler:
             callee.caller = coro
             callee.prio = prio
             del callee
-        elif isinstance(op, Events.Join):
+        elif isinstance(op, events.Join):
             t.diewait[ op.coro ].append((op, coro))
-        elif isinstance(op, Events.Sleep):
+        elif isinstance(op, events.Sleep):
             op.coro = coro
             heapq.heappush(t.timewait, op)
         else:
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         for i in range(10):
             print "coro1:",i
             yield i
-            op = yield Events.Call(coro2)
+            op = yield events.Call(coro2)
             print 'coro1: coro2 returns:', op.returns
             yield op.returns
         
@@ -159,7 +160,7 @@ if __name__ == "__main__":
         for i in range(10):
             if i%2==0:
                 print 'coro2: %s, sending sig "x"' % i
-                yield Events.Signal(name='x')
+                yield events.Signal(name='x')
                 yield i
             else:
                 print "coro2:",i
@@ -168,23 +169,23 @@ if __name__ == "__main__":
     def coro3():
         while m.active:
             print 'coro3: wait for sig "x"'
-            (yield Events.WaitForSignal(name='x'))        
+            (yield events.WaitForSignal(name='x'))        
             print 'coro3: recieved "x"'
     def coro4():
         print 'coro4: start'
-        op = yield Events.Call(coro1, '123', 'mumu')
+        op = yield events.Call(coro1, '123', 'mumu')
         print 'coro1 returns:', op.returns
         print 'coro4: end'
         yield "MUMU"
     def coro5():
         print 'coro5: wait to join coro4'
-        op = yield Events.Join(coro4_instance)
+        op = yield events.Join(coro4_instance)
         print 'coro5: coro4 died, returns:', op.returns
     @coroutine            
     def coroA():
         print "coroA start"
         for i in range(10):
-            yield Events.Sleep(datetime.timedelta(milliseconds=1))
+            yield events.Sleep(datetime.timedelta(milliseconds=1))
             print "coroA:",i
             yield i
         print "coroA END"
@@ -193,7 +194,7 @@ if __name__ == "__main__":
     def coroB():
         print "coroB start"
         for i in range(10):
-            yield Events.Sleep(datetime.timedelta(milliseconds=1))
+            yield events.Sleep(datetime.timedelta(milliseconds=1))
             print "coroB:",i
             yield i
         print "coroB END"
@@ -201,7 +202,7 @@ if __name__ == "__main__":
     @coroutine
     def coroC():
         print "coroC start"
-        yield Events.Sleep(datetime.timedelta(milliseconds=1000))
+        yield events.Sleep(datetime.timedelta(milliseconds=1000))
         print "coroC END"
         
     m = Scheduler()
@@ -221,9 +222,9 @@ if __name__ == "__main__":
         yield 'b'
         raise StopIteration('B')
     def T():
-        print "call to A returns: %r"%(yield Events.Call(A)).returns
-        print "call to B returns: %r"%(yield Events.Call(B)).returns
+        print "call to A returns: %r"%(yield events.Call(A)).returns
+        print "call to B returns: %r"%(yield events.Call(B)).returns
     #~ m.add(T)
     m.run()
 
-    #~ print isinstance(Socket.Read(),(Socket.Read,Socket.Read,Socket.Write,Socket.Accept))
+    #~ print isinstance(sockets.Read(),(sockets.Read,sockets.Read,sockets.Write,sockets.Accept))

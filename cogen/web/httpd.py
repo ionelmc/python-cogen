@@ -7,7 +7,9 @@ import time
 import socket # For gethostbyaddr()
 import mimetools
 from cStringIO import StringIO
-from cogen.core import Scheduler, Socket, Events, coroutine
+from cogen.core.schedulers import Scheduler
+from cogen.core import sockets, events
+from cogen.core.coroutine import coroutine
 
 # Default error message
 DEFAULT_ERROR_MESSAGE = """\
@@ -96,14 +98,14 @@ class BaseHTTPRequestHandler:
         #~ print 'MUMUx'
         try:
             t.close_connection = 1
-            yield Events.Call(t.handle_one_request)
+            yield events.Call(t.handle_one_request)
             while not t.close_connection:
-                yield Events.Call(t.handle_one_request)
+                yield events.Call(t.handle_one_request)
         finally:
             sys.exc_traceback = None    # Help garbage collection
 
     def finish(t, coro):
-        yield Events.Join(coro)
+        yield events.Join(coro)
         t.request.close()
             
     def parse_request(t, headers_buff):
@@ -131,7 +133,7 @@ class BaseHTTPRequestHandler:
         if len(words) == 3:
             [command, path, version] = words
             if version[:5] != 'HTTP/':
-                yield Events.Call(t.send_error, 400, "Bad request version (%r)" % version)
+                yield events.Call(t.send_error, 400, "Bad request version (%r)" % version)
                 raise StopIteration(False)
             try:
                 base_version_number = version.split('/', 1)[1]
@@ -146,23 +148,23 @@ class BaseHTTPRequestHandler:
                     raise ValueError
                 version_number = int(version_number[0]), int(version_number[1])
             except (ValueError, IndexError):
-                yield Events.Call(t.send_error, 400, "Bad request version (%r)" % version)
+                yield events.Call(t.send_error, 400, "Bad request version (%r)" % version)
                 raise StopIteration(False)
             if version_number >= (1, 1) and t.protocol_version >= "HTTP/1.1":
                 t.close_connection = 0
             if version_number >= (2, 0):
-                yield Events.Call(t.send_error, 505, "Invalid HTTP Version (%s)" % base_version_number)
+                yield events.Call(t.send_error, 505, "Invalid HTTP Version (%s)" % base_version_number)
                 raise StopIteration(False)
         elif len(words) == 2:
             [command, path] = words
             t.close_connection = 1
             if command != 'GET':
-                yield Events.Call(t.send_error, 400, "Bad HTTP/0.9 request type (%r)" % command)
+                yield events.Call(t.send_error, 400, "Bad HTTP/0.9 request type (%r)" % command)
                 raise StopIteration(False)
         elif not words:
             raise StopIteration(False)
         else:
-            yield Events.Call(t.send_error, 400, "Bad request syntax (%r)" % requestline)
+            yield events.Call(t.send_error, 400, "Bad request syntax (%r)" % requestline)
             raise StopIteration(False)
         #~ print command, path, version
         t.command, t.path, t.request_version = command, path, version
@@ -208,17 +210,17 @@ class BaseHTTPRequestHandler:
                 break
         headers_buff.seek(0)
         #~ print "handle_one_request", headers_buff.getvalue()
-        cobj = yield Events.Call(t.parse_request,headers_buff)
+        cobj = yield events.Call(t.parse_request,headers_buff)
         #~ print cobj
         if not cobj.returns: # An error code has been sent, just exit
             return
         mname = 'do_' + t.command
         #~ print hasattr(t, mname)
         if not hasattr(t, mname):
-            yield Events.Call(t.send_error, 501, "Unsupported method (%r)" % t.command)
+            yield events.Call(t.send_error, 501, "Unsupported method (%r)" % t.command)
             return
         method = getattr(t, mname)
-        yield Events.Call(method)
+        yield events.Call(method)
         t.request.close()
 
 
@@ -246,10 +248,10 @@ class BaseHTTPRequestHandler:
         # using _quote_html to prevent Cross Site Scripting attacks (see bug #1100201)
         content = (t.error_message_format %
                    {'code': code, 'message': _quote_html(message), 'explain': explain})
-        yield Events.Call(t.send_response, code, message)
-        yield Events.Call(t.send_header, "Content-Type", "text/html")
-        yield Events.Call(t.send_header, 'Connection', 'close')
-        yield Events.Call(t.end_headers)
+        yield events.Call(t.send_response, code, message)
+        yield events.Call(t.send_header, "Content-Type", "text/html")
+        yield events.Call(t.send_header, 'Connection', 'close')
+        yield events.Call(t.end_headers)
         if t.command != 'HEAD' and code >= 200 and code not in (204, 304):
             yield Socket.Write(sock=t.request, buff=content)
 
@@ -272,8 +274,8 @@ class BaseHTTPRequestHandler:
             yield Socket.Write(sock=t.request, buff="%s %d %s\r\n" %
                              (t.protocol_version, code, message))
             # print (t.protocol_version, code, message)
-        yield Events.Call(t.send_header, 'Server', t.version_string())
-        yield Events.Call(t.send_header, 'Date', t.date_time_string())
+        yield events.Call(t.send_header, 'Server', t.version_string())
+        yield events.Call(t.send_header, 'Date', t.date_time_string())
 
     def send_header(t, keyword, value):
         """Send a MIME header."""

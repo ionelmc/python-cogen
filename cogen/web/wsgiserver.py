@@ -47,7 +47,8 @@ if __name__ == "__main__":
     import sys, os
     sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
 
-from cogen.core import Socket, Events
+import cogen
+from cogen.core import sockets, events
 
 comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
     'ACCEPT-LANGUAGE', 'ACCEPT-RANGES', 'ALLOW', 'CACHE-CONTROL',
@@ -148,7 +149,7 @@ class HTTPRequest(object):
         # and doesn't need the client to request or acknowledge the close
         # (although your TCP stack might suffer for it: cf Apache's history
         # with FIN_WAIT_2).
-        request_line = (yield Socket.ReadLine(t.sock)).buff
+        request_line = (yield sockets.ReadLine(t.sock)).buff
         if not request_line:
             # Force t.ready = False so the connection will close.
             t.ready = False
@@ -159,7 +160,7 @@ class HTTPRequest(object):
             # stream at the beginning of a message and receives a CRLF
             # first, it should ignore the CRLF."
             # But only ignore one leading line! else we enable a DoS.
-            request_line = (yield Socket.ReadLine(t.sock)).buff
+            request_line = (yield sockets.ReadLine(t.sock)).buff
             if not request_line:
                 t.ready = False
                 return
@@ -173,7 +174,7 @@ class HTTPRequest(object):
         scheme, location, path, params, qs, frag = urlparse(path)
         
         if frag:
-            yield Events.Call(t.simple_response, "400 Bad Request",
+            yield events.Call(t.simple_response, "400 Bad Request",
                                  "Illegal #fragment in Request-URI.")
             return
         
@@ -214,7 +215,7 @@ class HTTPRequest(object):
         server_protocol = environ["ACTUAL_SERVER_PROTOCOL"]
         sp = int(server_protocol[5]), int(server_protocol[7])
         if sp[0] != rp[0]:
-            yield Events.Call(t.simple_response,"505 HTTP Version Not Supported")
+            yield events.Call(t.simple_response,"505 HTTP Version Not Supported")
             return
         # Bah. "SERVER_PROTOCOL" is actually the REQUEST protocol.
         environ["SERVER_PROTOCOL"] = req_protocol
@@ -226,9 +227,9 @@ class HTTPRequest(object):
         
         # then all the http headers
         try:
-            yield Events.Call(t.read_headers)
+            yield events.Call(t.read_headers)
         except ValueError, ex:
-            yield Events.Call(t.simple_response,"400 Bad Request", repr(ex.args))
+            yield events.Call(t.simple_response,"400 Bad Request", repr(ex.args))
             return
         
         creds = environ.get("HTTP_AUTHORIZATION", "").split(" ", 1)
@@ -262,12 +263,12 @@ class HTTPRequest(object):
                 else:
                     # Note that, even if we see "chunked", we must reject
                     # if there is an extension we don't recognize.
-                    yield Events.Call(t.simple_response,"501 Unimplemented")
+                    yield events.Call(t.simple_response,"501 Unimplemented")
                     t.close_connection = True
                     return
         
         if read_chunked:
-            if not (yield Events.Call(t.decode_chunked)):
+            if not (yield events.Call(t.decode_chunked)):
                 return
         
         # From PEP 333:
@@ -288,7 +289,7 @@ class HTTPRequest(object):
         # We used to do 3, but are now doing 1. Maybe we'll do 2 someday,
         # but it seems like it would be a big slowdown for such a rare case.
         if environ.get("HTTP_EXPECT", "") == "100-continue":
-            yield Events.Call(t.simple_response,100)
+            yield events.Call(t.simple_response,100)
         
         t.ready = True
     
@@ -297,7 +298,7 @@ class HTTPRequest(object):
         environ = t.environ
         
         while True:
-            line = (yield Socket.ReadLine(t.sock)).buff
+            line = (yield sockets.ReadLine(t.sock)).buff
             if not line:
                 # No more data--illegal end of headers
                 raise ValueError("Illegal end of headers.")
@@ -332,22 +333,22 @@ class HTTPRequest(object):
         cl = 0
         data = StringIO.StringIO()
         while True:
-            line = (yield Socket.ReadLine(t.sock)).buff.strip().split(";", 1)
+            line = (yield sockets.ReadLine(t.sock)).buff.strip().split(";", 1)
             chunk_size = int(line.pop(0), 16)
             if chunk_size <= 0:
                 break
 ##            if line: chunk_extension = line[0]
             cl += chunk_size
-            data.write((yield Socket.ReadAll(t.sock,chunk_size)).buff)
-            crlf = (yield Socket.ReadAll(t.sock,2)).buff
+            data.write((yield sockets.ReadAll(t.sock,chunk_size)).buff)
+            crlf = (yield sockets.ReadAll(t.sock,2)).buff
             if crlf != "\r\n":
-                yield Events.Call(t.simple_response, "400 Bad Request",
+                yield events.Call(t.simple_response, "400 Bad Request",
                                      "Bad chunked transfer coding "
                                      "(expected '\\r\\n', got %r)" % crlf)
                 return
         
         # Grab any trailer headers
-        yield Events.Call(t.read_headers)
+        yield events.Call(t.read_headers)
         
         data.seek(0)
         t.environ["wsgi.input"] = data
@@ -366,15 +367,15 @@ class HTTPRequest(object):
                 # a NON-EMPTY string, or upon the application's first
                 # invocation of the write() callable." (PEP 333)
                 if chunk:
-                    yield Events.Call(t.write, chunk)
+                    yield events.Call(t.write, chunk)
         finally:
             if hasattr(response, "close"):
-                yield Events.Call(response.close)
+                yield events.Call(response.close)
         if (t.ready and not t.sent_headers):
             t.sent_headers = True
             t.send_headers()
         if t.chunked_write:
-            yield Socket.WriteAll(t.sock, "0\r\n\r\n")
+            yield sockets.WriteAll(t.sock, "0\r\n\r\n")
     
     def simple_response(t, status, msg=""):
         """Write a simple response back to the client."""
@@ -391,7 +392,7 @@ class HTTPRequest(object):
         buf.append("\r\n")
         if msg:
             buf.append(msg)
-        yield Socket.WriteAll(t.sock,"".join(buf))
+        yield sockets.WriteAll(t.sock,"".join(buf))
     
     def start_response(t, status, headers, exc_info = None):
         """WSGI callable to begin the HTTP response."""
@@ -420,13 +421,13 @@ class HTTPRequest(object):
         
         if not t.sent_headers:
             t.sent_headers = True
-            yield Events.Call(t.send_headers)
+            yield events.Call(t.send_headers)
         
         if t.chunked_write and chunk:
             buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-            yield Socket.WriteAll(t.sock, "".join(buf))
+            yield sockets.WriteAll(t.sock, "".join(buf))
         else:
-            yield Socket.WriteAll(t.sock, chunk)
+            yield sockets.WriteAll(t.sock, chunk)
     
     def send_headers(t):
         """Assert, process, and send the HTTP response message-headers."""
@@ -476,7 +477,7 @@ class HTTPRequest(object):
             else:
                 raise
         buf.append("\r\n")
-        yield Socket.WriteAll(t.sock,"".join(buf))
+        yield sockets.WriteAll(t.sock,"".join(buf))
 
 class HTTPConnection(object):
     """An HTTP connection (active socket).
@@ -520,24 +521,24 @@ class HTTPConnection(object):
                 req = t.RequestHandlerClass(t.sock, t.environ,
                                                t.wsgi_app)
                 # This order of operations should guarantee correct pipelining.
-                yield Events.Call(req.parse_request)
+                yield events.Call(req.parse_request)
                 if not req.ready:
                     return
-                yield Events.Call(req.respond)
+                yield events.Call(req.respond)
                 if req.close_connection:
                     return
         except socket.error, e:
             errno = e.args[0]
             if errno not in socket_errors_to_ignore:
                 if req:
-                    yield Events.Call(req.simple_response, "500 Internal Server Error",
+                    yield events.Call(req.simple_response, "500 Internal Server Error",
                                         format_exc())
             return
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
             if req:
-                yield Events.Call(req.simple_response, "500 Internal Server Error", format_exc())
+                yield events.Call(req.simple_response, "500 Internal Server Error", format_exc())
     
     def close(t):
         """Close the socket underlying this connection."""
@@ -648,9 +649,9 @@ class WSGIServer(object):
     def handle(t,conn):
         try:
             print 'Comunicating.'
-            yield Events.Call(conn.communicate)
+            yield events.Call(conn.communicate)
         finally:
-            yield Events.Call(conn.close)
+            yield events.Call(conn.close)
     def start(t):
         """Run the server forever."""
         # We don't have to trap KeyboardInterrupt or SystemExit here,
@@ -705,7 +706,7 @@ class WSGIServer(object):
         t.ready = True
         while t.ready:
             print 'Accepting.'
-            obj = yield Socket.Accept(t.socket)
+            obj = yield sockets.Accept(t.socket)
             s, addr = obj.conn, obj.addr
             if not t.ready:
                 return
@@ -734,13 +735,13 @@ class WSGIServer(object):
             
             conn = t.ConnectionClass(s, t.wsgi_app, environ)
             
-            yield Events.AddCoro(t.handle, conn)
+            yield events.AddCoro(t.handle, conn)
             #TODO: how scheduling ?
 
    
     def bind(t, family, type, proto=0):
         """Create (or recreate) the actual socket object."""
-        t.socket = Socket.New(family, type, proto)
+        t.socket = sockets.New(family, type, proto)
         t.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         t.socket.setblocking(0)
         #~ t.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
