@@ -15,10 +15,14 @@ from coroutine import coroutine
 from pollers import DefaultPoller
 import events
 import sockets
-            
+class Priority:            
+    LAST  = NOPRIO = 0
+    CORO  = 1
+    OP    = 2
+    FIRST = PRIO = 3
+    
 class Scheduler:
-    default_prio = None
-    def __init__(t, poller=DefaultPoller):
+    def __init__(t, poller=DefaultPoller, default_priority=Priority.LAST):
         t.active = collections.deque()
         t.sigwait = collections.defaultdict(collections.deque)
         t.diewait = collections.defaultdict(collections.deque)
@@ -27,6 +31,7 @@ class Scheduler:
         t.poll = poller()
         t.idle = 0
         t.timerc = 1
+        t.default_priority = default_priority
         
     def _init_coro(t, coro, *args, **kws):
         return coro(*args, **kws)
@@ -77,12 +82,12 @@ class Scheduler:
             #~ print "Passing %r %r" % (op.coro, op.op)
             return op.coro, op.op
         elif isinstance(op, events.AddCoro):
-            for i in op.args:
-                if prio:
-                    t.add_first(i)
-                else:
-                    t.add(i)
-            if prio:
+            if prio&Priority.OP:
+                t.add_first(*op.args)
+            else:
+                t.add(*op.args)
+                
+            if prio&Priority.CORO:
                 return coro, op
             else:
                 t.active.append( (None, coro))
@@ -94,12 +99,16 @@ class Scheduler:
         elif isinstance(op, events.WaitForSignal):
             t.sigwait[op.name].append((op, coro))
         elif isinstance(op, events.Signal):
-            if prio:
-                t.active.appendleft((None, coro))
+            if prio&Priority.OP:
                 t.active.extendleft(t.sigwait[op.name])
             else:
                 t.active.extend(t.sigwait[op.name])
+            
+            if prio&Priority.CORO:
+                t.active.appendleft((None, coro))
+            else:
                 t.active.append((None, coro))
+                
             del t.sigwait[op.name]
         elif isinstance(op, events.Call):
             if prio:
@@ -120,28 +129,33 @@ class Scheduler:
         return None, None
         
     def run(t):
-        while t.active or t.poll or t.timewait:
-            if t.active:
-                _op, coro = t.active.popleft()
-                while True:
-                    #~ print ">Sending %s to coro %s, " % (_op, coro),
-                    op = coro.run_op(_op)
-                    #~ print op, "returned."
-                    if op is None:
-                        t.active.append((op, coro))
-                        break
-                    prio = t.default_prio
-                    if isinstance(op, types.TupleType):
-                        try:
-                            prio, op = op
-                        except ValueError:
-                            t.run_coro(t, coro, Exception("Bad op"))
-                    coro, _op = t.run_ops(prio, coro, op)
-                    if not _op:
-                        break  
-                    
-            t.run_poller()
-            t.run_timer()
+        try:
+            while t.active or t.poll or t.timewait:
+                if t.active:
+                    _op, coro = t.active.popleft()
+                    while True:
+                        #~ print ">Sending %s to coro %s, " % (_op, coro),
+                        op = coro.run_op(_op)
+                        #~ print op, "returned."
+                        if op is None:
+                            t.active.append((op, coro))
+                            break
+                        prio = t.default_priority
+                        if isinstance(op, types.TupleType):
+                            try:
+                                prio, op = op
+                            except ValueError:
+                                t.run_coro(t, coro, Exception("Bad op"))
+                        coro, _op = t.run_ops(prio, coro, op)
+                        if not _op:
+                            break  
+                        
+                t.run_poller()
+                t.run_timer()
+        except:
+            traceback.print_exc()
+            import pprint
+            pprint.pprint(locals())
         #~ print 'SCHEDULER IS DEAD'
 if __name__ == "__main__":
     

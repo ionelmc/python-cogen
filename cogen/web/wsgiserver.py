@@ -48,8 +48,8 @@ if __name__ == "__main__":
     sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
 
 import cogen
-from cogen.core import sockets, events
-
+from cogen.common import *
+    
 comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
     'ACCEPT-LANGUAGE', 'ACCEPT-RANGES', 'ALLOW', 'CACHE-CONTROL',
     'CONNECTION', 'CONTENT-ENCODING', 'CONTENT-LANGUAGE', 'EXPECT',
@@ -139,7 +139,7 @@ class HTTPRequest(object):
         t.sent_headers = False
         t.close_connection = False
         t.chunked_write = False
-    
+    @coroutine
     def parse_request(t):
         """Parse the next HTTP request start-line and message-headers."""
         # HTTP/1.1 connections are persistent by default. If a client
@@ -292,7 +292,7 @@ class HTTPRequest(object):
             yield events.Call(t.simple_response,100)
         
         t.ready = True
-    
+    @coroutine
     def read_headers(t):
         """Read header lines from the incoming stream."""
         environ = t.environ
@@ -327,7 +327,7 @@ class HTTPRequest(object):
         cl = environ.pop("HTTP_CONTENT_LENGTH", None)
         if cl:
             environ["CONTENT_LENGTH"] = cl
-    
+    @coroutine
     def decode_chunked(t):
         """Decode the 'chunked' transfer coding."""
         cl = 0
@@ -354,7 +354,7 @@ class HTTPRequest(object):
         t.environ["wsgi.input"] = data
         t.environ["CONTENT_LENGTH"] = str(cl) or ""
         raise StopIteration(True)
-    
+    @coroutine
     def respond(t):
         """Call the appropriate WSGI app and write its iterable output."""
         response = t.wsgi_app(t.environ, t.start_response)
@@ -376,7 +376,7 @@ class HTTPRequest(object):
             t.send_headers()
         if t.chunked_write:
             yield sockets.WriteAll(t.sock, "0\r\n\r\n")
-    
+    @coroutine
     def simple_response(t, status, msg=""):
         """Write a simple response back to the client."""
         status = str(status)
@@ -409,7 +409,7 @@ class HTTPRequest(object):
         t.status = status
         t.outheaders.extend(headers)
         return t.write
-    
+    @coroutine
     def write(t, chunk):
         """WSGI callable to write unbuffered data to the client.
         
@@ -428,7 +428,7 @@ class HTTPRequest(object):
             yield sockets.WriteAll(t.sock, "".join(buf))
         else:
             yield sockets.WriteAll(t.sock, chunk)
-    
+    @coroutine
     def send_headers(t):
         """Assert, process, and send the HTTP response message-headers."""
         hkeys = [key.lower() for key, value in t.outheaders]
@@ -508,7 +508,7 @@ class HTTPConnection(object):
         t.environ.update(environ)
         
         t.sock = sock
-        
+    @coroutine    
     def communicate(t):
         """Read each request and respond appropriately."""
         yield
@@ -539,7 +539,7 @@ class HTTPConnection(object):
         except:
             if req:
                 yield events.Call(req.simple_response, "500 Internal Server Error", format_exc())
-    
+    @coroutine
     def close(t):
         """Close the socket underlying this connection."""
         t.socket.close()
@@ -646,12 +646,14 @@ class WSGIServer(object):
         IPv6. The empty string or None are not allowed.
         
         For UNIX sockets, supply the filename as a string.""")
+    @coroutine
     def handle(t,conn):
         try:
             print 'Comunicating.'
             yield events.Call(conn.communicate)
         finally:
             yield events.Call(conn.close)
+    @coroutine
     def start(t):
         """Run the server forever."""
         # We don't have to trap KeyboardInterrupt or SystemExit here,
@@ -704,8 +706,10 @@ class WSGIServer(object):
         
         
         t.ready = True
+        t.x = 0
         while t.ready:
-            print 'Accepting.'
+            print 'Accepting.', t.x
+            t.x+=1
             obj = yield sockets.Accept(t.socket)
             s, addr = obj.conn, obj.addr
             if not t.ready:
@@ -735,7 +739,7 @@ class WSGIServer(object):
             
             conn = t.ConnectionClass(s, t.wsgi_app, environ)
             
-            yield events.AddCoro(t.handle, conn)
+            yield Priority.CORO, events.AddCoro(t.handle, conn)
             #TODO: how scheduling ?
 
    
@@ -748,7 +752,6 @@ class WSGIServer(object):
         t.socket.bind(t.bind_addr)
     
 def main():    
-    from cogen.core import Socket, GreedyScheduler, Scheduler
     from cogen.web import wsgiserver
     #~ from cogen.web import httpd
     def my_crazy_app(environ, start_response):
@@ -760,17 +763,13 @@ def main():
     server = wsgiserver.WSGIServer(
                 ('localhost', 8070), my_crazy_app,
                 server_name='localhost')
-    m = GreedyScheduler()
-    #~ m = Scheduler()
+    m = Scheduler(default_priority=Priority.LAST)
     m.add(server.start)
-    try:
-        m.run()
-    except:
-        pass
+    m.run()
         
         
 if __name__ == "__main__":
-    main()
+    #~ main()
     #~ import hotshot, hotshot.stats
     #~ prof = hotshot.Profile("stones.prof")
     #~ prof.runcall(main)
@@ -779,6 +778,16 @@ if __name__ == "__main__":
     #~ stats.strip_dirs()
     #~ stats.sort_stats('time', 'calls')
     #~ stats.print_stats(200)
+    
+    import cProfile
+    cProfile.run("main()", "cprofile.log")
+    import pstats
+    for i in ['calls','cumulative','file','module','pcalls','line','name','nfl','stdname','time']:
+        stats = pstats.Stats("cprofile.log",stream = file('cprofile.%s.txt' %i,'w'))
+        stats.sort_stats(i)
+        stats.print_stats()
+
+
     #~ import pycallgraph
     #~ pycallgraph.start_trace()
     #~ main()

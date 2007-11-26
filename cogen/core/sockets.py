@@ -14,6 +14,9 @@ class WrappedSocket(socket.socket):
         t.rl_list = []
         t.rl_list_sz = 0
         t.rl_pending = ''
+        t.desc = ''
+    def __repr__(t):
+        return '<socket at 0x%X>' % id(t)
 New = WrappedSocket
 
 class Operation:

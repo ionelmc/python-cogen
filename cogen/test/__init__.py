@@ -192,12 +192,12 @@ class SchedulerTest_MixIn:
         t.assertEqual(t.msgs, [1,2,3,4,5,6])
     def test_add_coro(t):
         @coroutine
-        def added():
-            t.msgs.append(2)
+        def added(x):
+            t.msgs.append(x)
         @coroutine
         def adder(c):
             t.msgs.append(1)
-            yield events.AddCoro(c)
+            yield events.AddCoro(c,2)
             t.msgs.append(3)
         t.m.add(adder, added)
         t.m.run()
@@ -224,6 +224,9 @@ class SchedulerTest_MixIn:
                 s = traceback.format_exc()
                 t.exc = s
 
+            ret = yield events.Call(callee_6, 6)
+            t.msgs.append(ret.result)
+            
         @coroutine
         def callee_1():
             raise StopIteration(2)
@@ -255,26 +258,30 @@ class SchedulerTest_MixIn:
         @coroutine
         def callee_5_2():
             raise Exception("long_one")
+        
+        @coroutine
+        def callee_6(x):
+            raise StopIteration(x)
             
         
         t.m.add(caller)
         t.m.run()
-        t.assertEqual(t.msgs, [1,2,3,4,5])
+        t.assertEqual(t.msgs, [1,2,3,4,5,6])
         t.assert_('raise StopIteration((yield events.Call(callee_5_1)).result)' in t.exc)
         t.assert_('raise StopIteration((yield events.Call(callee_5_2)).result)' in t.exc)
         t.assert_('raise Exception("long_one")' in t.exc)
     
 class PrioMixIn:
-    prio = True
+    prio = Priority.FIRST
 class NoPrioMixIn:
-    prio = False
+    prio = Priority.LAST
     
 class SchedulerTest(SchedulerTest_MixIn, unittest.TestCase):
     scheduler = Scheduler
-class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
-class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+#~ class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
+    #~ scheduler = Scheduler
+#~ class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    #~ scheduler = Scheduler
 
 if __name__ == '__main__':
     sys.argv.append('-v')

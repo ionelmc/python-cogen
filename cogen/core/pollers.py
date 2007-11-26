@@ -67,6 +67,7 @@ class SelectPoller(Poller):
         # set a small step for timeout if it's negative (meaning there are no active coros but there are waiting ones in the socket poll)
         #                            0 if it's none (there are active coros, we don't want to waste time in the poller)
         if t.read_sockets or t.write_sockets:
+            print 'SELECTING, timeout:', timeout, 'socks:',t.read_sockets.keys(), t.write_sockets.keys()
             ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], timeout)
             for sock in ready_to_read: 
                 result = t.run_once(sock, t.read_sockets)

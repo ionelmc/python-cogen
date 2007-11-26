@@ -22,14 +22,16 @@ class Call(SimpleArgs):
     pass
     
 class AddCoro:
-    def __init__(t, *args, **kws):
+    def __init__(t, *args):
         t.args = args
+    def __repr__(t):
+        return '<%s instance at 0x%X, args: %s>' % (t.__class__.__name__, id(t), t.args)
 
 class Pass:
     def __init__(t, coro, op = None):
         t.coro = coro
         t.op = op
-    
+
 class Complete:
     def __init__(t, *args):
         t.args = args
