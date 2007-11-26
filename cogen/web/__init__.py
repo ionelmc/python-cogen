@@ -1,3 +1,3 @@
 #~ __all__ = ["HTTPd", "BaseHTTPRequestHandler"]
-import httpd
+import httpserver
 import wsgiserver

@@ -7,9 +7,7 @@ import time
 import socket # For gethostbyaddr()
 import mimetools
 from cStringIO import StringIO
-from cogen.core.schedulers import Scheduler
-from cogen.core import sockets, events
-from cogen.core.coroutine import coroutine
+from cogen.common import *
 
 # Default error message
 DEFAULT_ERROR_MESSAGE = """\
@@ -37,7 +35,7 @@ class HTTPServer:
     def __init__(t, server_address, RequestHandlerClass):
         t.server_address = server_address
         t.RequestHandlerClass = RequestHandlerClass
-        t.socket = Socket.New(t.address_family, t.socket_type)
+        t.socket = sockets.New(t.address_family, t.socket_type)
         t.socket.setblocking(0)
         t.server_bind()
         t.server_activate()
@@ -60,7 +58,7 @@ class HTTPServer:
         while 1:
             try:
                 #~ print 'wait'
-                obj = yield Socket.Accept(sock=t.socket)
+                obj = yield sockets.Accept(sock=t.socket)
                 #~ print 'accepted', obj
             except socket.error:
                 return
@@ -85,7 +83,7 @@ class BaseHTTPRequestHandler:
     # The server software version.  You may want to override this.
     # The format is multiple whitespace-separated strings,
     # where each string is of the form name[/version].
-    server_version = "CoroServe/" + __version__
+    server_version = "cogen_httpserver/" + __version__
     
     
     def __init__(t, request, client_address, server):
@@ -93,7 +91,7 @@ class BaseHTTPRequestHandler:
         t.request = request
         t.client_address = client_address
         t.server = server
-        
+    @coroutine    
     def run(t):
         #~ print 'MUMUx'
         try:
@@ -103,11 +101,11 @@ class BaseHTTPRequestHandler:
                 yield events.Call(t.handle_one_request)
         finally:
             sys.exc_traceback = None    # Help garbage collection
-
+    @coroutine
     def finish(t, coro):
         yield events.Join(coro)
         t.request.close()
-            
+    @coroutine        
     def parse_request(t, headers_buff):
         """Parse a request (internal).
 
@@ -179,7 +177,7 @@ class BaseHTTPRequestHandler:
               t.protocol_version >= "HTTP/1.1"):
             t.close_connection = 0
         raise StopIteration(True)
-
+    @coroutine
     def handle_one_request(t):
         """Handle a single HTTP request.
 
@@ -189,7 +187,7 @@ class BaseHTTPRequestHandler:
 
         """
         #~ print "handle_one_request"
-        robj = (yield Socket.ReadLine(sock=t.request, len=8182))
+        robj = (yield sockets.ReadLine(sock=t.request, len=8182))
         #~ print '--- READLINE', robj
         #~ print "handle_one_request2", repr(robj.buff)
         t.raw_requestline = robj.buff
@@ -200,7 +198,7 @@ class BaseHTTPRequestHandler:
         headers_buff = StringIO()
         while _headers:
             #~ print '- mumu'
-            o = Socket.ReadLine(sock=t.request, len=8182)
+            o = sockets.ReadLine(sock=t.request, len=8182)
             #~ print '-',o
             robj = yield o
             #~ print '--- READLINE', robj, robj.buff
@@ -212,7 +210,7 @@ class BaseHTTPRequestHandler:
         #~ print "handle_one_request", headers_buff.getvalue()
         cobj = yield events.Call(t.parse_request,headers_buff)
         #~ print cobj
-        if not cobj.returns: # An error code has been sent, just exit
+        if not cobj.result: # An error code has been sent, just exit
             return
         mname = 'do_' + t.command
         #~ print hasattr(t, mname)
@@ -223,7 +221,7 @@ class BaseHTTPRequestHandler:
         yield events.Call(method)
         t.request.close()
 
-
+    @coroutine
     def send_error(t, code, message=None):
         """Send and log an error reply.
 
@@ -253,10 +251,10 @@ class BaseHTTPRequestHandler:
         yield events.Call(t.send_header, 'Connection', 'close')
         yield events.Call(t.end_headers)
         if t.command != 'HEAD' and code >= 200 and code not in (204, 304):
-            yield Socket.Write(sock=t.request, buff=content)
+            yield sockets.Write(sock=t.request, buff=content)
 
     error_message_format = DEFAULT_ERROR_MESSAGE
-
+    @coroutine
     def send_response(t, code, message=None):
         """Send the response header and log the response code.
 
@@ -271,27 +269,27 @@ class BaseHTTPRequestHandler:
             else:
                 message = ''
         if t.request_version != 'HTTP/0.9':
-            yield Socket.Write(sock=t.request, buff="%s %d %s\r\n" %
+            yield sockets.Write(sock=t.request, buff="%s %d %s\r\n" %
                              (t.protocol_version, code, message))
             # print (t.protocol_version, code, message)
         yield events.Call(t.send_header, 'Server', t.version_string())
         yield events.Call(t.send_header, 'Date', t.date_time_string())
-
+    @coroutine
     def send_header(t, keyword, value):
         """Send a MIME header."""
         if t.request_version != 'HTTP/0.9':
-            yield Socket.Write(sock=t.request, buff="%s: %s\r\n" % (keyword, value))
+            yield sockets.Write(sock=t.request, buff="%s: %s\r\n" % (keyword, value))
 
         if keyword.lower() == 'connection':
             if value.lower() == 'close':
                 t.close_connection = 1
             elif value.lower() == 'keep-alive':
                 t.close_connection = 0
-
+    @coroutine
     def end_headers(t):
         """Send the blank line ending the MIME headers."""
         if t.request_version != 'HTTP/0.9':
-            yield Socket.Write(sock=t.request, buff="\r\n")
+            yield sockets.Write(sock=t.request, buff="\r\n")
 
     def log_request(t, code='-', size='-'):
         """Log an accepted request.
