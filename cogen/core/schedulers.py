@@ -68,7 +68,7 @@ class Scheduler:
             t.active.appendleft( ev )
 
     def run_ops(t, prio, coro, op):
-        #~ print '-run_op', prio,coro,op
+        #~ print '> run_op', prio,coro,op
         if isinstance(op, sockets.ops):
         #~ if op.__class__ in sockets.ops:
             r = t.poll.add(op, coro)
@@ -156,88 +156,4 @@ class Scheduler:
             #~ import pdb
             #~ pdb.pm()
         #~ print 'SCHEDULER IS DEAD'
-if __name__ == "__main__":
-    
-    def coro1(*args):
-        print "coro1 start, args:", args
-        for i in range(10):
-            print "coro1:",i
-            yield i
-            op = yield events.Call(coro2)
-            print 'coro1: coro2 returns:', op.returns
-            yield op.returns
-        
-            
-    def coro2():
-        print "coro2 start"
-        for i in range(10):
-            if i%2==0:
-                print 'coro2: %s, sending sig "x"' % i
-                yield events.Signal(name='x')
-                yield i
-            else:
-                print "coro2:",i
-                yield i
-            
-    def coro3():
-        while m.active:
-            print 'coro3: wait for sig "x"'
-            (yield events.WaitForSignal(name='x'))        
-            print 'coro3: recieved "x"'
-    def coro4():
-        print 'coro4: start'
-        op = yield events.Call(coro1, '123', 'mumu')
-        print 'coro1 returns:', op.returns
-        print 'coro4: end'
-        yield "MUMU"
-    def coro5():
-        print 'coro5: wait to join coro4'
-        op = yield events.Join(coro4_instance)
-        print 'coro5: coro4 died, returns:', op.returns
-    @coroutine            
-    def coroA():
-        print "coroA start"
-        for i in range(10):
-            yield events.Sleep(datetime.timedelta(milliseconds=1))
-            print "coroA:",i
-            yield i
-        print "coroA END"
-        
-    @coroutine
-    def coroB():
-        print "coroB start"
-        for i in range(10):
-            yield events.Sleep(datetime.timedelta(milliseconds=1))
-            print "coroB:",i
-            yield i
-        print "coroB END"
-        
-    @coroutine
-    def coroC():
-        print "coroC start"
-        yield events.Sleep(datetime.timedelta(milliseconds=1000))
-        print "coroC END"
-        
-    m = Scheduler()
-    #~ m.add(coro1)
-    #~ m.add(coro2)
-    #~ m.add(coro3)
-    #~ coro4_instance = m.add(coro4)
-    #~ m.add(coro5)
-    m.add(coroA)
-    m.add(coroB)
-    m.add(coroC)
-    def A():
-        yield 'a'
-        yield 'A'
-        return
-    def B():
-        yield 'b'
-        raise StopIteration('B')
-    def T():
-        print "call to A returns: %r"%(yield events.Call(A)).returns
-        print "call to B returns: %r"%(yield events.Call(B)).returns
-    #~ m.add(T)
-    m.run()
 
-    #~ print isinstance(sockets.Read(),(sockets.Read,sockets.Read,sockets.Write,sockets.Accept))

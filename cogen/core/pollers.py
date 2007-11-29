@@ -31,7 +31,7 @@ class Poller:
                 #~ sockets[sock] = pair
         except:
             del sockets[sock]
-            print 'SockException', sock, obj, pair
+            #~ print 'SockException', sock, obj, pair
             return Exception(sys.exc_info()), coro
     def try_run_obj(t, obj):
         try:

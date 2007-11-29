@@ -83,14 +83,19 @@ class Coroutine:
             
         except:
             t.state = t.STATE_FAILED
-            t.exception = Exception(sys.exc_info())
+            t.result = None
+            t.exception = sys.exc_info()
             if t.caller:
-                rop = t.prio, events.Pass(t.caller, t.exception)
+                if t.waiters:
+                    rop = t._run_completion()
+                else:
+                    rop = t.prio, events.Pass(t.caller, Exception(t.exception))
                 t.waiters = None
                 t.caller = None
             else:
                 t.handle_error(op)
                 rop = t._run_completion()
+
         return rop
     def handle_error(t, inner=None):        
         print 

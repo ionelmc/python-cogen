@@ -25,10 +25,11 @@ New = Socket = WrappedSocket
 class Operation:
     def try_run(t):
         try:
-            print "Operation.try_run(%s):"%t,
-            result = t.run()
-            print result
-            return result
+            #~ print "Operation.try_run(%s):"%t,
+            #~ result = t.run()
+            #~ print result
+            #~ return result
+            return t.run()
         except socket.error, exc:
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): #errno.ECONNABORTED
                 return None
@@ -45,6 +46,7 @@ class Read(Operation):
     def __init__(t, sock, len = 4096):
         t.sock = sock
         t.len = len
+        t.buff = None
     def run(t):
         if t.sock.rl_list:
             t.sock.rl_pending = ''.join(t.sock.rl_list) + t.sock.rl_pending
@@ -68,6 +70,7 @@ class ReadAll(Operation):
     def __init__(t, sock, len = 4096):
         t.sock = sock
         t.len = len
+        t.buff = None
     def run(t):
         if t.sock.rl_pending:
             t.sock.rl_list.append(t.sock.rl_pending) 

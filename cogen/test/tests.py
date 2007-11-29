@@ -1,6 +1,6 @@
 import os 
 import sys
-sys.path.append(os.path.split(os.getcwd())[0])
+sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
 #~ print sys.path
 from cogen.web import *
 from cogen.core import events
@@ -277,18 +277,12 @@ class SchedulerTest_MixIn:
             ret = yield events.Join(t.m.add(callee_1))
             t.msgs.append(ret.result)
             ret = yield events.Join(t.m.add(callee_2))
-            t.msgs.append(ret.result)
-            try:
-                t.c = t.m.add(callee_3)
-                t.c.handle_error=lambda*a:None
-                ret = yield events.Join(t.c)
-                t.msgs.append(ret.result)
-                print 'xxxx'
-                t.msgs.append('xxx')
-            except:
-                pass
-                
-            t.msgs.append(4)
+            t.msgs.append(3 if ret.result is None else -1)
+            #~ try:
+            t.c = t.m.add(callee_3)
+            t.c.handle_error=lambda*a:None
+            ret = yield events.Join(t.c)
+            t.msgs.append(4 if ret.result is None and t.c.exception[1].message=='some_message' else -1)
             
             
         @coroutine
@@ -304,18 +298,20 @@ class SchedulerTest_MixIn:
             yield
         t.m.add(caller)
         t.m.run()
-        print '-', t.msgs, t.c.exception
+        t.assertEqual(t.msgs, [1,2,3,4])
 class PrioMixIn:
     prio = Priority.FIRST
 class NoPrioMixIn:
     prio = Priority.LAST
     
-class SchedulerTest(SchedulerTest_MixIn, unittest.TestCase):
+class PrioSchedulerTest(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
-#~ class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
-    #~ scheduler = Scheduler
-#~ class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    #~ scheduler = Scheduler
+class NoPrioSchedulerTest(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
 
 if __name__ == '__main__':
     sys.argv.append('-v')

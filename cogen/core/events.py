@@ -36,6 +36,8 @@ class Pass:
 class Complete:
     def __init__(t, *args):
         t.args = args
+    def __repr__(t):
+        return '<%s instance at 0x%X, args: %s>' % (t.__class__.__name__, id(t), t.args)
     
 class Join:
     def __init__(t, coro):
