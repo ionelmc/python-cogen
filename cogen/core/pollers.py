@@ -22,15 +22,16 @@ class Poller:
         obj, coro = pair = sockets[sock]
         
         try:
-            obj = obj.run()
+            obj = obj.try_run()
             
             if obj:
                 del sockets[sock]
                 return obj, coro
-            else:
-                sockets[sock] = pair
+            #~ else:
+                #~ sockets[sock] = pair
         except:
             del sockets[sock]
+            print 'SockException', sock, obj, pair
             return Exception(sys.exc_info()), coro
     def try_run_obj(t, obj):
         try:
@@ -63,12 +64,12 @@ class SelectPoller(Poller):
                 t.write_sockets[obj.sock] = obj, coro
         
     def run(t, timeout = 0):
-        timeout = (timeout and timeout>0 and timeout/1000000) or (timeout and 0.02 or 0)
+        ptimeout = (timeout and timeout>0 and timeout/1000000) or (timeout and 0.02 or 0)
         # set a small step for timeout if it's negative (meaning there are no active coros but there are waiting ones in the socket poll)
         #                            0 if it's none (there are active coros, we don't want to waste time in the poller)
         if t.read_sockets or t.write_sockets:
-            print 'SELECTING, timeout:', timeout, 'socks:',t.read_sockets.keys(), t.write_sockets.keys()
-            ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], timeout)
+            #~ print 'SELECTING, timeout:', timeout, 'ptimeout:', ptimeout, 'socks:',t.read_sockets.keys(), t.write_sockets.keys()
+            ready_to_read, ready_to_write, in_error = select.select(t.read_sockets.keys(), t.write_sockets.keys(), [], ptimeout)
             for sock in ready_to_read: 
                 result = t.run_once(sock, t.read_sockets)
                 if result:
@@ -78,8 +79,7 @@ class SelectPoller(Poller):
                 if result:
                     yield result
         else:
-            return
-            time.sleep(timeout/1000000)
+            time.sleep(timeout>=0 and timeout/1000000 or 0)
             
 class EpollPoller(Poller):
     def __init__(t, default_size = 20):
@@ -98,25 +98,26 @@ class EpollPoller(Poller):
             return r
         else:
             fd = obj.sock.fileno()
-                
+            assert fd not in t.fds
+                    
             if obj.__class__ in sockets.read_ops:
-                assert fd not in t.fds
                 t.fds[fd] = obj, coro
                 epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLIN)
             if obj.__class__ in sockets.write_ops:
                 t.fds[fd] = obj, coro
                 epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLOUT)
     def run(t, timeout = 0):
-        timeout = (timeout and timeout>0 and timeout/1000) or (timeout or 0)
+        ptimeout = (timeout and timeout>0 and timeout/1000) or (timeout or 0)
         if t.fds:
-            events = epoll.epoll_wait(t.epoll_fd, 10, timeout)
+            events = epoll.epoll_wait(t.epoll_fd, 10, ptimeout)
             for ev, fd in events:
+                print "EPOLL Event:", ev, fd
                 result = t.run_once(fd, t.fds)
                 if result:
                     epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
                     yield result
         else:
-            time.sleep(timeout/1000000)
+            time.sleep(timeout>=0 and timeout/1000000 or 0)
 try:
     import epoll
     DefaultPoller = EpollPoller

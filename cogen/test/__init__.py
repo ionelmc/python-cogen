@@ -270,7 +270,38 @@ class SchedulerTest_MixIn:
         t.assert_('raise StopIteration((yield events.Call(callee_5_1)).result)' in t.exc)
         t.assert_('raise StopIteration((yield events.Call(callee_5_2)).result)' in t.exc)
         t.assert_('raise Exception("long_one")' in t.exc)
-    
+    def test_join(t):
+        @coroutine
+        def caller():
+            t.msgs.append(1)
+            ret = yield events.Join(t.m.add(callee_1))
+            t.msgs.append(ret.result)
+            ret = yield events.Join(t.m.add(callee_2))
+            t.msgs.append(ret.result)
+            try:
+                t.c = t.m.add(callee_3)
+                ret = yield events.Join(t.c)
+                t.msgs.append(ret.result)
+            except:
+                pass
+                
+             
+            
+            
+        @coroutine
+        def callee_1():
+            raise StopIteration(2)
+        @coroutine
+        def callee_2():
+            pass
+        @coroutine
+        def callee_3():
+            yield
+            raise Exception("some_message")
+            yield
+        t.m.add(caller)
+        t.m.run()
+        print '-', t.msgs, t.c.exception
 class PrioMixIn:
     prio = Priority.FIRST
 class NoPrioMixIn:

@@ -36,3 +36,4 @@ __version__ = "$Revision$"
 __svnid__ = "$Id$"
 
 import core
+import common

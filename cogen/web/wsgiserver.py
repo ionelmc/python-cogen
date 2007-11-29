@@ -649,7 +649,7 @@ class WSGIServer(object):
     @coroutine
     def handle(t,conn):
         try:
-            print 'Comunicating.'
+            #~ print 'Comunicating.'
             yield events.Call(conn.communicate)
         finally:
             yield events.Call(conn.close)
@@ -706,10 +706,10 @@ class WSGIServer(object):
         
         
         t.ready = True
-        t.x = 0
+        #~ t.x = 0
         while t.ready:
-            print 'Accepting.', t.x
-            t.x+=1
+            #~ print 'Accepting.', t.x
+            #~ t.x+=1
             obj = yield sockets.Accept(t.socket)
             s, addr = obj.conn, obj.addr
             if not t.ready:

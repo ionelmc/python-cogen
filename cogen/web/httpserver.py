@@ -7,6 +7,7 @@ import time
 import socket # For gethostbyaddr()
 import mimetools
 from cStringIO import StringIO
+
 from cogen.common import *
 
 # Default error message
@@ -64,8 +65,16 @@ class HTTPServer:
                 return
             handler = t.RequestHandlerClass(obj.conn, obj.addr, t)
             #~ print handler
-            t.m.add(handler.finish,t.m.add(handler.run))
-            yield
+            yield events.AddCoro(t.process_handler, handler)
+    @coroutine
+    def process_handler(t, handler):
+        #~ try:
+        yield events.Call(handler.run)
+        #~ except socket.error, exc:
+            #~ pass
+            
+        yield events.Call(handler.finish)
+        
     def quickstart(t, manager=Scheduler, **kw):
         
         t.m = manager(**kw)
@@ -94,16 +103,15 @@ class BaseHTTPRequestHandler:
     @coroutine    
     def run(t):
         #~ print 'MUMUx'
-        try:
-            t.close_connection = 1
+        #~ try:
+        t.close_connection = 1
+        yield events.Call(t.handle_one_request)
+        while not t.close_connection:
             yield events.Call(t.handle_one_request)
-            while not t.close_connection:
-                yield events.Call(t.handle_one_request)
-        finally:
-            sys.exc_traceback = None    # Help garbage collection
+        #~ finally:
+            #~ sys.exc_traceback = None    # Help garbage collection
     @coroutine
-    def finish(t, coro):
-        yield events.Join(coro)
+    def finish(t):
         t.request.close()
     @coroutine        
     def parse_request(t, headers_buff):
@@ -219,7 +227,6 @@ class BaseHTTPRequestHandler:
             return
         method = getattr(t, mname)
         yield events.Call(method)
-        t.request.close()
 
     @coroutine
     def send_error(t, code, message=None):

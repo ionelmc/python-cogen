@@ -119,7 +119,7 @@ class Scheduler:
             callee.prio = prio
             del callee
         elif isinstance(op, events.Join):
-            t.diewait[ op.coro ].append((op, coro))
+            op.coro.add_waiter(coro)
         elif isinstance(op, events.Sleep):
             op.coro = coro
             heapq.heappush(t.timewait, op)
@@ -129,7 +129,7 @@ class Scheduler:
         return None, None
         
     def run(t):
-        try:
+        #~ try:
             while t.active or t.poll or t.timewait:
                 if t.active:
                     _op, coro = t.active.popleft()
@@ -152,10 +152,9 @@ class Scheduler:
                         
                 t.run_poller()
                 t.run_timer()
-        except:
-            traceback.print_exc()
-            import pprint
-            pprint.pprint(locals())
+        #~ except:
+            #~ import pdb
+            #~ pdb.pm()
         #~ print 'SCHEDULER IS DEAD'
 if __name__ == "__main__":
     

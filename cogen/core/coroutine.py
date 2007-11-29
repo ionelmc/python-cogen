@@ -1,6 +1,7 @@
 import types
 import sys
 import events
+import gc
 
 def coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -47,6 +48,8 @@ class Coroutine:
         if t.waiters:
             coros.extend(t.waiters)
         t.waiters = None
+        t.caller = None
+        #~ print '>', t, sys.getrefcount(t), gc.get_referrers(t)
         return events.Complete(*coros)
     def run_op(t, op):        
         #~ print 'Run op: %r on coro: %r' % (op, t)
@@ -83,6 +86,8 @@ class Coroutine:
             t.exception = Exception(sys.exc_info())
             if t.caller:
                 rop = t.prio, events.Pass(t.caller, t.exception)
+                t.waiters = None
+                t.caller = None
             else:
                 t.handle_error(op)
                 rop = t._run_completion()

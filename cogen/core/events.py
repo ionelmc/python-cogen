@@ -9,7 +9,8 @@ class SimpleArgs:
         t.kws = kws
     def __repr__(t):
         return '<%s args:%r kws:%r>' % (t.__class__.__name__, t.args, t.kws)
-
+class ConnectionClosed(Exception):
+    pass
 
 
 class WaitForSignal:
