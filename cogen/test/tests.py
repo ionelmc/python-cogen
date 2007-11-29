@@ -1,6 +1,6 @@
 import os 
 import sys
-sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
+sys.path.append(os.path.split(os.getcwd())[0])
 #~ print sys.path
 from cogen.web import *
 from cogen.core import events
@@ -280,12 +280,15 @@ class SchedulerTest_MixIn:
             t.msgs.append(ret.result)
             try:
                 t.c = t.m.add(callee_3)
+                t.c.handle_error=lambda*a:None
                 ret = yield events.Join(t.c)
                 t.msgs.append(ret.result)
+                print 'xxxx'
+                t.msgs.append('xxx')
             except:
                 pass
                 
-             
+            t.msgs.append(4)
             
             
         @coroutine
