@@ -20,7 +20,7 @@ from cogen.core.coroutine import coroutine
 import unittest
 class SocketTest_MixIn:
     def setUp(t):
-        t.local_addr = ('localhost', random.randint(1000,2000))
+        t.local_addr = ('localhost', random.randint(19000,20000))
         t.m = t.scheduler()
         def run():
             try:
@@ -63,7 +63,7 @@ class SocketTest_MixIn:
             srv.close()
         coro = t.m.add(reader)
         t.m_run.start()
-        sleep(0.1)
+        sleep(0.5)
         sock = socket()
         sock.connect(t.local_addr)
         sock.send("X"*512)
@@ -101,7 +101,7 @@ class SocketTest_MixIn:
             srv.close()
         coro = t.m.add(reader)
         t.m_run.start()
-        sleep(0.1)
+        sleep(0.5)
         sock = socket()
         sock.connect(t.local_addr)
         sent = 0
@@ -309,13 +309,13 @@ class PrioMixIn:
 class NoPrioMixIn:
     prio = priority.LAST
     
-class PrioSchedulerTest(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
+class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
-class NoPrioSchedulerTest(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
+class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
-class PrioScheduler_SocketTest(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
+class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
-class NoPrioScheduler_SocketTest(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
+class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 
 if __name__ == '__main__':

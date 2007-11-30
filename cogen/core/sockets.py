@@ -4,7 +4,7 @@ import exceptions
 import datetime
 
 from cogen.core import events
-from cogen.core.const import priority
+from cogen.core.const import *
 
 class WrappedSocket(socket.socket):
     __name__ = "Socket"
@@ -61,7 +61,7 @@ class Read(Operation):
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
     """
     __slots__ = ['sock','len','buff','addr','prio']
-    def __init__(t, sock, len = 4096, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.len = len
         t.buff = None
@@ -87,7 +87,7 @@ class Read(Operation):
         
 class ReadAll(Operation):
     __slots__ = ['sock','len','buff','addr','prio']
-    def __init__(t, sock, len = 4096, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.len = len
         t.buff = None
@@ -122,7 +122,7 @@ class ReadLine(Read):
         `len` is the max size for a line
     """
     __slots__ = ['sock','len','buff','addr','prio']
-    def __init__(t, sock, len = 4096, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.len = len
         t.buff = None
@@ -178,7 +178,7 @@ class ReadLine(Read):
 
 class Write(Operation):
     __slots__ = ['sock','sent','buff','prio']
-    def __init__(t, sock, buff, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.buff = buff
         t.sent = 0
@@ -192,7 +192,7 @@ class Write(Operation):
         
 class WriteAll(Operation):
     __slots__ = ['sock','sent','buff','prio']
-    def __init__(t, sock, buff, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.buff = buff
         t.sent = 0
@@ -208,7 +208,7 @@ class WriteAll(Operation):
  
 class Accept(Operation):
     __slots__ = ['sock','conn','prio','addr']
-    def __init__(t, sock, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.conn = None
         t.timeout = timeout
@@ -223,7 +223,7 @@ class Accept(Operation):
              
 class Connect(Operation):
     __slots__ = ['sock','addr','prio']
-    def __init__(t, sock, addr, timeout=None, prio=priority.LAST):
+    def __init__(t, sock, addr, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
         t.addr = addr
         t.timeout = timeout

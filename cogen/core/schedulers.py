@@ -10,7 +10,7 @@ import heapq
 from cogen.core.pollers import DefaultPoller
 from cogen.core import events
 from cogen.core import sockets
-from cogen.core.const import priority
+from cogen.core.const import *
 
     
 class Scheduler(object):
@@ -54,70 +54,70 @@ class Scheduler(object):
             else:
                 return None
     def run_poller(t):
-        t.poll.run(timeout = t.next_timer_delta())
+        
+        if len(t.active)<2:
+            t.poll.run(timeout = t.next_timer_delta())
 
-    def process_op(t, coro, op):
-        #~ print '> run_op', prio,coro,op
+    def process_op(t, op, coro):
+        
+        #~ print '> run_op', op and op.prio, coro, op
+        
         if op is None:
            t.active.append((op, coro))
-        elif isinstance(op, sockets.ops):
-            r = t.poll.run_or_add(op, coro)
-            if r:
-                if op.prio:
-                    return coro, r
-                else:
-                    t.active.appendleft((r, coro))
-        elif isinstance(op, events.Pass):
-            return op.coro, op.op
-        elif isinstance(op, events.AddCoro):
-            if op.prio & priority.OP:
-                t.add_first(op.coro, *op.args, **op.kwargs)
-            else:
-                t.add(op.coro, *op.args, **op.kwargs)
-                
-            if op.prio & priority.CORO:
-                return coro, op
-            else:
-                t.active.append( (None, coro))
-        elif isinstance(op, events.Complete):
-            if op.prio:
-                t.active.extendleft(op.args)
-            else:
-                t.active.extend(op.args)
-        elif isinstance(op, events.WaitForSignal):
-            t.sigwait[op.name].append((op, coro))
-        elif isinstance(op, events.Signal):
-            if op.prio & priority.OP:
-                t.active.extendleft(t.sigwait[op.name])
-            else:
-                t.active.extend(t.sigwait[op.name])
-            
-            if op.prio & priority.CORO:
-                t.active.appendleft((None, coro))
-            else:
-                t.active.append((None, coro))
-                
-            del t.sigwait[op.name]
-        elif isinstance(op, events.Call):
-            if op.prio:
-                callee = t.add_first(op.coro, *op.args, **op.kwargs)
-            else:
-                callee = t.add(op.coro, *op.args, **op.kwargs) 
-            callee.caller = coro
-            callee.prio = op.prio
-            del callee
-        elif isinstance(op, events.Join):
-            op.coro.add_waiter(coro)
-        elif isinstance(op, events.Sleep):
-            op.coro = coro
-            heapq.heappush(t.timewait, op)
         else:
-            print op
-            if hasattr(op, 'prio'):
-                if op.prio:
+            if op.prio == priority.DEFAULT:
+                op.prio = t.default_priority
+            if isinstance(op, sockets.ops):
+                r = t.poll.run_or_add(op, coro)
+                if r:
+                    if op.prio:
+                        return r, coro
+                    else:
+                        t.active.appendleft((r, coro))
+            elif isinstance(op, events.Pass):
+                return op.op, op.coro
+            elif isinstance(op, events.AddCoro):
+                if op.prio & priority.OP:
+                    t.add_first(op.coro, *op.args, **op.kwargs)
+                else:
+                    t.add(op.coro, *op.args, **op.kwargs)
+                    
+                if op.prio & priority.CORO:
                     return op, coro
                 else:
-                    t.active.append((op, coro))
+                    t.active.append( (None, coro))
+            elif isinstance(op, events.Complete):
+                if op.prio:
+                    t.active.extendleft(op.args)
+                else:
+                    t.active.extend(op.args)
+            elif isinstance(op, events.WaitForSignal):
+                t.sigwait[op.name].append((op, coro))
+            elif isinstance(op, events.Signal):
+                if op.prio & priority.OP:
+                    t.active.extendleft(t.sigwait[op.name])
+                else:
+                    t.active.extend(t.sigwait[op.name])
+                
+                if op.prio & priority.CORO:
+                    t.active.appendleft((None, coro))
+                else:
+                    t.active.append((None, coro))
+                    
+                del t.sigwait[op.name]
+            elif isinstance(op, events.Call):
+                if op.prio:
+                    callee = t.add_first(op.coro, *op.args, **op.kwargs)
+                else:
+                    callee = t.add(op.coro, *op.args, **op.kwargs) 
+                callee.caller = coro
+                callee.prio = op.prio
+                del callee
+            elif isinstance(op, events.Join):
+                op.coro.add_waiter(coro)
+            elif isinstance(op, events.Sleep):
+                op.coro = coro
+                heapq.heappush(t.timewait, op)
             else:
                 raise RuntimeError("Bad coroutine operation.")
         return None, None
@@ -128,8 +128,8 @@ class Scheduler(object):
                 if t.active:
                     op, coro = t.active.popleft()
                     while True:
-                        print coro, op
-                        coro, op = t.process_op(coro, coro.run_op(op))
+                        #~ print coro, op
+                        op, coro = t.process_op(coro.run_op(op), coro)
                         if not op:
                             break  
                         

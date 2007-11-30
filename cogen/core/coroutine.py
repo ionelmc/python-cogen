@@ -2,6 +2,7 @@ import types
 import sys
 import gc
 from cogen.core import events
+from cogen.core.const import *
 
 def coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -13,7 +14,7 @@ class Coroutine:
     we want to run functions that don't return generators just like a coroutine 
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
-    _state_names = "need init", "running", "completed", "failed"
+    _state_names = "notstarted", "running", "completed", "failed"
     def __init__(t, coro, *args, **kws):
         t.f_args = args
         t.f_kws = kws
@@ -56,7 +57,7 @@ class Coroutine:
         assert t.state < t.STATE_COMPLETED
         try:
             if t.state == t.STATE_RUNNING:
-                if isinstance(op, Exception):
+                if isinstance(op, CoroutineException):
                     rop = t.coro.throw(*op.message)
                 else:
                     rop = t.coro.send(op)
@@ -89,7 +90,7 @@ class Coroutine:
                 if t.waiters:
                     rop = t._run_completion()
                 else:
-                    rop = events.Pass(t.caller, Exception(t.exception), prio=t.prio)
+                    rop = events.Pass(t.caller, CoroutineException(t.exception), prio=t.prio)
                 t.waiters = None
                 t.caller = None
             else:

@@ -12,7 +12,7 @@ import datetime
 import heapq
 
 from cogen.core import sockets
-from cogen.core.const import priority
+from cogen.core.const import *
 
 class Poller:
     """
@@ -39,7 +39,7 @@ class Poller:
             r = obj.try_run()
             #~ print r, obj
         except:
-            r = Exception(sys.exc_info())
+            r = CoroutineException(sys.exc_info())
             r._coro = obj._coro
         return r
     def run_or_add(t, obj, coro):
@@ -81,12 +81,11 @@ class SelectPoller(Poller):
                 del waiting_ops[id]
             
                 coro = op._coro
-                prio = getattr(op, 'prio', priority.LAST)
                 del op._coro
-                if prio & priority.OP:
-                    coro, op = t._scheduler.process_op(coro, coro.run_op(op))
+                if op.prio & priority.OP:
+                    op, coro = t._scheduler.process_op(coro.run_op(op), coro)
                 if coro:
-                    if prio & priority.CORO:
+                    if op.prio & priority.CORO:
                         t._scheduler.active.appendleft( (op, coro) )
                     else:
                         t._scheduler.active.append( (op, coro) )
@@ -154,7 +153,7 @@ class EpollPoller(Poller):
         else:
             time.sleep(t.resolution)
 try:
-    import epoll
+    import epollx
     DefaultPoller = EpollPoller
 except ImportError:
     DefaultPoller = SelectPoller            

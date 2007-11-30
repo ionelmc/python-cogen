@@ -65,7 +65,7 @@ class HTTPServer:
                 return
             handler = t.RequestHandlerClass(obj.conn, obj.addr, t)
             #~ print handler
-            yield events.AddCoro(t.process_handler, handler)
+            yield events.AddCoro(t.process_handler, args=(handler,))
     @coroutine
     def process_handler(t, handler):
         #~ try:
@@ -216,7 +216,7 @@ class BaseHTTPRequestHandler:
                 break
         headers_buff.seek(0)
         #~ print "handle_one_request", headers_buff.getvalue()
-        cobj = yield events.Call(t.parse_request,headers_buff)
+        cobj = yield events.Call(t.parse_request, args=(headers_buff,))
         #~ print cobj
         if not cobj.result: # An error code has been sent, just exit
             return
@@ -279,8 +279,8 @@ class BaseHTTPRequestHandler:
             yield sockets.Write(sock=t.request, buff="%s %d %s\r\n" %
                              (t.protocol_version, code, message))
             # print (t.protocol_version, code, message)
-        yield events.Call(t.send_header, 'Server', t.version_string())
-        yield events.Call(t.send_header, 'Date', t.date_time_string())
+        yield events.Call(t.send_header, args=('Server', t.version_string()))
+        yield events.Call(t.send_header, args=('Date', t.date_time_string()))
     @coroutine
     def send_header(t, keyword, value):
         """Send a MIME header."""
