@@ -1,6 +1,3 @@
-
-import socket
-import select
 import collections
 import time
 import sys
@@ -8,27 +5,22 @@ import traceback
 import types
 import datetime
 import heapq
-from cStringIO import StringIO
 
 
-from coroutine import coroutine
-from pollers import DefaultPoller
-import events
-import sockets
-class Priority:            
-    LAST  = NOPRIO = 0
-    CORO  = 1
-    OP    = 2
-    FIRST = PRIO = 3
+from cogen.core.pollers import DefaultPoller
+from cogen.core import events
+from cogen.core import sockets
+from cogen.core.const import priority
+
     
-class Scheduler:
-    def __init__(t, poller=DefaultPoller, default_priority=Priority.LAST):
+class Scheduler(object):
+    def __init__(t, poller=DefaultPoller, default_priority=priority.LAST):
         t.active = collections.deque()
         t.sigwait = collections.defaultdict(collections.deque)
         t.diewait = collections.defaultdict(collections.deque)
         t.timewait = [] # heapq
         t.calls = {}
-        t.poll = poller()
+        t.poll = poller(t)
         t.idle = 0
         t.timerc = 1
         t.default_priority = default_priority
@@ -55,68 +47,64 @@ class Scheduler:
     
     def next_timer_delta(t): 
         if t.timewait and not t.active:
-            return (datetime.datetime.now() - t.timewait[0].wake_time).microseconds
+            return (datetime.datetime.now() - t.timewait[0].wake_time)
         else:
             if t.active:
-                return None
+                return 0
             else:
-                return -1
+                return None
     def run_poller(t):
-        for ev in t.poll.run(timeout = t.next_timer_delta()):
-            #~ print "EVENT:",ev
-            obj, coro = ev
-            t.active.appendleft( ev )
+        t.poll.run(timeout = t.next_timer_delta())
 
-    def run_ops(t, prio, coro, op):
+    def process_op(t, coro, op):
         #~ print '> run_op', prio,coro,op
-        if isinstance(op, sockets.ops):
-        #~ if op.__class__ in sockets.ops:
-            r = t.poll.add(op, coro)
+        if op is None:
+           t.active.append((op, coro))
+        elif isinstance(op, sockets.ops):
+            r = t.poll.run_or_add(op, coro)
             if r:
-                #~ print '\n>>r', prio, coro, op, r
-                if prio:
+                if op.prio:
                     return coro, r
                 else:
                     t.active.appendleft((r, coro))
         elif isinstance(op, events.Pass):
-            #~ print "Passing %r %r" % (op.coro, op.op)
             return op.coro, op.op
         elif isinstance(op, events.AddCoro):
-            if prio&Priority.OP:
-                t.add_first(*op.args)
+            if op.prio & priority.OP:
+                t.add_first(op.coro, *op.args, **op.kwargs)
             else:
-                t.add(*op.args)
+                t.add(op.coro, *op.args, **op.kwargs)
                 
-            if prio&Priority.CORO:
+            if op.prio & priority.CORO:
                 return coro, op
             else:
                 t.active.append( (None, coro))
         elif isinstance(op, events.Complete):
-            if prio:
+            if op.prio:
                 t.active.extendleft(op.args)
             else:
                 t.active.extend(op.args)
         elif isinstance(op, events.WaitForSignal):
             t.sigwait[op.name].append((op, coro))
         elif isinstance(op, events.Signal):
-            if prio&Priority.OP:
+            if op.prio & priority.OP:
                 t.active.extendleft(t.sigwait[op.name])
             else:
                 t.active.extend(t.sigwait[op.name])
             
-            if prio&Priority.CORO:
+            if op.prio & priority.CORO:
                 t.active.appendleft((None, coro))
             else:
                 t.active.append((None, coro))
                 
             del t.sigwait[op.name]
         elif isinstance(op, events.Call):
-            if prio:
-                callee = t.add_first(*op.args, **op.kws)
+            if op.prio:
+                callee = t.add_first(op.coro, *op.args, **op.kwargs)
             else:
-                callee = t.add(*op.args, **op.kws) 
+                callee = t.add(op.coro, *op.args, **op.kwargs) 
             callee.caller = coro
-            callee.prio = prio
+            callee.prio = op.prio
             del callee
         elif isinstance(op, events.Join):
             op.coro.add_waiter(coro)
@@ -124,30 +112,25 @@ class Scheduler:
             op.coro = coro
             heapq.heappush(t.timewait, op)
         else:
-            if not prio:
-                t.active.append((op, coro))
+            print op
+            if hasattr(op, 'prio'):
+                if op.prio:
+                    return op, coro
+                else:
+                    t.active.append((op, coro))
+            else:
+                raise RuntimeError("Bad coroutine operation.")
         return None, None
         
     def run(t):
         #~ try:
             while t.active or t.poll or t.timewait:
                 if t.active:
-                    _op, coro = t.active.popleft()
+                    op, coro = t.active.popleft()
                     while True:
-                        #~ print ">Sending %s to coro %s, " % (_op, coro),
-                        op = coro.run_op(_op)
-                        #~ print op, "returned."
-                        if op is None:
-                            t.active.append((op, coro))
-                            break
-                        prio = t.default_priority
-                        if isinstance(op, types.TupleType):
-                            try:
-                                prio, op = op
-                            except ValueError:
-                                t.run_coro(t, coro, Exception("Bad op"))
-                        coro, _op = t.run_ops(prio, coro, op)
-                        if not _op:
+                        print coro, op
+                        coro, op = t.process_op(coro, coro.run_op(op))
+                        if not op:
                             break  
                         
                 t.run_poller()

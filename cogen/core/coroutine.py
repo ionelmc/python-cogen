@@ -1,7 +1,7 @@
 import types
 import sys
-import events
 import gc
+from cogen.core import events
 
 def coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -89,7 +89,7 @@ class Coroutine:
                 if t.waiters:
                     rop = t._run_completion()
                 else:
-                    rop = t.prio, events.Pass(t.caller, Exception(t.exception))
+                    rop = events.Pass(t.caller, Exception(t.exception), prio=t.prio)
                 t.waiters = None
                 t.caller = None
             else:

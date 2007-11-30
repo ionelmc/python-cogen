@@ -1,4 +1,5 @@
 import datetime
+from cogen.core.const import priority
 
 class SimpleAttrib:
     def __init__(t, **kws):
@@ -11,42 +12,67 @@ class SimpleArgs:
         return '<%s args:%r kws:%r>' % (t.__class__.__name__, t.args, t.kws)
 class ConnectionClosed(Exception):
     pass
-
-
-class WaitForSignal:
-    def __init__(t, name):
-        t.name = name
-class Signal:
-    def __init__(t, name):
-        t.name = name
-class Call(SimpleArgs):
+class OperationTimeout(Exception):
     pass
-    
-class AddCoro:
-    def __init__(t, *args):
-        t.args = args
-    def __repr__(t):
-        return '<%s instance at 0x%X, args: %s>' % (t.__class__.__name__, id(t), t.args)
 
-class Pass:
-    def __init__(t, coro, op = None):
+
+class WaitForSignal(object):
+    __slots__ = ['name','prio']
+    def __init__(t, name, prio=priority.LAST):
+        t.name = name
+        t.prio = prio
+class Signal(object):
+    __slots__ = ['name','prio']
+    def __init__(t, name, prio=priority.LAST):
+        t.name = name
+        t.prio = prio
+class Call(object):
+    __slots__ = ['coro', 'args','kwargs','prio']
+    def __init__(t, coro, args=(), kwargs={}, prio=priority.LAST):
+        t.coro = coro
+        t.args = args
+        t.kwargs = kwargs
+        t.prio = prio
+    def __repr__(t):
+        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.args, t.kwargs, t.prio)
+    
+class AddCoro(object):
+    __slots__ = ['coro','args','kwargs','prio']
+    def __init__(t, coro, args=(), kwargs={}, prio=priority.LAST):
+        t.coro = coro
+        t.args = args
+        t.kwargs = kwargs
+        t.prio = prio
+    def __repr__(t):
+        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.args, t.kwargs, t.prio)
+
+class Pass(object):
+    __slots__ = ['coro', 'op', 'prio']
+    def __init__(t, coro, op = None, prio=priority.LAST):
         t.coro = coro
         t.op = op
+        t.prio = prio
+    def __repr__(t):
+        return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.op, t.prio)
 
-class Complete:
+class Complete(object):
+    __slots__ = ['args','prio']
     def __init__(t, *args):
         t.args = args
+        t.prio = priority.LAST
     def __repr__(t):
-        return '<%s instance at 0x%X, args: %s>' % (t.__class__.__name__, id(t), t.args)
+        return '<%s instance at 0x%X, args: %s, prio: %s>' % (t.__class__.__name__, id(t), t.args, t.prio)
     
 class Join:
+    __slots__ = ['coro']
     def __init__(t, coro):
         t.coro = coro
-class Semaphore:
-    pass #todo
+    def __repr__(t):
+        return '<%s instance at 0x%X, coro: %s>' % (t.__class__.__name__, id(t), t.coro)
 
     
 class Sleep:
+    __slots__ = ['wake_time']
     def __init__(t, val):
         if isinstance(val, datetime.timedelta):
             t.wake_time = datetime.datetime.now() + val

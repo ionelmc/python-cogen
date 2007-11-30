@@ -1,11 +1,5 @@
 import os 
 import sys
-sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
-#~ print sys.path
-from cogen.web import *
-from cogen.core import events
-from cogen.core.schedulers import *
-from cogen.core.coroutine import coroutine
 import thread, threading
 import random
 import exceptions
@@ -13,6 +7,13 @@ import exceptions
 from socket import *
 from cStringIO import StringIO
 from time import sleep  
+
+sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
+#~ print sys.path
+from cogen.web import *
+from cogen.core import events
+from cogen.core.schedulers import *
+from cogen.core.coroutine import coroutine
 
 
 
@@ -41,24 +42,25 @@ class SocketTest_MixIn:
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
-            obj = yield t.prio, sockets.Accept(srv)
-            t.waitobj = sockets.ReadLine(sock=obj.conn, len=1024) 
+            obj = yield sockets.Accept(srv, prio=t.prio)
+            t.waitobj = sockets.ReadLine(sock=obj.conn, len=1024, prio=t.prio) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
-            t.recvobj = yield t.prio, t.waitobj
+            t.recvobj = yield t.waitobj
             try: 
                 # test for readline overflow'
-                t.waitobj2 = yield t.prio, sockets.ReadLine(sock=obj.conn, len=512)
+                t.waitobj2 = yield sockets.ReadLine(sock=obj.conn, len=512, prio=t.prio)
             except exceptions.OverflowError, e:
                 t.waitobj2 = "OK"
-                t.waitobj_cleanup = yield t.prio, sockets.Read(sock=obj.conn, len=1024*8) 
+                t.waitobj_cleanup = yield sockets.Read(sock=obj.conn, len=1024*8, prio=t.prio) 
                                         # eat up the remaining data waiting on socket
             t.recvobj2 = (
-                (yield t.prio, sockets.ReadLine(obj.conn, 1024)),
-                (yield t.prio, sockets.ReadLine(obj.conn, 1024)),
-                (yield t.prio, sockets.ReadLine(obj.conn, 1024))
+                (yield sockets.ReadLine(obj.conn, 1024, prio=t.prio)),
+                (yield sockets.ReadLine(obj.conn, 1024, prio=t.prio)),
+                (yield sockets.ReadLine(obj.conn, 1024, prio=t.prio))
             )
+            srv.close()
         coro = t.m.add(reader)
         t.m_run.start()
         sleep(0.1)
@@ -67,7 +69,7 @@ class SocketTest_MixIn:
         sock.send("X"*512)
         sleep(0.5)
         t.assert_(coro not in t.m.active)
-        t.assert_(t.m.poll.waiting(coro) is t.waitobj)            
+        t.assert_(t.m.poll.waiting_op(coro) is t.waitobj)            
         sock.send("\n")
         sleep(0.5)
         t.assert_(len(t.m.poll)==1)
@@ -93,9 +95,10 @@ class SocketTest_MixIn:
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
-            obj = yield t.prio, sockets.Accept(srv)
-            t.recvobj = yield t.prio, sockets.Read(obj.conn, 1024*4)
-            t.recvobj_all = yield t.prio, sockets.ReadAll(obj.conn, 1024**2-1024*4)
+            obj = yield sockets.Accept(srv, prio=t.prio)
+            t.recvobj = yield sockets.Read(obj.conn, 1024*4, prio=t.prio)
+            t.recvobj_all = yield sockets.ReadAll(obj.conn, 1024**2-1024*4, prio=t.prio)
+            srv.close()
         coro = t.m.add(reader)
         t.m_run.start()
         sleep(0.1)
@@ -110,6 +113,7 @@ class SocketTest_MixIn:
         sleep(0.5)
         t.assert_(len(t.recvobj.buff)<=1024*4)
         sleep(1)
+        
         t.assertEqual(len(t.recvobj_all.buff)+len(t.recvobj.buff),1024**2)
         t.assertEqual(len(t.m.poll), 0)
         t.assertEqual(len(t.m.active), 0)
@@ -156,6 +160,7 @@ class SocketTest_MixIn:
                     break
                 else:
                     raise
+        srv.close()
         t.assertEqual(t.writeobj.sent+t.writeobj_all.sent, total)
         t.assertEqual(len(t.m.poll), 0)
         t.assertEqual(len(t.m.active), 0)
@@ -197,7 +202,7 @@ class SchedulerTest_MixIn:
         @coroutine
         def adder(c):
             t.msgs.append(1)
-            yield events.AddCoro(c,2)
+            yield events.AddCoro(c, args=(2,))
             t.msgs.append(3)
         t.m.add(adder, added)
         t.m.run()
@@ -224,7 +229,7 @@ class SchedulerTest_MixIn:
                 s = traceback.format_exc()
                 t.exc = s
 
-            ret = yield events.Call(callee_6, 6)
+            ret = yield events.Call(callee_6, args=(6,))
             t.msgs.append(ret.result)
             
         @coroutine
@@ -300,9 +305,9 @@ class SchedulerTest_MixIn:
         t.m.run()
         t.assertEqual(t.msgs, [1,2,3,4])
 class PrioMixIn:
-    prio = Priority.FIRST
+    prio = priority.FIRST
 class NoPrioMixIn:
-    prio = Priority.LAST
+    prio = priority.LAST
     
 class PrioSchedulerTest(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler

@@ -35,5 +35,5 @@ __email__ = "ionel.mc at gmail dot com"
 __version__ = "$Revision$"
 __svnid__ = "$Id$"
 
-import core
-import common
+from cogen import core
+from cogen import common

@@ -38,7 +38,6 @@ try:
 except ImportError:
     import StringIO
 import sys
-import threading
 import time
 import traceback
 from urllib import unquote
@@ -509,9 +508,8 @@ class HTTPConnection(object):
         
         t.sock = sock
     @coroutine    
-    def communicate(t):
+    def handle(t):
         """Read each request and respond appropriately."""
-        yield
         try:
             while True:
                 # (re)set req to None so that if something goes wrong in
@@ -542,7 +540,6 @@ class HTTPConnection(object):
     @coroutine
     def close(t):
         """Close the socket underlying this connection."""
-        t.socket.close()
         yield
 
 
@@ -739,7 +736,7 @@ class WSGIServer(object):
             
             conn = t.ConnectionClass(s, t.wsgi_app, environ)
             
-            yield Priority.CORO, events.AddCoro(t.handle, conn)
+            yield Priority.CORO, events.AddCoro(conn.handle)
             #TODO: how scheduling ?
 
    
@@ -753,15 +750,19 @@ class WSGIServer(object):
     
 def main():    
     from cogen.web import wsgiserver
+    import wsgiref.validate 
+    import pprint
     #~ from cogen.web import httpd
     def my_crazy_app(environ, start_response):
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
-        return ['Hello world!\n']
+        return [pprint.pformat(environ)]
 
     server = wsgiserver.WSGIServer(
-                ('localhost', 8070), my_crazy_app,
+                ('localhost', 8070), 
+                #~ wsgiref.validate.validator(my_crazy_app),
+                my_crazy_app,
                 server_name='localhost')
     m = Scheduler(default_priority=Priority.LAST)
     m.add(server.start)
