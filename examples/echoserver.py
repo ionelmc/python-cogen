@@ -1,8 +1,6 @@
 import sys, os
-sys.path.append(os.path.split(os.getcwd())[0])
 
-from cogen.core import Socket, Scheduler, coroutine
-from cStringIO import StringIO
+from cogen.common import *
 
 @coroutine
 def server():
@@ -20,7 +18,6 @@ def server():
 def handler(sock, addr):
     wobj = yield Socket.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
         
-    linebuff = StringIO()
     while 1:
         robj = yield Socket.ReadLine(sock, 8192)
         if robj.buff.strip() == 'exit':

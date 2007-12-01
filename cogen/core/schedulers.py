@@ -10,7 +10,7 @@ import heapq
 from cogen.core.pollers import DefaultPoller
 from cogen.core import events
 from cogen.core import sockets
-from cogen.core.const import *
+from cogen.core.events import priority
 
     
 class Scheduler(object):
@@ -59,15 +59,14 @@ class Scheduler(object):
             t.poll.run(timeout = t.next_timer_delta())
 
     def process_op(t, op, coro):
-        
         #~ print '> run_op', op and op.prio, coro, op
         
         if op is None:
            t.active.append((op, coro))
         else:
-            if op.prio == priority.DEFAULT:
+            if hasattr(op, 'prio') and op.prio == priority.DEFAULT:
                 op.prio = t.default_priority
-            if isinstance(op, sockets.ops):
+            if isinstance(op, sockets.Operation):
                 r = t.poll.run_or_add(op, coro)
                 if r:
                     if op.prio:
@@ -135,6 +134,9 @@ class Scheduler(object):
                         
                 t.run_poller()
                 t.run_timer()
+                #~ print 'active:  ',len(t.active)
+                #~ print 'poll:    ',len(t.poll)
+                #~ print 'timeouts:',len(t.poll._timeouts)
         #~ except:
             #~ import pdb
             #~ pdb.pm()

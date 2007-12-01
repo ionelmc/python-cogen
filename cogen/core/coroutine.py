@@ -2,7 +2,7 @@ import types
 import sys
 import gc
 from cogen.core import events
-from cogen.core.const import *
+from cogen.core.events import priority
 
 def coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -15,6 +15,7 @@ class Coroutine:
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
     _state_names = "notstarted", "running", "completed", "failed"
+    __slots__ = ['f_args','f_kws']
     def __init__(t, coro, *args, **kws):
         t.f_args = args
         t.f_kws = kws
@@ -57,7 +58,7 @@ class Coroutine:
         assert t.state < t.STATE_COMPLETED
         try:
             if t.state == t.STATE_RUNNING:
-                if isinstance(op, CoroutineException):
+                if isinstance(op, events.CoroutineException):
                     rop = t.coro.throw(*op.message)
                 else:
                     rop = t.coro.send(op)
@@ -90,27 +91,21 @@ class Coroutine:
                 if t.waiters:
                     rop = t._run_completion()
                 else:
-                    rop = events.Pass(t.caller, CoroutineException(t.exception), prio=t.prio)
+                    rop = events.Pass(t.caller, events.CoroutineException(t.exception), prio=t.prio)
                 t.waiters = None
                 t.caller = None
             else:
-                t.handle_error(op)
+                t.handle_error()
                 rop = t._run_completion()
 
         return rop
-    def handle_error(t, inner=None):        
+    def handle_error(t):        
         print 
         print '-'*40
         print 'Exception happened during processing of coroutine.'
         import traceback
         traceback.print_exc()
-        print "   BTW, %s died. " % t
-        if isinstance(inner, Exception):
-            print ' -- Inner exception -- '
-            traceback.print_exception(*inner.message)
-            print ' --------------------- ' 
-        else:
-            print "Operation was: %s" % inner
+        print "Coroutine %s killed. " % t
         print '-'*40
         
     def __repr__(t):

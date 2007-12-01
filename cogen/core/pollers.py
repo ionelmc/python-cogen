@@ -10,10 +10,25 @@ import errno
 import exceptions
 import datetime
 import heapq
+import weakref
 
 from cogen.core import sockets
-from cogen.core.const import *
+from cogen.core import events
+from cogen.core.events import priority
 
+class Timeout(object):
+    __slots__= ['coro','op','timeout']
+    def __init__(t, op, coro):
+        assert isinstance(op.timeout, datetime.datetime)
+        t.timeout = op.timeout
+        t.coro = weakref.ref(coro)
+        t.op = weakref.ref(op)
+    def __cmp__(t, other):
+        return cmp(t.timeout, other.timeout)    
+    def __iter__(t):
+        return iter((t.op(), t.coro()))
+    def __repr__(t):
+        return "<%s@%s timeout:%s, coro:%s, op:%s>" % (t.__class__.__name__, id(t), t.timeout, t.coro(), t.op())
 class Poller:
     """
     A poller just checks if there are ready-sockets for the operations.
@@ -28,60 +43,70 @@ class Poller:
         t._scheduler = scheduler
     def run_once(t, id, waiting_ops):           
         " Run a operation, remove it from the poller and return the result. Called from the main poller loop. "
-        obj = t.run_operation(waiting_ops[id])
-        if obj:
+        op, coro = waiting_ops[id]
+        op = t.run_operation()
+        if op:
             del waiting_ops[id]
-            return obj, obj._coro
-    def run_operation(t, obj):
+            return op, coro
+    def run_operation(t, op):
         " Run the socket op and return result or exception. "
-        
         try:
-            r = obj.try_run()
-            #~ print r, obj
+            r = op.try_run()
         except:
-            r = CoroutineException(sys.exc_info())
-            r._coro = obj._coro
+            r = events.CoroutineException(sys.exc_info())
         return r
-    def run_or_add(t, obj, coro):
+    def run_or_add(t, op, coro):
         " Perform operation or add the operation in the poller if socket isn't ready. Called from the scheduller. "
-        r = t.run_operation(obj)
+        r = t.run_operation(op)
         if r: 
             return r
         else:
-            obj._coro = coro
-            t.add(obj)
-    def waiting_op(t, coro):
+            t.add(op, coro)
+    def waiting_op(t, testcoro):
         for socks in (t._waiting_reads, t._waiting_writes):
             for i in socks:
-                obj = socks[i]
-                if coro is obj._coro:
-                    return obj
+                op, coro = socks[i]
+                if testcoro is coro:
+                    return op
+    def add_timeout(t, op, coro):
+        heapq.heappush(t._timeouts, Timeout(op, coro))
     def handle_timeouts(t):
         now = datetime.datetime.now()
-        if t._timeouts and t._timeouts[0] <= now:
-            obj = heapq.heappop(t._timeouts)
-            t._scheduler.active.append( (events.OperationTimeout(obj), obj._coro) )
-
-class SelectPoller(Poller):
+        #~ print '>to:', t._timeouts, t._timeouts and t._timeouts[0].timeout <= now
+        if t._timeouts and t._timeouts[0].timeout <= now:
+            op, coro = heapq.heappop(t._timeouts)
+            if op and coro:
+                t.remove(op)
+                t._scheduler.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
     def __len__(t):
         return len(t._waiting_reads) + len(t._waiting_writes)
-    def add(t, obj):
-        if obj.__class__ in sockets.read_ops:
-            assert obj.sock not in t._waiting_reads
-            t._waiting_reads[obj.sock] = obj
+    
+class SelectPoller(Poller):
+    def remove(t, op):
+        if isinstance(op, sockets.ReadOperation):
+            del t._waiting_reads[op.sock]
+        if isinstance(op, sockets.WriteOperation):
+            del t._waiting_writes[op.sock]
+    def add(t, op, coro):
+        if op.timeout: t.add_timeout(op, coro)
             
-        if obj.__class__ in sockets.write_ops:
-            assert obj.sock not in t._waiting_writes
-            t._waiting_writes[obj.sock] = obj
+        if isinstance(op, sockets.ReadOperation):
+            assert op.sock not in t._waiting_reads
+            t._waiting_reads[op.sock] = op, coro
+            
+        if isinstance(op, sockets.WriteOperation):
+            assert op.sock not in t._waiting_writes
+            t._waiting_writes[op.sock] = op, coro
             
     def handle_events(t, ready, waiting_ops):
         for id in ready:
-            op = t.run_operation(waiting_ops[id])
+            op, coro = waiting_ops[id]
+            heapq.heapreplace
+            op = t.run_operation(op)
             if op:
                 del waiting_ops[id]
+                
             
-                coro = op._coro
-                del op._coro
                 if op.prio & priority.OP:
                     op, coro = t._scheduler.process_op(coro.run_op(op), coro)
                 if coro:
@@ -118,13 +143,13 @@ class EpollPoller(Poller):
             if x is coro:
                 return obj
     def add(t, obj, coro):
-        fd = obj.sock.fileno()
+        fd = op.sock.fileno()
         assert fd not in t.fds
                 
-        if obj.__class__ in sockets.read_ops:
+        if op.__class__ in sockets.read_ops:
             t._waiting_reads[fd] = obj, coro
             epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLIN)
-        if obj.__class__ in sockets.write_ops:
+        if op.__class__ in sockets.write_ops:
             t._waiting_writes[fd] = obj, coro
             epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLOUT)
     def run(t, timeout = 0):

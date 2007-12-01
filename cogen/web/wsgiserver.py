@@ -42,9 +42,6 @@ import time
 import traceback
 from urllib import unquote
 from urlparse import urlparse
-if __name__ == "__main__":
-    import sys, os
-    sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
 
 import cogen
 from cogen.common import *

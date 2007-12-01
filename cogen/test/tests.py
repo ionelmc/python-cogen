@@ -3,13 +3,11 @@ import sys
 import thread, threading
 import random
 import exceptions
-
+import datetime
 from socket import *
 from cStringIO import StringIO
 from time import sleep  
 
-sys.path.append(os.path.split(os.path.split(os.getcwd())[0])[0])
-#~ print sys.path
 from cogen.web import *
 from cogen.core import events
 from cogen.core.schedulers import *
@@ -304,18 +302,59 @@ class SchedulerTest_MixIn:
         t.m.add(caller)
         t.m.run()
         t.assertEqual(t.msgs, [1,2,3,4])
+class Timer_MixIn:
+    def setUp(t):
+        t.local_addr = ('localhost', random.randint(19000,20000))
+        t.m = t.scheduler()
+        def run():
+            try:
+                time.sleep(1)
+                t.m.run()
+            except:
+                import traceback
+                traceback.print_exc()
+        t.m_run = threading.Thread(target=run)      
+        t.local_sock = socket()        
+    def tearDown(t):
+        t.local_sock.close()
+    def test_sock_connect_timeout(t):
+        @coroutine
+        def coro():
+            print '123'
+            yield events.Sleep(time.time()+1)
+            cli = sockets.Socket()
+            #~ try:
+            print '-',(yield sockets.Connect(cli, t.local_addr, 5, priority.FIRST))
+            #~ except:
+                #~ print '---',
+                #~ import traceback; traceback.print_exc()
+            #~ print 'mumu'
+            print '-',(yield sockets.ReadAll(cli, 4096, 1, priority.FIRST))
+            
+            
+        t.local_sock.bind(t.local_addr)
+        t.local_sock.listen(10)
+        t.m.add(coro)
+        t.m_run.start()
+        time.sleep(0.1)
+        s = t.local_sock.accept()
+        
+        t.m_run.join()
+        
 class PrioMixIn:
     prio = priority.FIRST
 class NoPrioMixIn:
     prio = priority.LAST
     
-class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
-class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
-class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
-class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
+#~ class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
+    #~ scheduler = Scheduler
+#~ class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    #~ scheduler = Scheduler
+#~ class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
+    #~ scheduler = Scheduler
+#~ class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    #~ scheduler = Scheduler
+class TimerTest_Prio(Timer_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 import sys, os
-sys.path.append(os.path.split(os.getcwd())[0])
 
 try:
     import psyco

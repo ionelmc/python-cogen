@@ -4,7 +4,7 @@ import exceptions
 import datetime
 
 from cogen.core import events
-from cogen.core.const import *
+from cogen.core.events import priority
 
 class WrappedSocket(socket.socket):
     __name__ = "Socket"
@@ -20,23 +20,25 @@ class WrappedSocket(socket.socket):
         t._rl_list = []
         t._rl_list_sz = 0
         t._rl_pending = ''
+        t.setblocking(0)
     def __repr__(t):
         return '<socket at 0x%X>' % id(t)
     def __str__(t):
         return 'sock@0x%X' % id(t)
 New = Socket = WrappedSocket
 class Operation(object):
-    __slots__ = ['_timeout', '_coro']
+    __slots__ = ['_timeout','_coro','__weakref__']
     
     def try_run(t):
         try:
-            #~ print "Operation.try_run(%s):"%t,
+            #~ print "Operation.try_run(%s) returned"%t,
             #~ result = t.run()
             #~ print result
+            #~ print 
             #~ return result
             return t.run()
         except socket.error, exc:
-            if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): #errno.ECONNABORTED
+            if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): 
                 return None
             elif exc[0] == errno.EPIPE:
                 raise events.ConnectionClosed()
@@ -54,9 +56,12 @@ class Operation(object):
                 val = now+datetime.timedelta(seconds=val)
         t._timeout = val
     timeout = property(_get_timeout, _set_timeout)
-    def __cmp__(t, other):
-        return cmp(t._timeout, other._timeout)    
-class Read(Operation):
+class ReadOperation(Operation): 
+    pass
+class WriteOperation(Operation): 
+    pass    
+    
+class Read(ReadOperation):
     """
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
     """
@@ -83,9 +88,9 @@ class Read(Operation):
             else:
                 raise events.ConnectionClosed()
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%.20r B:%.20r>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff)
+        return "<%s at 0x%X %s P:%r L:%.20r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff, t.timeout)
         
-class ReadAll(Operation):
+class ReadAll(ReadOperation):
     __slots__ = ['sock','len','buff','addr','prio']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
@@ -115,9 +120,9 @@ class ReadAll(Operation):
         else: # damn ! we still didn't recv enough
             return
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff)
+        return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
         
-class ReadLine(Read):
+class ReadLine(ReadOperation):
     """
         `len` is the max size for a line
     """
@@ -174,9 +179,9 @@ class ReadLine(Read):
         else: 
             raise events.ConnectionClosed()
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff)
+        return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
 
-class Write(Operation):
+class Write(WriteOperation):
     __slots__ = ['sock','sent','buff','prio']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
@@ -188,9 +193,9 @@ class Write(Operation):
         t.sent = t.sock.send(t.buff)
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%.20r>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff)
+        return "<%s at 0x%X %s S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
         
-class WriteAll(Operation):
+class WriteAll(WriteOperation):
     __slots__ = ['sock','sent','buff','prio']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
@@ -204,9 +209,9 @@ class WriteAll(Operation):
         if t.sent == len(t.buff):
             return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%.20r>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff)
+        return "<%s at 0x%X %s S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
  
-class Accept(Operation):
+class Accept(ReadOperation):
     __slots__ = ['sock','conn','prio','addr']
     def __init__(t, sock, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
@@ -219,9 +224,9 @@ class Accept(Operation):
         t.conn.setblocking(0)
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s conn:%r>" % (t.__class__.__name__, id(t), t.sock, t.conn)
+        return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.conn, t.timeout)
              
-class Connect(Operation):
+class Connect(WriteOperation):
     __slots__ = ['sock','addr','prio']
     def __init__(t, sock, addr, timeout=None, prio=priority.DEFAULT):
         t.sock = sock
@@ -229,11 +234,25 @@ class Connect(Operation):
         t.timeout = timeout
         t.prio = prio
     def run(t):
-        t.sock.connect(t.addr)
+        """ 
+        We need to avoid some non-blocking socket connect quirks: 
+            if you attempt a connect in NB mode you will always 
+            get EWOULDBLOCK, presuming the addr is correct.
+        """
+        err = t.sock.connect_ex(t.addr)
+        if err:
+            if err in (errno.EAGAIN, errno.EWOULDBLOCK):
+                try:
+                    t.sock.getpeername()
+                except socket.error, exc:
+                    if exc[0] == errno.ENOTCONN:
+                        raise
+            else:
+                raise socket.error(err, errno.errorcode[err])
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s>" % (t.__class__.__name__, id(t), t.sock)
+        return "<%s at 0x%X %s to:%s>" % (t.__class__.__name__, id(t), t.sock, t.timeout)
 
-ops = (Read, ReadAll, ReadLine, Connect, Write, WriteAll, Accept)
-read_ops = (Read, ReadAll, ReadLine, Accept)
-write_ops = (Connect, Write, WriteAll)
+#~ ops = (Read, ReadAll, ReadLine, Connect, Write, WriteAll, Accept)
+#~ read_ops = (Read, ReadAll, ReadLine, Accept)
+#~ write_ops = (Connect, Write, WriteAll)

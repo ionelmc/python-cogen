@@ -1,7 +1,6 @@
 import sys, os
-sys.path.append(os.path.split(os.getcwd())[0])
 
-from cogen.core import Socket, GreedyScheduler
+from cogen.common import *
 from cogen.web import wsgiserver
 #~ from cogen.web import httpd
 

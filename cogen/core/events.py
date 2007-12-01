@@ -1,15 +1,19 @@
 import datetime
-from cogen.core.const import *
 
-class SimpleAttrib:
-    def __init__(t, **kws):
-        t.__dict__.update(kws)
-class SimpleArgs:
-    def __init__(t, *args, **kws):
-        t.args = tuple(args)
-        t.kws = kws
-    def __repr__(t):
-        return '<%s args:%r kws:%r>' % (t.__class__.__name__, t.args, t.kws)
+class priority(object):  
+    DEFAULT = -1    
+    LAST  = NOPRIO = 0
+    CORO  = 1
+    OP    = 2
+    FIRST = PRIO = 3
+
+class ConnectionClosed(Exception):
+    pass
+class OperationTimeout(Exception):
+    pass    
+class CoroutineException(Exception):
+    prio = priority.DEFAULT
+    pass
 
 
 
