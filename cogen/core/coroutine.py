@@ -2,7 +2,7 @@ import types
 import sys
 import gc
 from cogen.core import events
-from cogen.core.events import priority
+from cogen.core.util import *
 
 def coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -36,6 +36,11 @@ class Coroutine:
         assert t.state < t.STATE_COMPLETED
         assert coro not in t.waiters
         t.waiters.append((t, coro))
+    def remove_waiter(t, coro):
+        try:
+            t.waiters.remove((t, coro))
+        except ValueError:
+            pass
         
     def _valid_gen(t, coro):
         if isinstance(coro, types.GeneratorType):
@@ -97,7 +102,7 @@ class Coroutine:
             else:
                 t.handle_error()
                 rop = t._run_completion()
-
+        #~ print "Run op return:", rop
         return rop
     def handle_error(t):        
         print 

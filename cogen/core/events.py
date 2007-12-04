@@ -1,11 +1,5 @@
 import datetime
-
-class priority(object):  
-    DEFAULT = -1    
-    LAST  = NOPRIO = 0
-    CORO  = 1
-    OP    = 2
-    FIRST = PRIO = 3
+from cogen.core.util import *
 
 class ConnectionClosed(Exception):
     pass
@@ -18,15 +12,21 @@ class CoroutineException(Exception):
 
 
 class WaitForSignal(object):
-    __slots__ = ['name','prio']
-    def __init__(t, name, prio=priority.DEFAULT):
-        t.name = name
+    __slots__ = ['name','prio','_timeout','__weakref__']
+    timeout = TimeoutDesc('_timeout')
+    def __init__(t, obj, timeout=None, prio=priority.DEFAULT):
+        "The coroutine will resume when the same object is Signaled"
+        t.name = obj
         t.prio = prio
+        t.timeout = timeout
+        
 class Signal(object):
     __slots__ = ['name','prio']
-    def __init__(t, name, prio=priority.DEFAULT):
-        t.name = name
+    def __init__(t, obj, prio=priority.DEFAULT):
+        "All the coroutines waiting for this object will be added back in the active coros queue"
+        t.name = obj
         t.prio = prio
+        
 class Call(object):
     __slots__ = ['coro', 'args','kwargs','prio']
     def __init__(t, coro, args=(), kwargs={}, prio=priority.DEFAULT):
@@ -65,21 +65,38 @@ class Complete(object):
         return '<%s instance at 0x%X, args: %s, prio: %s>' % (t.__class__.__name__, id(t), t.args, t.prio)
     
 class Join:
-    __slots__ = ['coro']
-    def __init__(t, coro):
+    __slots__ = ['coro','_timeout','__weakref__']
+    timeout = TimeoutDesc('_timeout')
+    def __init__(t, coro, timeout=None):
         t.coro = coro
+        t.timeout = timeout
+        
     def __repr__(t):
         return '<%s instance at 0x%X, coro: %s>' % (t.__class__.__name__, id(t), t.coro)
 
     
 class Sleep:
+    """
+    Usage:
+        yield events.Sleep(time_object)
+        
+        timeoject - a datetime or timedelta object, or a number of seconds
+        
+        yield events.Sleep(timestamp=ts)
+        
+        ts - a timestamp
+    """
     __slots__ = ['wake_time']
-    def __init__(t, val):
+    def __init__(t, val=None, timestamp=None):
         if isinstance(val, datetime.timedelta):
             t.wake_time = datetime.datetime.now() + val
         elif isinstance(val, datetime.datetime):
             t.wake_time = val
         else:
-            t.wake_time = datetime.datetime.fromtimestamp(int(val))
+            if timestamp:
+                t.wake_time = datetime.datetime.fromtimestamp(int(timestamp))
+            else:
+                t.wake_time = datetime.datetime.now() + datetime.timedelta(seconds=val)
+        
     def __cmp__(t, other):
         return cmp(t.wake_time, other.wake_time)

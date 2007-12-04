@@ -1,6 +1,7 @@
 import os 
 import sys
 import thread, threading
+#~ threading._VERBOSE = True
 import random
 import exceptions
 import datetime
@@ -313,48 +314,96 @@ class Timer_MixIn:
             except:
                 import traceback
                 traceback.print_exc()
-        t.m_run = threading.Thread(target=run)      
+        t.m_run = threading.Thread(target=run)
+        t.m_run.setDaemon(False)        
         t.local_sock = socket()        
+        t.msgs = []
     def tearDown(t):
         t.local_sock.close()
     def test_sock_connect_timeout(t):
+        t.ev = threading.Event()
+        t.ev.clear()
+        @coroutine 
+        def sleeper(secs):
+            t.now = time.time()
+            yield events.Sleep(secs)
+            t.msgs.append(time.time() - t.now)
         @coroutine
         def coro():
-            print '123'
-            yield events.Sleep(time.time()+1)
+            
+            t.now = time.time()
+            yield events.Sleep(1)
+            t.msgs.append(time.time() - t.now)
             cli = sockets.Socket()
-            #~ try:
-            print '-',(yield sockets.Connect(cli, t.local_addr, 5, priority.FIRST))
-            #~ except:
-                #~ print '---',
-                #~ import traceback; traceback.print_exc()
-            #~ print 'mumu'
-            print '-',(yield sockets.ReadAll(cli, 4096, 1, priority.FIRST))
+            yield sockets.Connect(cli, t.local_addr, t.prio)
+            try:
+                t.now = time.time()
+                yield sockets.ReadAll(cli, 4096, 2, t.prio)
+            except events.OperationTimeout:
+                t.msgs.append(time.time() - t.now)
+            cli.close()
+            
+            time.sleep(5)
+            srv = sockets.Socket()
+            t.local_addr = ('localhost', random.randint(20000,21000))
+            srv.bind(t.local_addr)
+            srv.listen(10)
+            
+            t.ev.set()
+            yield sockets.Accept(srv, prio=t.prio)
+            try:
+                t.now = time.time()
+                yield sockets.Accept(srv, 3, t.prio)
+            except events.OperationTimeout:
+                t.msgs.append(time.time() - t.now)
+            yield events.AddCoro(sleeper, args=(5,))
+            try:
+                t.now = time.time()
+                print '> %s;' % (yield events.WaitForSignal('bla', 4, t.prio))
+            except events.OperationTimeout:
+                t.msgs.append(time.time() - t.now)
+            
             
             
         t.local_sock.bind(t.local_addr)
         t.local_sock.listen(10)
         t.m.add(coro)
         t.m_run.start()
+        t.sock = t.local_sock.accept()
+        t.local_sock.close()
+        t.ev.wait()
         time.sleep(0.1)
-        s = t.local_sock.accept()
-        
+        t.local_sock = socket()
+        t.local_sock.connect(t.local_addr)
+        t.local_sock.getpeername()
+        time.sleep(1)
+        #~ print t.m.active
+        #~ print t.m.poll
         t.m_run.join()
+        t.assertEqual(len(t.m.poll), 0)
+        t.assertEqual(len(t.m.active), 0)
+        t.assertAlmostEqual(t.msgs[0], 1.0, 1)
+        t.assertAlmostEqual(t.msgs[1], 2.0, 1)
+        t.assertAlmostEqual(t.msgs[2], 3.0, 1)
+        t.assertAlmostEqual(t.msgs[3], 4.0, 1)
+        t.assertAlmostEqual(t.msgs[4], 5.0, 1)
         
 class PrioMixIn:
     prio = priority.FIRST
 class NoPrioMixIn:
     prio = priority.LAST
     
-#~ class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
-    #~ scheduler = Scheduler
-#~ class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    #~ scheduler = Scheduler
-#~ class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
-    #~ scheduler = Scheduler
-#~ class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    #~ scheduler = Scheduler
+class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
 class TimerTest_Prio(Timer_MixIn, PrioMixIn, unittest.TestCase):
+    scheduler = Scheduler
+class TimerTest_NoPrio(Timer_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 
 if __name__ == '__main__':

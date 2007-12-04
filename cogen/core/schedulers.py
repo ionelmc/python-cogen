@@ -5,24 +5,35 @@ import traceback
 import types
 import datetime
 import heapq
-
-
+import weakref
+                
 from cogen.core.pollers import DefaultPoller
 from cogen.core import events
 from cogen.core import sockets
-from cogen.core.events import priority
+from cogen.core.util import *
 
-    
+
+class Timeout(object):
+    __slots__= ['coro','op','timeout']
+    def __init__(t, op, coro):
+        assert isinstance(op.timeout, datetime.datetime)
+        t.timeout = op.timeout
+        t.coro = weakref.ref(coro)
+        t.op = weakref.ref(op)
+    def __cmp__(t, other):
+        return cmp(t.timeout, other.timeout)    
+    def __iter__(t):
+        return iter((t.op(), t.coro()))
+    def __repr__(t):
+        return "<%s@%s timeout:%s, coro:%s, op:%s>" % (t.__class__.__name__, id(t), t.timeout, t.coro(), t.op())
+
 class Scheduler(object):
     def __init__(t, poller=DefaultPoller, default_priority=priority.LAST):
+        t.timeouts = []
         t.active = collections.deque()
         t.sigwait = collections.defaultdict(collections.deque)
-        t.diewait = collections.defaultdict(collections.deque)
         t.timewait = [] # heapq
-        t.calls = {}
         t.poll = poller(t)
-        t.idle = 0
-        t.timerc = 1
         t.default_priority = default_priority
         
     def _init_coro(t, coro, *args, **kws):
@@ -58,14 +69,35 @@ class Scheduler(object):
         if len(t.active)<2:
             t.poll.run(timeout = t.next_timer_delta())
 
+    def add_timeout(t, op, coro):
+        heapq.heappush(t.timeouts, Timeout(op, coro))
+    def handle_timeouts(t):
+        now = datetime.datetime.now()
+        #~ print '>to:', t.timeouts, t.timeouts and t.timeouts[0].timeout <= now
+        if t.timeouts and t.timeouts[0].timeout <= now:
+            op, coro = heapq.heappop(t.timeouts)
+            if op:
+                if isinstance(op, sockets.Operation):
+                    t.poll.remove(op)
+                elif coro and isinstance(op, events.Join):
+                    op.coro.remove_waiter(coro)
+                elif isinstance(op, events.WaitForSignal):
+                    try:
+                        t.sigwait[op.name].remove((op, coro))
+                    except ValueError:
+                        pass
+                t.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
+            
+    #~ @debug
     def process_op(t, op, coro):
-        #~ print '> run_op', op and op.prio, coro, op
-        
         if op is None:
            t.active.append((op, coro))
         else:
-            if hasattr(op, 'prio') and op.prio == priority.DEFAULT:
+            if getattr(op, 'prio', None) == priority.DEFAULT:
                 op.prio = t.default_priority
+            if getattr(op, 'timeout', None): 
+                t.add_timeout(op, coro)
+        
             if isinstance(op, sockets.Operation):
                 r = t.poll.run_or_add(op, coro)
                 if r:
@@ -122,23 +154,19 @@ class Scheduler(object):
         return None, None
         
     def run(t):
-        #~ try:
-            while t.active or t.poll or t.timewait:
-                if t.active:
-                    op, coro = t.active.popleft()
-                    while True:
-                        #~ print coro, op
-                        op, coro = t.process_op(coro.run_op(op), coro)
-                        if not op:
-                            break  
-                        
-                t.run_poller()
-                t.run_timer()
-                #~ print 'active:  ',len(t.active)
-                #~ print 'poll:    ',len(t.poll)
-                #~ print 'timeouts:',len(t.poll._timeouts)
-        #~ except:
-            #~ import pdb
-            #~ pdb.pm()
-        #~ print 'SCHEDULER IS DEAD'
+        while t.active or t.poll or t.timewait:
+            if t.active:
+                op, coro = t.active.popleft()
+                while True:
+                    #~ print coro, op
+                    op, coro = t.process_op(coro.run_op(op), coro)
+                    if not op:
+                        break  
+                    
+            t.run_poller()
+            t.run_timer()
+            t.handle_timeouts()
+            #~ print 'active:  ',len(t.active)
+            #~ print 'poll:    ',len(t.poll)
+            #~ print 'timeouts:',len(t.poll._timeouts)
 

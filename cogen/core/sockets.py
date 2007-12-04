@@ -4,7 +4,7 @@ import exceptions
 import datetime
 
 from cogen.core import events
-from cogen.core.events import priority
+from cogen.core.util import *
 
 class WrappedSocket(socket.socket):
     __name__ = "Socket"
@@ -31,11 +31,6 @@ class Operation(object):
     
     def try_run(t):
         try:
-            #~ print "Operation.try_run(%s) returned"%t,
-            #~ result = t.run()
-            #~ print result
-            #~ print 
-            #~ return result
             return t.run()
         except socket.error, exc:
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): 
@@ -45,17 +40,7 @@ class Operation(object):
             else:
                 raise
         return t
-    def _get_timeout(t):
-        return t._timeout
-    def _set_timeout(t, val):
-        if val and not isinstance(val, datetime.datetime):
-            now = datetime.datetime.now()
-            if isinstance(val, datetime.timedelta):
-                val = now+val
-            else:
-                val = now+datetime.timedelta(seconds=val)
-        t._timeout = val
-    timeout = property(_get_timeout, _set_timeout)
+    timeout = TimeoutDesc('_timeout')
 class ReadOperation(Operation): 
     pass
 class WriteOperation(Operation): 
