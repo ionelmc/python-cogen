@@ -27,7 +27,7 @@ class WrappedSocket(socket.socket):
         return 'sock@0x%X' % id(t)
 New = Socket = WrappedSocket
 class Operation(object):
-    __slots__ = ['_timeout','_coro','__weakref__']
+    __slots__ = ['_timeout','__weakref__']
     
     def try_run(t):
         try:
@@ -41,17 +41,20 @@ class Operation(object):
                 raise
         return t
     timeout = TimeoutDesc('_timeout')
+
 class ReadOperation(Operation): 
     pass
+
 class WriteOperation(Operation): 
-    pass    
+    pass
     
 class Read(ReadOperation):
     """
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
     """
-    __slots__ = ['sock','len','buff','addr','prio']
+    __slots__ = ['sock','len','buff','addr','prio','result']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.len = len
         t.buff = None
@@ -62,13 +65,14 @@ class Read(ReadOperation):
             t.sock._rl_pending = ''.join(t.sock._rl_list) + t.sock._rl_pending
             t.sock._rl_list = []
         if t.sock._rl_pending: # XXX tofix
-            t.buff = sock._rl_pending
+            t.buff = t.result = sock._rl_pending
             t.addr = None
             t.sock._rl_pending = ''
             return t
         else:
             t.buff, t.addr = t.sock.recvfrom(t.len)
             if t.buff:
+                t.result = t.buff
                 return t
             else:
                 raise events.ConnectionClosed()
@@ -76,8 +80,9 @@ class Read(ReadOperation):
         return "<%s at 0x%X %s P:%r L:%.20r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff, t.timeout)
         
 class ReadAll(ReadOperation):
-    __slots__ = ['sock','len','buff','addr','prio']
+    __slots__ = ['sock','len','buff','addr','prio','result']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.len = len
         t.buff = None
@@ -99,7 +104,7 @@ class ReadAll(ReadOperation):
             else:
                 raise events.ConnectionClosed()
         if t.sock._rl_list_sz == t.len:
-            t.buff = ''.join(t.sock._rl_list)
+            t.buff = t.result =  ''.join(t.sock._rl_list)
             t.sock._rl_list = []
             return t
         else: # damn ! we still didn't recv enough
@@ -111,8 +116,9 @@ class ReadLine(ReadOperation):
     """
         `len` is the max size for a line
     """
-    __slots__ = ['sock','len','buff','addr','prio']
+    __slots__ = ['sock','len','buff','addr','prio','result']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.len = len
         t.buff = None
@@ -133,7 +139,7 @@ class ReadLine(ReadOperation):
             nl = t.sock._rl_pending.find("\n")
             if nl>=0:
                 nl += 1
-                t.buff = ''.join(t.sock._rl_list)+t.sock._rl_pending[:nl]
+                t.buff = t.result = ''.join(t.sock._rl_list)+t.sock._rl_pending[:nl]
                 t.sock._rl_list = []
                 t.sock._rl_list_sz = 0
                 t.sock._rl_pending = t.sock._rl_pending[nl:]
@@ -151,7 +157,7 @@ class ReadLine(ReadOperation):
             if nl >= 0:
                 nl += 1
                 t.sock._rl_list.append(x_buff[:nl])
-                t.buff = ''.join(t.sock._rl_list)
+                t.buff = t.result = ''.join(t.sock._rl_list)
                 t.sock._rl_list = []
                 t.sock._rl_list_sz = 0
                 t.sock._rl_pending = x_buff[nl:]
@@ -167,15 +173,16 @@ class ReadLine(ReadOperation):
         return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
 
 class Write(WriteOperation):
-    __slots__ = ['sock','sent','buff','prio']
+    __slots__ = ['sock','sent','buff','prio','result']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.buff = buff
         t.sent = 0
         t.timeout = timeout
         t.prio = prio
     def run(t):
-        t.sent = t.sock.send(t.buff)
+        t.sent = t.result = t.sock.send(t.buff)
         return t
     def __repr__(t):
         return "<%s at 0x%X %s S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
@@ -183,6 +190,7 @@ class Write(WriteOperation):
 class WriteAll(WriteOperation):
     __slots__ = ['sock','sent','buff','prio']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.buff = buff
         t.sent = 0
@@ -192,13 +200,15 @@ class WriteAll(WriteOperation):
         sent = t.sock.send(buffer(t.buff,t.sent))
         t.sent += sent
         if t.sent == len(t.buff):
+            t.result = t.sent
             return t
     def __repr__(t):
         return "<%s at 0x%X %s S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
  
 class Accept(ReadOperation):
-    __slots__ = ['sock','conn','prio','addr']
+    __slots__ = ['sock','conn','prio','addr','result']
     def __init__(t, sock, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.conn = None
         t.timeout = timeout
@@ -207,13 +217,17 @@ class Accept(ReadOperation):
         t.conn, t.addr = t.sock.accept()
         t.conn = WrappedSocket(_sock=t.conn)
         t.conn.setblocking(0)
+        t.result = t.conn, t.addr
         return t
+    def result(t):
+        return (t.conn, t.addr)
     def __repr__(t):
         return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.conn, t.timeout)
              
 class Connect(WriteOperation):
     __slots__ = ['sock','addr','prio']
     def __init__(t, sock, addr, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, WrappedSocket)
         t.sock = sock
         t.addr = addr
         t.timeout = timeout

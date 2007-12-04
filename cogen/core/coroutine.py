@@ -59,14 +59,14 @@ class Coroutine:
         #~ print '>', t, sys.getrefcount(t), gc.get_referrers(t)
         return events.Complete(*coros)
     def run_op(t, op):        
-        #~ print 'Run op: %r on coro: %r' % (op, t)
+        
         assert t.state < t.STATE_COMPLETED
         try:
             if t.state == t.STATE_RUNNING:
                 if isinstance(op, events.CoroutineException):
                     rop = t.coro.throw(*op.message)
                 else:
-                    rop = t.coro.send(op)
+                    rop = t.coro.send(getattr(op, 'result', op))
             elif t.state == t.STATE_NEED_INIT:
                 assert op is None
                 t.coro = t.coro(*t.f_args, **t.f_kws)

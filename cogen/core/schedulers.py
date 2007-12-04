@@ -125,6 +125,7 @@ class Scheduler(object):
             elif isinstance(op, events.WaitForSignal):
                 t.sigwait[op.name].append((op, coro))
             elif isinstance(op, events.Signal):
+                op.result = len(t.sigwait[op.name])
                 if op.prio & priority.OP:
                     t.active.extendleft(t.sigwait[op.name])
                 else:

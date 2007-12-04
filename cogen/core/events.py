@@ -10,7 +10,6 @@ class CoroutineException(Exception):
     pass
 
 
-
 class WaitForSignal(object):
     __slots__ = ['name','prio','_timeout','__weakref__']
     timeout = TimeoutDesc('_timeout')
@@ -21,35 +20,35 @@ class WaitForSignal(object):
         t.timeout = timeout
         
 class Signal(object):
-    __slots__ = ['name','prio']
+    __slots__ = ['name','len','prio','result']
     def __init__(t, obj, prio=priority.DEFAULT):
-        "All the coroutines waiting for this object will be added back in the active coros queue"
+        "All the coroutines waiting for this object will be added back in the active coroutine queue."
         t.name = obj
         t.prio = prio
         
 class Call(object):
     __slots__ = ['coro', 'args','kwargs','prio']
-    def __init__(t, coro, args=(), kwargs={}, prio=priority.DEFAULT):
+    def __init__(t, coro, args=None, kwargs=None, prio=priority.DEFAULT):
         t.coro = coro
-        t.args = tuple(args)
-        t.kwargs = dict(kwargs)
+        t.args = args or ()
+        t.kwargs = kwargs or {}
         t.prio = prio
     def __repr__(t):
         return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.args, t.kwargs, t.prio)
     
 class AddCoro(object):
     __slots__ = ['coro','args','kwargs','prio']
-    def __init__(t, coro, args=(), kwargs={}, prio=priority.DEFAULT):
+    def __init__(t, coro, args=None, kwargs=None, prio=priority.DEFAULT):
         t.coro = coro
-        t.args = tuple(args)
-        t.kwargs = dict(kwargs)
+        t.args = args or ()
+        t.kwargs = kwargs or {}
         t.prio = prio
     def __repr__(t):
         return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.args, t.kwargs, t.prio)
 
 class Pass(object):
     __slots__ = ['coro', 'op', 'prio']
-    def __init__(t, coro, op = None, prio=priority.DEFAULT):
+    def __init__(t, coro, op=None, prio=priority.DEFAULT):
         t.coro = coro
         t.op = op
         t.prio = prio
@@ -64,18 +63,17 @@ class Complete(object):
     def __repr__(t):
         return '<%s instance at 0x%X, args: %s, prio: %s>' % (t.__class__.__name__, id(t), t.args, t.prio)
     
-class Join:
+class Join(object):
     __slots__ = ['coro','_timeout','__weakref__']
     timeout = TimeoutDesc('_timeout')
     def __init__(t, coro, timeout=None):
         t.coro = coro
         t.timeout = timeout
-        
     def __repr__(t):
         return '<%s instance at 0x%X, coro: %s>' % (t.__class__.__name__, id(t), t.coro)
 
     
-class Sleep:
+class Sleep(object):
     """
     Usage:
         yield events.Sleep(time_object)
@@ -86,7 +84,7 @@ class Sleep:
         
         ts - a timestamp
     """
-    __slots__ = ['wake_time']
+    __slots__ = ['wake_time','coro']
     def __init__(t, val=None, timestamp=None):
         if isinstance(val, datetime.timedelta):
             t.wake_time = datetime.datetime.now() + val
