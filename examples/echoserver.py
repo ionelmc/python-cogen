@@ -1,30 +1,29 @@
 import sys, os
-
 from cogen.common import *
 
 @coroutine
 def server():
-    srv = Socket.New()
+    srv = sockets.Socket()
     srv.setblocking(0)
     srv.bind(('localhost',777))
     srv.listen(10)
     while 1:
         print "Listening..."
-        obj = yield Socket.Accept(srv)
-        print "Connection from %s:%s" % obj.addr
-        m.add(coroutine(handler(obj.conn, obj.addr)))
-        yield
-        
+        conn, addr = yield sockets.Accept(srv)
+        print "Connection from %s:%s" % addr
+        m.add(handler, conn, addr)
+
+@coroutine
 def handler(sock, addr):
-    wobj = yield Socket.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
+    wobj = yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
         
     while 1:
-        robj = yield Socket.ReadLine(sock, 8192)
-        if robj.buff.strip() == 'exit':
-            yield Socket.Write(sock, "GOOD BYE")
+        line = yield sockets.ReadLine(sock, 8192)
+        if line.strip() == 'exit':
+            yield sockets.Write(sock, "GOOD BYE")
             sock.close()
             return
-        wobj = yield Socket.Write(sock, robj.buff)
+        wobj = yield sockets.Write(sock, line)
 
 m = Scheduler()
 m.add(server)
