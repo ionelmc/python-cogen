@@ -1,3 +1,7 @@
+"""
+HTTP protocol handling code taken from the CherryPy wsgi server.
+Refactored to fit my coroutine architecture.
+"""
 from __future__ import with_statement
 from contextlib import closing
 
