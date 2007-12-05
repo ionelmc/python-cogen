@@ -77,7 +77,7 @@ class Read(ReadOperation):
             else:
                 raise events.ConnectionClosed()
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%.20r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff, t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff, t.timeout)
         
 class ReadAll(ReadOperation):
     __slots__ = ['sock','len','buff','addr','prio','result']
@@ -110,7 +110,7 @@ class ReadAll(ReadOperation):
         else: # damn ! we still didn't recv enough
             return
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
         
 class ReadLine(ReadOperation):
     """
@@ -170,7 +170,7 @@ class ReadLine(ReadOperation):
         else: 
             raise events.ConnectionClosed()
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%.20r S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
 
 class Write(WriteOperation):
     __slots__ = ['sock','sent','buff','prio','result']
@@ -185,7 +185,7 @@ class Write(WriteOperation):
         t.sent = t.result = t.sock.send(t.buff)
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
         
 class WriteAll(WriteOperation):
     __slots__ = ['sock','sent','buff','prio']
@@ -203,7 +203,7 @@ class WriteAll(WriteOperation):
             t.result = t.sent
             return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%.20r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
  
 class Accept(ReadOperation):
     __slots__ = ['sock','conn','prio','addr','result']
@@ -240,7 +240,7 @@ class Connect(WriteOperation):
         """
         err = t.sock.connect_ex(t.addr)
         if err:
-            if err in (errno.EAGAIN, errno.EWOULDBLOCK):
+            if err in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
                 try:
                     t.sock.getpeername()
                 except socket.error, exc:

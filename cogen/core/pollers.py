@@ -78,7 +78,6 @@ class SelectPoller(Poller):
     def handle_events(t, ready, waiting_ops):
         for id in ready:
             op, coro = waiting_ops[id]
-            heapq.heapreplace
             op = t.run_operation(op)
             if op:
                 del waiting_ops[id]
@@ -112,23 +111,25 @@ class EpollPoller(Poller):
     def __init__(t, default_size = 100):
         super(t.__class__,t).__init__()
         t.epoll_fd = epoll.epoll_create(default_size)
-    def __len__(t):
-        return len(t.fds)
-    def waiting(t, x):
-        for i in t.fds:
-            obj, coro = t.fds[i]
-            if x is coro:
-                return obj
-    def add(t, obj, coro):
-        fd = op.sock.fileno()
-        assert fd not in t.fds
-                
-        if op.__class__ in sockets.read_ops:
-            t.waiting_reads[fd] = obj, coro
-            epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLIN)
-        if op.__class__ in sockets.write_ops:
-            t.waiting_writes[fd] = obj, coro
-            epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fd, epoll.EPOLLOUT)
+    def remove(t, op):
+        #~ print '> remove', op
+        fileno = op.sock.fileno()
+        if isinstance(op, sockets.ReadOperation):
+            if fileno in t.waiting_reads:
+                del t.waiting_reads[fileno]
+        if isinstance(op, sockets.WriteOperation):
+            if fileno in t.waiting_writes:
+                del t.waiting_writes[fileno]
+    def add(t, op, coro):
+        fileno = op.sock.fileno()
+        if isinstance(op, sockets.ReadOperation):
+            assert fileno not in t.waiting_reads
+            t.waiting_reads[fileno] = op, coro
+            
+        if isinstance(op, sockets.WriteOperation):
+            assert fileno not in t.waiting_writes
+            t.waiting_writes[fileno] = op, coro
+
     def run(t, timeout = 0):
         """ 
         Run a poller loop and return new socket events. Timeout is a timedelta object, 0 if active coros or None. 
@@ -139,18 +140,23 @@ class EpollPoller(Poller):
         if t.fds:
             events = epoll.epoll_wait(t.epoll_fd, 10, ptimeout)
             for ev, fd in events:
-                #~ print "EPOLL Event:", ev, fd
-                    
                 if ev == epoll.EPOLLIN:
-                    result = t.run_once(fd, t.waiting_reads)
-                    if result:
-                        epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
-                        yield result
+                    waiting_ops = t.waiting_reads
                 elif ev == epoll.EPOLLOUT:
-                    result = t.run_once(fd, t.waiting_writes)
-                    if result:
-                        epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
-                        yield result
+                    waiting_ops = t.waiting_writes
+                    
+                op, coro = waiting_ops[fd]
+                op = t.run_operation(op)
+                if op:
+                    del waiting_ops[fd]
+                    epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
+                    if op.prio & priority.OP:
+                        op, coro = t.scheduler.process_op(coro.run_op(op), coro)
+                    if coro:
+                        if op.prio & priority.CORO:
+                            t.scheduler.active.appendleft( (op, coro) )
+                        else:
+                            t.scheduler.active.append( (op, coro) )    
                 
         else:
             time.sleep(t.RESOLUTION)

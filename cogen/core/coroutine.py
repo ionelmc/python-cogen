@@ -58,6 +58,7 @@ class Coroutine:
         t.caller = None
         #~ print '>', t, sys.getrefcount(t), gc.get_referrers(t)
         return events.Complete(*coros)
+    #~ @debug(0)        
     def run_op(t, op):        
         
         assert t.state < t.STATE_COMPLETED
@@ -86,12 +87,14 @@ class Coroutine:
         except StopIteration, e:
             t.state = t.STATE_COMPLETED
             t.result = e.message
+            if hasattr(t.coro, 'close'): t.coro.close()
             rop = t._run_completion()
             
         except:
             t.state = t.STATE_FAILED
             t.result = None
             t.exception = sys.exc_info()
+            if hasattr(t.coro, 'close'): t.coro.close()
             if t.caller:
                 if t.waiters:
                     rop = t._run_completion()
