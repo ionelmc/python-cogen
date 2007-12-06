@@ -1,0 +1,325 @@
+@charset "utf-8";
+
+/* Defaults
+----------------------------------------------------------------------------*/
+
+* {
+    font-size: 1em;
+    margin: 0;
+    padding: 0;
+    outline: none;
+    border: none;
+}
+
+body {
+    font: 11pt/120% "Myriad Web", "Myriad Pro", "Myriad", "Lucida Grande", "Bitstream Vera Sans", "Arial", sans-serif;
+    margin: 0;
+    background: #777;
+    color: #333;
+}
+
+strong {
+    font-weight: bold;    
+}
+
+ul,
+ul li {
+    list-style: none;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #00C;
+    font-weight: normal;
+    line-height: 150%;
+    margin-top: 0.3em;
+}
+
+h1 :link, h1 :visited,
+h2 :link, h2 :visited,
+h3 :link, h3 :visited,
+h4 :link, h4 :visited,
+h5 :link, h5 :visited,
+h6 :link, h6 :visited {
+    color: #00C;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 2.0em;
+}
+
+h3 {
+    font-size: 1.5em;
+}
+
+h4,
+h5 {
+    font-size: 1.2em;
+}
+
+h5,
+h6,
+h5 :link, h5 :visited,
+h6 :link, h6 :visited {
+    color: #333;
+}
+
+h6 {
+    font-size: 1.1em;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+:link, :visited {
+    text-decoration: none;
+    color: #008;
+}
+
+p :link {
+    border-bottom: 1px solid #F8F8F8;
+}
+
+p :link:hover {
+    color: #F80;
+    border-bottom-color: #F80;
+}
+
+p :visited {
+    text-decoration: none;
+    color: #333;
+}
+
+:link:active, :visited:active {
+    color: #F80;
+}
+
+
+/* Layout/page
+----------------------------------------------------------------------------*/
+
+#page {
+    position: relative;
+    background: #FFF;
+    margin: 0 5%;
+    padding: 0;
+    border: 1px solid #555;
+    border-top: none;
+    border-bottom: none;
+    overflow: auto;
+}
+
+#content {
+    margin-left: 256px;
+    padding: 1em 1em 3em;
+}
+
+#header {
+    background: #0F2145;
+}
+
+#header h1 {
+    color: #FFF;
+    font-weight: normal;
+    font-size: 2.0em;
+    line-height: 100%;
+    padding: 0.5em;
+    text-shadow: 0px 0px 3px #FFE;
+}
+
+#footer {
+    border-top: 1px solid #EEE;
+    padding: 0.5em 1em 3em;
+    color: #777;
+    font-size: 0.8em;
+    text-align: right;
+    clear: both;
+    background: #F8F8F8;
+}
+
+
+/* Browser
+----------------------------------------------------------------------------*/
+
+#browser {
+    position: static;
+    float: left;
+    width: 256px;
+    background: #F8F8F8;
+    border-bottom-right-radius: 8px;
+    -webkit-border-bottom-right-radius: 8px;
+    -moz-border-radius-bottomright: 8px;        
+}
+
+#browser h2 {
+    font-size: 1.5em;
+    margin: 0.3em 0.5em 0;
+    margin-left: 8px;
+}
+
+#browser .browser-section {
+    border-bottom: 1px solid #EEE;
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+}
+
+#browser .browser-section-last {
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+}
+
+#browser li {
+    font-size: 0.95em;
+    line-height: 170%;
+}
+
+#browser li a {
+    display: block;
+    padding: 0 0.5em;
+    padding-left: 8px;
+}
+
+#browser li.active a {
+    background: #FFF !important;
+    color: #E70;
+}
+
+#browser li a:hover {
+    color: #F80;
+    background: #FCFCFC;
+}
+
+
+/* Content
+----------------------------------------------------------------------------*/
+
+#content pre,
+#content tt {
+    color: #222;
+}
+
+#content pre {
+    border: 1px solid #00C;
+    background: #FFF;
+    padding: 0.5em;
+    line-height: 130%;
+    margin-bottom: 1em;
+    font-size: 0.9em;
+    overflow: auto;
+}
+
+#content table {
+    border-spacing: 0;
+    margin-bottom: 1em;
+}
+
+#content th {
+    text-align: left;
+    vertical-align: top;
+    background: #00C;
+    color: #FFF;
+    font-size: 0.9em;
+    font-weight: normal;
+    border-left: 1px solid #FFF;
+}
+
+#content td {
+    vertical-align: top;
+    border-bottom: 1px solid #00C;
+}
+
+#content th,
+#content td {
+    padding: 0.2em 0.5em 0;
+}
+
+h3 .args {
+    color: #CCC;
+    font-style: italic;
+    font-weight: normal;
+    font-size: 0.8em;
+}
+
+
+/* Link-bar */
+
+#content ul.link-bar {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #EEE;
+    color: #CCC;
+    margin-bottom: 1em;
+    overflow: auto;
+}
+
+#content ul.link-bar :link,
+#content ul.link-bar :visited {
+    color: #CCC;
+}
+
+#content ul.link-bar li a {
+    vertical-align: middle;
+    padding: 4px 26px 4px 0;
+}
+
+#content ul.link-bar li {
+    display: inline;
+}
+
+#content ul.link-bar li.top a {
+    float: right;
+    padding-right: 18px;
+}
+
+#content ul.link-bar a:hover {
+    color: #F80;
+}
+
+
+/* Docstrings
+----------------------------------------------------------------------------*/
+
+.docstring h1 {
+    font-size: 1.5em;
+}
+
+.docstring h2 {
+    font-size: 1.4em;
+}
+
+.docstring h3 {
+    font-size: 1.3em;
+}
+
+.docstring h4 {
+    font-size: 1.2em;
+}
+.docstring h5 {
+    font-size: 1.1em;
+}
+
+.docstring h6 {
+    font-size: 1.0em;
+}
+
+.docstring p {
+    margin: 1em 0;
+}
+
+.docstring ul {
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+}
+
+.docstring li {
+    display: list-item;
+    list-style: square;
+}

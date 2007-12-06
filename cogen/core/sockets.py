@@ -6,8 +6,7 @@ import datetime
 from cogen.core import events
 from cogen.core.util import *
 
-class WrappedSocket(socket.socket):
-    __name__ = "Socket"
+class Socket(socket.socket):
     __slots__ = ['_rl_list', '_rl_list_sz', '_rl_pending']
     """
         Wee need some additional buffers and stuff:
@@ -25,10 +24,9 @@ class WrappedSocket(socket.socket):
         return '<socket at 0x%X>' % id(t)
     def __str__(t):
         return 'sock@0x%X' % id(t)
-New = Socket = WrappedSocket
 class Operation(object):
     __slots__ = ['_timeout','__weakref__']
-    
+        
     def try_run(t):
         try:
             return t.run()
@@ -53,6 +51,7 @@ class Read(ReadOperation):
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
     """
     __slots__ = ['sock','len','buff','addr','prio','result']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock
@@ -81,6 +80,7 @@ class Read(ReadOperation):
         
 class ReadAll(ReadOperation):
     __slots__ = ['sock','len','buff','addr','prio','result']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock
@@ -117,6 +117,7 @@ class ReadLine(ReadOperation):
         `len` is the max size for a line
     """
     __slots__ = ['sock','len','buff','addr','prio','result']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock
@@ -174,6 +175,7 @@ class ReadLine(ReadOperation):
 
 class Write(WriteOperation):
     __slots__ = ['sock','sent','buff','prio','result']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock
@@ -189,6 +191,7 @@ class Write(WriteOperation):
         
 class WriteAll(WriteOperation):
     __slots__ = ['sock','sent','buff','prio']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock
@@ -207,6 +210,7 @@ class WriteAll(WriteOperation):
  
 class Accept(ReadOperation):
     __slots__ = ['sock','conn','prio','addr','result']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock
@@ -226,6 +230,7 @@ class Accept(ReadOperation):
              
 class Connect(WriteOperation):
     __slots__ = ['sock','addr','prio']
+    __doc_all__ = ['__init__']
     def __init__(t, sock, addr, timeout=None, prio=priority.DEFAULT):
         assert isinstance(sock, WrappedSocket)
         t.sock = sock

@@ -22,13 +22,14 @@ def debug(trace=True, other=None):
         return wrapped
     return debugdeco
 class TimeoutDesc(object):
+    __doc_all__ = []
     __slots__ = ['field']
     def __init__(t, field):
         t.field = field
     def __get__(t, instance, owner):
-        return getattr(instance, t.field)
+        return getattr(instance, t.field, None)
     def __set__(t, instance, val):
-        if val and not isinstance(val, datetime.datetime):
+        if val and val != -1 and not isinstance(val, datetime.datetime):
             now = datetime.datetime.now()
             if isinstance(val, datetime.timedelta):
                 val = now+val
@@ -37,6 +38,23 @@ class TimeoutDesc(object):
         setattr(instance, t.field, val)
 
 class priority(object):  
+    """
+    ============ =====================================================================
+    Property     Description
+    ============ =====================================================================
+    DEFAULT       Use the default_priority set in the Scheduler
+    ------------ ---------------------------------------------------------------------
+    LAST, NOPRIO  Allways scheduler the operation/coroutine at the end of the queue
+    ------------ ---------------------------------------------------------------------
+    CORO          Favor the coroutine - if it's the case.
+    ------------ ---------------------------------------------------------------------
+    OP            Favor the operation - if it's the case.
+    ------------ ---------------------------------------------------------------------
+    FIRST, PRIO   Allways schedule with priority
+    ============ =====================================================================
+    
+    """
+    __doc_all__ = []
     DEFAULT = -1    
     LAST  = NOPRIO = 0
     CORO  = 1

@@ -28,13 +28,14 @@ class Timeout(object):
         return "<%s@%s timeout:%s, coro:%s, op:%s>" % (t.__class__.__name__, id(t), t.timeout, t.coro(), t.op())
 
 class Scheduler(object):
-    def __init__(t, poller=DefaultPoller, default_priority=priority.LAST):
+    def __init__(t, poller=DefaultPoller, default_priority=priority.LAST, default_timeout=None):
         t.timeouts = []
         t.active = collections.deque()
         t.sigwait = collections.defaultdict(collections.deque)
         t.timewait = [] # heapq
         t.poll = poller(t)
         t.default_priority = default_priority
+        t.default_timeout = default_timeout
         
     def _init_coro(t, coro, *args, **kws):
         return coro(*args, **kws)
@@ -88,15 +89,17 @@ class Scheduler(object):
                         pass
                 t.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
             
-    #~ @debug
     def process_op(t, op, coro):
         if op is None:
            t.active.append((op, coro))
         else:
             if getattr(op, 'prio', None) == priority.DEFAULT:
                 op.prio = t.default_priority
-            if getattr(op, 'timeout', None): 
-                t.add_timeout(op, coro)
+            if hasattr(op, 'timeout'): 
+                if not op.timeout:
+                    op.timeout = t.default_timeout
+                if op.timeout and op.timeout != -1:
+                    t.add_timeout(op, coro)
         
             if isinstance(op, sockets.Operation):
                 r = t.poll.run_or_add(op, coro)

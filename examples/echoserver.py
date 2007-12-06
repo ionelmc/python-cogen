@@ -15,7 +15,7 @@ def server():
 
 @coroutine
 def handler(sock, addr):
-    wobj = yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
+    yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
         
     while 1:
         line = yield sockets.ReadLine(sock, 8192)
@@ -23,7 +23,7 @@ def handler(sock, addr):
             yield sockets.Write(sock, "GOOD BYE")
             sock.close()
             return
-        wobj = yield sockets.Write(sock, line)
+        yield sockets.Write(sock, line)
 
 m = Scheduler()
 m.add(server)

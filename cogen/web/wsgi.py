@@ -3,6 +3,7 @@ HTTP protocol handling code taken from the CherryPy wsgi server.
 Refactored to fit my coroutine architecture.
 """
 from __future__ import with_statement
+__all__ = ['WSGIFileWrapper','WSGIServer','WSGIConnection']
 from contextlib import closing
 
 import base64
@@ -140,37 +141,7 @@ class WSGIConnection(object):
                 raise
         buf.append("\r\n")
         return "".join(buf)
-    #~ def read_headers(t):
-        #~ """Read header lines from the incoming stream."""
-        #~ environ = t.environ
-        
-        #~ while True:
-            #~ line = yield sockets.ReadLine(t.conn)
-            
-            #~ if line == '\r\n':
-                #~ # Normal end of headers
-                #~ break
-            
-            #~ if line[0] in ' \t':
-                #~ # It's a continuation line.
-                #~ v = line.strip()
-            #~ else:
-                #~ k, v = line.split(":", 1)
-                #~ k, v = k.strip().upper(), v.strip()
-                #~ envname = "HTTP_" + k.replace("-", "_")
-            
-            #~ if k in comma_separated_headers:
-                #~ existing = environ.get(envname)
-                #~ if existing:
-                    #~ v = ", ".join((existing, v))
-            #~ environ[envname] = v
-        
-        #~ ct = environ.pop("HTTP_CONTENT_TYPE", None)
-        #~ if ct:
-            #~ environ["CONTENT_TYPE"] = ct
-        #~ cl = environ.pop("HTTP_CONTENT_LENGTH", None)
-        #~ if cl:
-            #~ environ["CONTENT_LENGTH"] = cl
+
     def simple_response(t, status, msg=""):
         """Write a simple response back to the client."""
         status = str(status)
@@ -191,12 +162,12 @@ class WSGIConnection(object):
     @coroutine
     #~ @cogen.core.schedulers.debug(0, lambda f,a,k:a[0].no)
     def run(t):
-
-       print 'Running', t.no
-       with debugging(t):
+       #~ print 'Running', t.no
+       #~ with debugging(t):
         with closing(t.conn):
             try:
                 while True:
+                    environ = t.environ
                     request_line = yield sockets.ReadLine(t.conn)
                     if request_line == "\r\n":
                         # RFC 2616 sec 4.1: "... it should ignore the CRLF."
@@ -207,8 +178,8 @@ class WSGIConnection(object):
                         if not tolerance:
                             return
                     method, path, req_protocol = request_line.strip().split(" ", 2)
-                    t.environ["REQUEST_METHOD"] = method
-                    t.environ["CONTENT_LENGTH"] = ''
+                    environ["REQUEST_METHOD"] = method
+                    environ["CONTENT_LENGTH"] = ''
                     
                     scheme, location, path, params, qs, frag = urlparse(path)
                     
@@ -218,11 +189,11 @@ class WSGIConnection(object):
                         return
                     
                     if scheme:
-                        t.environ["wsgi.url_scheme"] = scheme
+                        environ["wsgi.url_scheme"] = scheme
                     if params:
                         path = path + ";" + params
                     
-                    t.environ["SCRIPT_NAME"] = ""
+                    environ["SCRIPT_NAME"] = ""
                     
                     # Unquote the path+params (e.g. "/this%20path" -> "this path").
                     # http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
@@ -232,11 +203,11 @@ class WSGIConnection(object):
                     # safely decoded." http://www.ietf.org/rfc/rfc2396.txt, sec 2.4.2
                     atoms = [unquote(x) for x in quoted_slash.split(path)]
                     path = "%2F".join(atoms)
-                    t.environ["PATH_INFO"] = path
+                    environ["PATH_INFO"] = path
                     
                     # Note that, like wsgiref and most other WSGI servers,
                     # we unquote the path but not the query string.
-                    t.environ["QUERY_STRING"] = qs
+                    environ["QUERY_STRING"] = qs
                     
                     # Compare request and server HTTP protocol versions, in case our
                     # server does not support the requested protocol. Limit our output
@@ -251,23 +222,21 @@ class WSGIConnection(object):
                     # the client only understands 1.0. RFC 2616 10.5.6 says we should
                     # only return 505 if the _major_ version is different.
                     rp = int(req_protocol[5]), int(req_protocol[7])
-                    server_protocol = t.environ["ACTUAL_SERVER_PROTOCOL"]
+                    server_protocol = environ["ACTUAL_SERVER_PROTOCOL"]
                     sp = int(server_protocol[5]), int(server_protocol[7])
                     if sp[0] != rp[0]:
                         yield t.simple_response("505 HTTP Version Not Supported")
                         return
                     # Bah. "SERVER_PROTOCOL" is actually the REQUEST protocol.
-                    t.environ["SERVER_PROTOCOL"] = req_protocol
+                    environ["SERVER_PROTOCOL"] = req_protocol
                     t.response_protocol = "HTTP/%s.%s" % min(rp, sp)
                     
                     # If the Request-URI was an absoluteURI, use its location atom.
                     if location:
-                        t.environ["SERVER_NAME"] = location
+                        environ["SERVER_NAME"] = location
                     
                     # then all the http headers
                     try:
-                        environ = t.environ
-                        
                         while True:
                             line = yield sockets.ReadLine(t.conn)
                             
@@ -299,25 +268,25 @@ class WSGIConnection(object):
                         yield t.simple_response("400 Bad Request", repr(ex.args))
                         return
                     
-                    creds = t.environ.get("HTTP_AUTHORIZATION", "").split(" ", 1)
-                    t.environ["AUTH_TYPE"] = creds[0]
+                    creds = environ.get("HTTP_AUTHORIZATION", "").split(" ", 1)
+                    environ["AUTH_TYPE"] = creds[0]
                     if creds[0].lower() == 'basic':
                         user, pw = base64.decodestring(creds[1]).split(":", 1)
-                        t.environ["REMOTE_USER"] = user
+                        environ["REMOTE_USER"] = user
                     
                     # Persistent connection support
                     if t.response_protocol == "HTTP/1.1":
-                        if t.environ.get("HTTP_CONNECTION", "") == "close":
+                        if environ.get("HTTP_CONNECTION", "") == "close":
                             t.close_connection = True
                     else:
                         # HTTP/1.0
-                        if t.environ.get("HTTP_CONNECTION", "") != "Keep-Alive":
+                        if environ.get("HTTP_CONNECTION", "") != "Keep-Alive":
                             t.close_connection = True
                     
                     # Transfer-Encoding support
                     te = None
                     if t.response_protocol == "HTTP/1.1":
-                        te = t.environ.get("HTTP_TRANSFER_ENCODING")
+                        te = environ.get("HTTP_TRANSFER_ENCODING")
                         if te:
                             te = [x.strip().lower() for x in te.split(",") if x.strip()]
                     
@@ -353,8 +322,6 @@ class WSGIConnection(object):
                                 return
                         
                         # Grab any trailer headers
-                        environ = t.environ
-                        
                         while True:
                             line = yield sockets.ReadLine(t.conn)
                             
@@ -385,8 +352,8 @@ class WSGIConnection(object):
 
                         
                         data.seek(0)
-                        t.environ["wsgi.input"] = data
-                        t.environ["CONTENT_LENGTH"] = str(cl) or ""
+                        environ["wsgi.input"] = data
+                        environ["CONTENT_LENGTH"] = str(cl) or ""
                         
                         
                     # From PEP 333:
@@ -406,15 +373,15 @@ class WSGIConnection(object):
                     #
                     # We used to do 3, but are now doing 1. Maybe we'll do 2 someday,
                     # but it seems like it would be a big slowdown for such a rare case.
-                    if t.environ.get("HTTP_EXPECT", "") == "100-continue":
+                    if environ.get("HTTP_EXPECT", "") == "100-continue":
                         yield sockets.WriteAll("HTTP/1.1 100 Continue\r\n\r\n")
                         
                     # If request has Content-Length, read its data
-                    if not t.environ.get("wsgi.input", None) and t.environ["CONTENT_LENGTH"]:
-                        postdata = yield sockets.ReadAll(t.conn, int(t.environ["CONTENT_LENGTH"]))
-                        t.environ["wsgi.input"] = StringIO(postdata)
+                    if not environ.get("wsgi.input", None) and environ["CONTENT_LENGTH"]:
+                        postdata = yield sockets.ReadAll(t.conn, int(environ["CONTENT_LENGTH"]))
+                        environ["wsgi.input"] = StringIO(postdata)
                         
-                    response = t.wsgi_app(t.environ, t.start_response)
+                    response = t.wsgi_app(environ, t.start_response)
                     if not t.sent_headers:
                         yield sockets.WriteAll(t.conn, t.render_headers())
 
@@ -441,6 +408,8 @@ class WSGIConnection(object):
                     yield t.simple_response("500 Internal Server Error",
                                             format_exc())
                 return
+            except (events.OperationTimeout, events.ConnectionClosed):
+                return
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
@@ -448,41 +417,42 @@ class WSGIConnection(object):
         
 
 class WSGIServer(object):
-    """An HTTP server for WSGI.
-    
-    bind_addr: The interface on which to listen for connections.
-        For TCP sockets, a (host, port) tuple. Host values may be any IPv4
-        or IPv6 address, or any valid hostname. The string 'localhost' is a
-        synonym for '127.0.0.1' (or '::1', if your hosts file prefers IPv6).
-        The string '0.0.0.0' is a special IPv4 entry meaning "any active
-        interface" (INADDR_ANY), and '::' is the similar IN6ADDR_ANY for
-        IPv6. The empty string or None are not allowed.
-        
-        For UNIX sockets, supply the filename as a string.
-    wsgi_app: the WSGI 'application callable'; multiple WSGI applications
-        may be passed as (path_prefix, app) pairs.
-    numthreads: the number of worker threads to create (default 10).
-    server_name: the string to set for WSGI's SERVER_NAME environ entry.
-        Defaults to socket.gethostname().
-    max: the maximum number of queued requests (defaults to -1 = no limit).
-    request_queue_size: the 'backlog' argument to socket.listen();
-        specifies the maximum number of queued connections (default 5).
-    timeout: the timeout in seconds for accepted connections (default 10).
-    
-    protocol: the version string to write in the Status-Line of all
-        HTTP responses. For example, "HTTP/1.1" (the default). This
-        also limits the supported features used in the response.
+    """
+An HTTP server for WSGI.
+------------------------
+    =================== ======================================================================
+    Option              Description
+    =================== ======================================================================
+    bind_addr           The interface on which to listen for connections.
+                        For TCP sockets, a (host, port) tuple. Host values may be any IPv4
+                        or IPv6 address, or any valid hostname. The string 'localhost' is a
+                        synonym for '127.0.0.1' (or '::1', if your hosts file prefers IPv6).
+                        The string '0.0.0.0' is a special IPv4 entry meaning "any active
+                        interface" (INADDR_ANY), and '::' is the similar IN6ADDR_ANY for
+                        IPv6. The empty string or None are not allowed.
+                        
+                        For UNIX sockets, supply the filename as a string.
+                        
+    wsgi_app            the WSGI 'application callable'; multiple WSGI applications
+                        may be passed as (path_prefix, app) pairs.
+    server_name         the string to set for WSGI's SERVER_NAME environ entry.
+                        Defaults to socket.gethostname().
+    request_queue_size  the 'backlog' argument to socket.listen();
+                        specifies the maximum number of queued connections (default 5).
+    protocol            the version string to write in the Status-Line of all
+                        HTTP responses. For example, "HTTP/1.1" (the default). This
+                        also limits the supported features used in the response.
+    =================== ======================================================================
     """
     
     protocol = "HTTP/1.1"
     _bind_addr = "localhost"
-    version = "cogen"
+    version = "cogen/"+cogen.__version__
     ready = False
     ConnectionClass = WSGIConnection
     environ = {}
     
-    def __init__(t, bind_addr, wsgi_app, numthreads=10, server_name=None,
-                 max=-1, request_queue_size=5, timeout=10, shutdown_timeout=5):
+    def __init__(t, bind_addr, wsgi_app, server_name=None, request_queue_size=5):
         t.requests = Queue.Queue(max)
         
         if callable(wsgi_app):
@@ -496,14 +466,9 @@ class WSGIServer(object):
             t.wsgi_app = WSGIPathInfoDispatcher(wsgi_app)
         
         t.bind_addr = bind_addr
-        t.numthreads = numthreads or 1
         if not server_name:
             server_name = socket.gethostname()
         t.server_name = server_name
-        t.request_queue_size = request_queue_size
-        t._workerThreads = []
-        
-        t.timeout = timeout
         t.shutdown_timeout = shutdown_timeout
     
     def __str__(t):
@@ -590,9 +555,9 @@ class WSGIServer(object):
         #~ t.socket.settimeout(1)
         t.socket.listen(t.request_queue_size)
         
-        x=1
+        #~ x=1
         while True:
-            s, addr = yield sockets.Accept(t.socket)
+            s, addr = yield sockets.Accept(t.socket, timeout=-1)
              
             environ = t.environ.copy()
             environ["SERVER_SOFTWARE"] = "%s WSGI Server" % t.version
@@ -614,9 +579,9 @@ class WSGIServer(object):
                 environ["REMOTE_PORT"] = str(addr[1])
             
             conn = t.ConnectionClass(s, t.wsgi_app, environ)
-            conn.no = x
-            print 'Acceptiong', x
-            x += 1
+            #~ conn.no = x
+            #~ print 'Acceptiong', x
+            #~ x += 1
             yield events.AddCoro(conn.run, prio=priority.CORO)
             #TODO: how scheduling ?
 
@@ -639,22 +604,23 @@ def main():
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
         return ["""
-                Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec commodo tincidunt urna. Phasellus commodo metus sit amet dolor. Fusce vitae sapien. Donec consectetuer nonummy ipsum. Donec enim enim, placerat nec, faucibus eget, commodo a, risus. Cras tincidunt. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec eros leo, adipiscing a, ornare at, imperdiet vel, arcu. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In feugiat lacus eu leo. Etiam bibendum urna nec metus. Fusce egestas accumsan nulla. Nulla molestie auctor arcu. Curabitur mi urna, imperdiet sed, consectetuer fermentum, iaculis vitae, velit.
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc feugiat. Nam dictum, eros sed iaculis egestas, odio massa fringilla metus, sed scelerisque velit est id turpis. Integer et arcu vel mi ornare tincidunt. Proin sodales, nibh sit amet posuere porttitor, magna purus facilisis lorem, sed mattis sem lorem auctor magna. Suspendisse aliquet lacus ac turpis. Praesent ut tortor. Nulla facilisi. Phasellus enim. Curabitur lorem nisi, pulvinar at, mollis quis, mattis id, massa. Nulla facilisi. In luctus erat. Proin eget nulla eget felis varius molestie. Curabitur hendrerit massa ac nunc. Donec condimentum leo eu magna. Donec lorem. Vestibulum sed massa in turpis auctor consectetuer. Ut volutpat diam sit amet justo. Mauris et elit tempus tellus gravida tincidunt.
 
-                Nam in nisi. Cras orci. Praesent ac eros ut diam consectetuer sagittis. Etiam augue ligula, egestas elementum, porta vitae, gravida nec, nisl. Ut lacinia. Etiam bibendum lacus et est. Aenean interdum. Nulla nec libero. Fusce viverra lectus in orci. Nam et erat. Praesent nulla mauris, molestie ac, fermentum sed, luctus vel, leo. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Etiam pharetra mauris non justo.
+        Sed posuere nunc quis erat. In suscipit sapien nec mi. Vestibulum condimentum erat a dui. Curabitur dictum augue vitae nunc. Aliquam imperdiet nisi non eros. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam sagittis risus vel eros. Praesent lobortis nulla non sapien. Nulla scelerisque quam vitae lectus. Duis eu tortor ut pede faucibus auctor. Nam ullamcorper est id felis. Fusce sit amet risus a mi vestibulum mattis. Fusce nibh nisi, congue at, iaculis ac, blandit quis, erat.
 
-                Fusce tellus nisl, sodales at, semper id, adipiscing eu, purus. Aliquam sed urna. Aliquam dapibus augue et elit. Donec volutpat risus in sapien. In hac habitasse platea dictumst. Nunc pharetra. Sed vulputate vulputate justo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nunc nisi. Maecenas purus.
+        Duis turpis. Etiam pede nulla, rhoncus vel, laoreet ac, facilisis imperdiet, enim. Praesent viverra placerat lorem. Maecenas dapibus diam sit amet mi. Suspendisse id turpis. Sed quis velit sit amet lorem imperdiet cursus. Donec nonummy. Phasellus condimentum libero sit amet elit. Integer lectus turpis, pharetra sed, mollis quis, porttitor vitae, tortor. Sed eget massa. Suspendisse eu metus. Nam libero. Nullam porta, nisi a rhoncus tincidunt, velit lacus porta diam, a feugiat odio est at eros. Phasellus urna. Suspendisse convallis libero ac mauris. Vestibulum vitae sem in massa tincidunt accumsan. Vestibulum pharetra interdum dolor.
 
-                Nullam massa purus, placerat ac, aliquam ut, dapibus id, neque. Nullam hendrerit eros id urna. In hac habitasse platea dictumst. In suscipit. In nonummy. Etiam ultrices arcu vel nunc. Donec feugiat massa at dolor. Mauris facilisis lectus vel libero. Vestibulum viverra mattis nisi. Sed dapibus. Nunc ligula turpis, ultrices nec, laoreet vel, fermentum eu, justo. Fusce volutpat, lorem vel fermentum sodales, sapien augue auctor risus, sed consectetuer metus urna in nisl. Nulla nec lorem vitae nunc placerat tempus. Pellentesque non pede. Ut mollis velit sit amet risus vestibulum eleifend. Suspendisse vel sem. Duis accumsan varius erat. Donec sodales. Proin justo.
+        Aliquam interdum lobortis tellus. In adipiscing dictum enim. Vestibulum magna. Ut rhoncus. Sed arcu. Pellentesque tellus mi, porttitor a, fringilla in, dignissim quis, neque. Aliquam erat volutpat. Aenean non purus quis nunc vestibulum interdum. Quisque non urna. Proin nec mauris. Suspendisse potenti.
 
-                Nulla quis felis. Mauris ultrices, arcu ut blandit eleifend, arcu odio porta libero, a posuere mi nisi nec elit. Phasellus in neque. In diam eros, venenatis quis, consectetuer et, ultrices non, arcu. Ut pretium, turpis a imperdiet suscipit, sapien tellus venenatis urna, feugiat egestas ante neque a orci. Cras orci sapien, porta et, pharetra sit amet, dignissim nonummy, lacus. Suspendisse facilisis turpis quis ante venenatis egestas. Sed et magna nec eros suscipit varius. Aliquam eu pede ut lectus rutrum bibendum. Ut ac tellus. Fusce porta dictum augue. Nunc vel nibh nec nulla pulvinar tempus. Mauris in tortor. Proin vehicula. Pellentesque consequat. Sed metus augue, condimentum eget, iaculis a, aliquam in, tellus."""]
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vestibulum luctus. Donec erat quam, facilisis eget, pharetra vel, sagittis et, nisi. Suspendisse hendrerit pellentesque turpis. Curabitur ac velit quis urna rutrum lacinia. Integer pede arcu, laoreet ac, aliquet in, tristique ac, libero. Suspendisse quis mauris. Suspendisse molestie lacinia quam. Phasellus porttitor, odio in posuere vulputate, lorem nunc sollicitudin nisl, et sagittis arcu augue eu urna. Donec tincidunt mauris at ipsum. Sed id neque non ante fringilla tempus. Duis sit amet tortor nec erat condimentum commodo. Vestibulum euismod volutpat erat. In cursus pretium odio. Sed a diam. Mauris at lectus. Integer ipsum augue, tincidunt in, sagittis ac, vestibulum rutrum, tortor. Pellentesque quam. Nam volutpat justo vitae dolor. 
+        """]
 
     server = wsgi.WSGIServer(
                 ('localhost', 8070), 
                 #~ wsgiref.validate.validator(my_crazy_app),
                 my_crazy_app,
                 server_name='localhost')
-    m = Scheduler(default_priority=priority.LAST)
+    m = Scheduler(default_priority=priority.LAST, default_timeout=15)
     m.add(server.start)
     try:
         m.run()

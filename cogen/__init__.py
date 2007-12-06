@@ -38,3 +38,4 @@ __svnid__ = "$Id$"
 
 from cogen import core
 from cogen import common
+from cogen import web
