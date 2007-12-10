@@ -35,49 +35,40 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.sockets.SendFile.html#method-try_run">try_run</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="browser-section">
-                <h2>Attributes</h2>
-                <ul>
-                    <li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-"></a>
+                        <a href="cogen.core.sockets.SendFile.html#method-__init__">__init__</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: SendFile</h1>
-    <div class="docstring rst"><p>Uses underling OS sendfile call or a regular memory copy operation if there is no sendfile.</p>
+    <div class="docstring rst"><p>Uses underling OS sendfile call or a regular memory copy operation if there is no sendfile.
+You can use this as a WriteAll if you specify the length.
+Usage:</p>
+<div class="source"><pre><span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="o">&lt;</span><span class="nb">file</span> <span class="n">handle</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">,</span> <span class="mf">0</span><span class="p">)</span>
+    <span class="c"># will send till send operations return 0</span>
+
+<span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="o">&lt;</span><span class="nb">file</span> <span class="n">handle</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="n">blocksize</span><span class="o">=</span><span class="mf">0</span><span class="p">)</span>
+    <span class="c"># there will be only one send operation (if successfull)</span>
+    <span class="c"># that meas the whole file will be read in memory if there is no sendfile</span>
+
+<span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="o">&lt;</span><span class="nb">file</span> <span class="n">handle</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="o">&lt;</span><span class="nb">file</span> <span class="n">size</span><span class="o">&gt;</span><span class="p">)</span>
+    <span class="c"># this will hang if we can't read &lt;file size&gt; bytes from the file</span>
+</pre></div>
 </div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L59">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L64">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
-            <h3 id="method-try_run">
-                try_run
-                <span class="args">(t)</span>
+            <h3 id="method-__init__">
+                __init__
+                <span class="args">(t, file_handle, sock, offset, length=None, blocksize=4096, timeout=None, prio=-1)</span>
             </h3>
             <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L41">View source</a>
-    </li>
-</ul>
-    </div>
-    <div>
-        <h2>Attributes</h2>
-            <h3 id="attribute-"></h3>
-            <div class="docstring rst"></div>
-            <h4>Value of </h4>
-            <pre class="code"><code>None</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -88,7 +79,7 @@
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-09 17:25
+            Apydia 0.0.1</a> on 2007-12-10 22:16
         </div>
     </div>
 </body>
