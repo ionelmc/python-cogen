@@ -10,8 +10,9 @@ def coroutine(func):
     return make_new_coroutine
     
 class Coroutine:
-    ''' We need a coroutine wrapper for generators and function alike because
-    we want to run functions that don't return generators just like a coroutine 
+    ''' 
+        We need a coroutine wrapper for generators and function alike because
+        we want to run functions that don't return generators just like a coroutine 
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
     _state_names = "notstarted", "running", "completed", "failed"
@@ -56,12 +57,10 @@ class Coroutine:
             coros.extend(t.waiters)
         t.waiters = None
         t.caller = None
-        #~ print '>', t, sys.getrefcount(t), gc.get_referrers(t)
         return events.Complete(*coros)
+    running = property(lambda t: t.state < t.STATE_COMPLETED)
     #~ @debug(0)        
-    def run_op(t, op):        
-        
-        assert t.state < t.STATE_COMPLETED
+    def run_op(t, op): 
         try:
             if t.state == t.STATE_RUNNING:
                 if isinstance(op, events.CoroutineException):
@@ -82,7 +81,7 @@ class Coroutine:
                     t.coro = None
                     rop = t._run_completion()
             else:
-                raise RuntimeError("Can't run %s coro." % t._state_names[t.state])
+                return None
                 
         except StopIteration, e:
             t.state = t.STATE_COMPLETED
@@ -105,7 +104,6 @@ class Coroutine:
             else:
                 t.handle_error()
                 rop = t._run_completion()
-        #~ print "Run op return:", rop
         return rop
     def handle_error(t):        
         print 

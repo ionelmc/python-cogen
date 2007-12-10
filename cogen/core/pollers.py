@@ -15,7 +15,7 @@ from cogen.core import sockets
 from cogen.core import events
 from cogen.core.util import *
 
-class Poller:
+class Poller(object):
     """
     A poller just checks if there are ready-sockets for the operations.
     The operations are not done here, they are done in the socket ops instances.
@@ -98,7 +98,7 @@ class SelectPoller(Poller):
         
         select timeout param is a float number of seconds.
         """
-        ptimeout = timeout.microseconds*1000000+timeout.seconds if timeout else (t.RESOLUTION if timeout is None else 0)
+        ptimeout = timeout.microseconds/1000000+timeout.seconds if timeout else (t.RESOLUTION if timeout is None else 0)
         if t.waiting_reads or t.waiting_writes:
             #~ print 'SELECTING, timeout:', timeout, 'ptimeout:', ptimeout, 'socks:',t.waiting_reads.keys(), t.waiting_writes.keys()
             ready_to_read, ready_to_write, in_error = select.select(t.waiting_reads.keys(), t.waiting_writes.keys(), [], ptimeout)
@@ -108,8 +108,8 @@ class SelectPoller(Poller):
             time.sleep(t.RESOLUTION)
         
 class EpollPoller(Poller):
-    def __init__(t, default_size = 100):
-        super(t.__class__,t).__init__()
+    def __init__(t, scheduler, default_size = 100):
+        super(t.__class__, t).__init__(scheduler)
         t.epoll_fd = epoll.epoll_create(default_size)
     def remove(t, op):
         #~ print '> remove', op
@@ -125,10 +125,11 @@ class EpollPoller(Poller):
         if isinstance(op, sockets.ReadOperation):
             assert fileno not in t.waiting_reads
             t.waiting_reads[fileno] = op, coro
-            
+            epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fileno, epoll.EPOLLIN)
         if isinstance(op, sockets.WriteOperation):
             assert fileno not in t.waiting_writes
             t.waiting_writes[fileno] = op, coro
+            epoll.epoll_ctl(t.epoll_fd, epoll.EPOLL_CTL_ADD, fileno, epoll.EPOLLOUT)
 
     def run(t, timeout = 0):
         """ 
@@ -136,8 +137,8 @@ class EpollPoller(Poller):
         
         epoll timeout param is a integer number of miliseconds (seconds/1000).
         """
-        ptimeout = timeout.microseconds*1000+timeout.seconds/1000 if timeout else (t.mRESOLUTION if timeout is None else 0)
-        if t.fds:
+        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 if timeout else (t.mRESOLUTION if timeout is None else 0))
+        if t.waiting_reads or t.waiting_writes:
             events = epoll.epoll_wait(t.epoll_fd, 10, ptimeout)
             for ev, fd in events:
                 if ev == epoll.EPOLLIN:
@@ -161,7 +162,7 @@ class EpollPoller(Poller):
         else:
             time.sleep(t.RESOLUTION)
 try:
-    import epollx
+    import epoll
     DefaultPoller = EpollPoller
 except ImportError:
     DefaultPoller = SelectPoller            

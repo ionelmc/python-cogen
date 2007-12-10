@@ -1,6 +1,16 @@
 import datetime
 from cogen.core.util import *
 
+__doc_all__ = [
+    'ConnectionClosed',
+    'OperationTimeout',
+    'WaitForSignal',
+    'Signal',
+    'Call',
+    'AddCoro',
+    'Join',
+    'Sleep'
+]
 class ConnectionClosed(Exception):
     "Raised when the other peer has closed connection."
     __doc_all__ = []
@@ -63,7 +73,7 @@ class Call(object):
         t.kwargs = kwargs or {}
         t.prio = prio
     def __repr__(t):
-        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.args, t.kwargs, t.prio)
+        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__, id(t), t.coro, t.args, t.kwargs, t.prio)
     
 class AddCoro(object):
     __slots__ = ['coro','args','kwargs','prio']
@@ -75,7 +85,7 @@ class AddCoro(object):
         t.kwargs = kwargs or {}
         t.prio = prio
     def __repr__(t):
-        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.args, t.kwargs, t.prio)
+        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__, id(t), t.coro, t.args, t.kwargs, t.prio)
 
 class Pass(object):
     __slots__ = ['coro', 'op', 'prio']
@@ -85,7 +95,7 @@ class Pass(object):
         t.op = op
         t.prio = prio
     def __repr__(t):
-        return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (t.__class__.__name__, id(t), t.coro, t.op, t.prio)
+        return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (t.__class__, id(t), t.coro, t.op, t.prio)
 
 class Complete(object):
     __slots__ = ['args','prio']
@@ -94,7 +104,7 @@ class Complete(object):
         t.args = tuple(args)
         t.prio = priority.DEFAULT
     def __repr__(t):
-        return '<%s instance at 0x%X, args: %s, prio: %s>' % (t.__class__.__name__, id(t), t.args, t.prio)
+        return '<%s instance at 0x%X, args: %s, prio: %s>' % (t.__class__, id(t), t.args, t.prio)
     
 class Join(object):
     __slots__ = ['coro','_timeout','__weakref__']
@@ -104,7 +114,7 @@ class Join(object):
         t.coro = coro
         t.timeout = timeout
     def __repr__(t):
-        return '<%s instance at 0x%X, coro: %s>' % (t.__class__.__name__, id(t), t.coro)
+        return '<%s instance at 0x%X, coro: %s>' % (t.__class__, id(t), t.coro)
 
     
 class Sleep(object):

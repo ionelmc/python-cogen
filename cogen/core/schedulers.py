@@ -87,8 +87,9 @@ class Scheduler(object):
                         t.sigwait[op.name].remove((op, coro))
                     except ValueError:
                         pass
-                t.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
-            
+                if coro and coro.running:
+                    t.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
+    #~ @debug(0)        
     def process_op(t, op, coro):
         if op is None:
            t.active.append((op, coro))

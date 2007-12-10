@@ -37,7 +37,7 @@ class SocketTest_MixIn:
         t.waitobj = None
         @coroutine
         def reader():
-            srv = sockets.New()
+            srv = sockets.Socket()
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
@@ -91,7 +91,7 @@ class SocketTest_MixIn:
     def test_read_all(t):
         @coroutine
         def reader():
-            srv = sockets.New()
+            srv = sockets.Socket()
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
@@ -121,7 +121,7 @@ class SocketTest_MixIn:
     def test_write_all(t):
         @coroutine
         def writer():
-            obj = yield sockets.Connect(sockets.New(), t.local_addr)    
+            obj = yield sockets.Connect(sockets.Socket(), t.local_addr)    
             t.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
             t.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
             obj.sock.close()

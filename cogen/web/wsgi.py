@@ -42,8 +42,12 @@ comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
     'WWW-AUTHENTICATE']
 
 class WSGIFileWrapper:
-    pass
-    
+    def __init__(self, filelike, bloksize=8192):
+        self.filelike = filelike
+        self.bloksize = bloksize
+        if hasattr(filelike,'close'):
+            self.close = filelike.close    
+            
 class debugging(object):
     def __init__(self, thing):
         self.thing = thing
@@ -53,28 +57,21 @@ class debugging(object):
         print 'Closing', self.thing.no
         
 class WSGIConnection(object):
-    environ = {"wsgi.version": (1, 0),
-               "wsgi.url_scheme": "http",
-               "wsgi.multithread": True,
-               "wsgi.multiprocess": False,
-               "wsgi.run_once": False,
-               "wsgi.errors": sys.stderr,
-               "wsgi.input": StringIO.StringIO(),
-               }
+    connection_environ = {
+        "wsgi.version": (1, 0),
+        "wsgi.url_scheme": "http",
+        "wsgi.multithread": True,
+        "wsgi.multiprocess": False,
+        "wsgi.run_once": False,
+        "wsgi.errors": sys.stderr,
+        "wsgi.input": StringIO.StringIO(),
+       #~ "wsgi.file_wrapper": WSGIFileWrapper,
+    }
     
     def __init__(t, sock, wsgi_app, environ):
         t.conn = sock
         t.wsgi_app = wsgi_app
-        t.started_response = False
-        t.status = ""
-        t.outheaders = []
-        t.sent_headers = False
-        t.close_connection = False
-        t.chunked_write = False
-        t.write_buffer = StringIO.StringIO()
-        # Copy the class environ into self.
-        t.environ = t.environ.copy()
-        t.environ.update(environ)
+        t.server_environ = environ
         
     def start_response(t, status, headers, exc_info = None):
         """WSGI callable to begin the HTTP response."""
@@ -164,10 +161,20 @@ class WSGIConnection(object):
     def run(t):
        #~ print 'Running', t.no
        #~ with debugging(t):
+        t.close_connection = False
         with closing(t.conn):
             try:
                 while True:
-                    environ = t.environ
+                    t.started_response = False
+                    t.status = ""
+                    t.outheaders = []
+                    t.sent_headers = False
+                    t.chunked_write = False
+                    t.write_buffer = StringIO.StringIO()
+                    # Copy the class environ into self.
+                    environ = t.environ = t.connection_environ.copy()
+                    environ.update(t.server_environ)
+                            
                     request_line = yield sockets.ReadLine(t.conn)
                     if request_line == "\r\n":
                         # RFC 2616 sec 4.1: "... it should ignore the CRLF."
@@ -382,20 +389,25 @@ class WSGIConnection(object):
                         environ["wsgi.input"] = StringIO(postdata)
                         
                     response = t.wsgi_app(environ, t.start_response)
-                    if not t.sent_headers:
-                        yield sockets.WriteAll(t.conn, t.render_headers())
+                    try:
+                        if not t.sent_headers:
+                            yield sockets.WriteAll(t.conn, t.render_headers())
 
-                    write_data = t.write_buffer.getvalue()
-                    if write_data:
-                        yield sockets.WriteAll(t.conn, write_data)
-
-                    for chunk in response:
-                        if t.chunked_write and chunk:
-                            buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-                            yield sockets.WriteAll(t.conn, "".join(buf))
+                        write_data = t.write_buffer.getvalue()
+                        if write_data:
+                            yield sockets.WriteAll(t.conn, write_data)
+                            
+                        if isinstance(response, WSGIFileWrapper):
+                            yield sockets.SendFile(response.filelike, t.conn, 0, blocksize=response.blocksize)
                         else:
-                            yield sockets.WriteAll(t.conn, chunk)
-                    if hasattr(response, 'close'): response.close()
+                            for chunk in response:
+                                if t.chunked_write and chunk:
+                                    buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
+                                    yield sockets.WriteAll(t.conn, "".join(buf))
+                                else:
+                                    yield sockets.WriteAll(t.conn, chunk)
+                    finally:
+                        if hasattr(response, 'close'): response.close()
 
                     if t.chunked_write:
                         yield sockets.WriteAll(t.conn, "0\r\n\r\n")
@@ -404,7 +416,7 @@ class WSGIConnection(object):
                         return
             except socket.error, e:
                 errno = e.args[0]
-                if errno not in socket_errors_to_ignore:
+                if errno not in useless_socket_errors:
                     yield t.simple_response("500 Internal Server Error",
                                             format_exc())
                 return
@@ -447,13 +459,14 @@ An HTTP server for WSGI.
     
     protocol = "HTTP/1.1"
     _bind_addr = "localhost"
-    version = "cogen/"+cogen.__version__
+    version = "cogen.web.wsgi/%s Python/%s" % (cogen.__version__, sys.version.split()[0])
     ready = False
     ConnectionClass = WSGIConnection
     environ = {}
     
     def __init__(t, bind_addr, wsgi_app, server_name=None, request_queue_size=5):
         t.requests = Queue.Queue(max)
+        t.request_queue_size = request_queue_size
         
         if callable(wsgi_app):
             # We've been handed a single wsgi_app, in CP-2.1 style.
@@ -469,7 +482,6 @@ An HTTP server for WSGI.
         if not server_name:
             server_name = socket.gethostname()
         t.server_name = server_name
-        t.shutdown_timeout = shutdown_timeout
     
     def __str__(t):
         return "%s.%s(%r)" % (t.__module__, t.__class__.__name__,
@@ -588,7 +600,7 @@ An HTTP server for WSGI.
    
     def bind(t, family, type, proto=0):
         """Create (or recreate) the actual socket object."""
-        t.socket = sockets.New(family, type, proto)
+        t.socket = sockets.Socket(family, type, proto)
         t.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         t.socket.setblocking(0)
         #~ t.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
@@ -627,7 +639,15 @@ def main():
     except (KeyboardInterrupt, SystemExit):
         pass
         
-        
+def server_factory(global_conf, host, port):
+    port = int(port)
+    def serve(app):
+        server = WSGIServer( (host, port), app, server_name=host)
+        m = Scheduler(default_priority=priority.LAST, default_timeout=15)
+        m.add(server.start)
+        m.run()
+    return serve
+    
 if __name__ == "__main__":
     main()
     #~ import cProfile

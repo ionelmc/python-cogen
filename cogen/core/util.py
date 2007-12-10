@@ -4,6 +4,7 @@ import traceback
 
                 
 def debug(trace=True, other=None):
+    from pprint import pprint
     def debugdeco(func):
         "A decorator for debugging purposes. Shows the call arguments, result and instructions as they are runned."
         def tracer(frame, event, arg):
@@ -11,7 +12,14 @@ def debug(trace=True, other=None):
             traceback.print_stack(frame, 1)
             return tracer
         def wrapped(*a, **k):
-            print '--- Calling %s.%s with: %s %s' % (func.__module__, func.__name__, a, k)
+            print '--- Calling %s.%s with:' % (func.__module__, func.__name__)
+            for i in enumerate(a):
+                print '    | %s: %s' % i
+            print '    | ',
+            pprint(k)
+            print '    From:'
+            for i in traceback.format_stack(sys._getframe(1), 1):
+                print i
             if other:
                 print '---      [ %r ]' % (other(func,a,k))
             if trace: sys.settrace(tracer)
@@ -21,6 +29,17 @@ def debug(trace=True, other=None):
             return ret
         return wrapped
     return debugdeco
+
+#~ @debug(0)
+#~ def test1():
+    #~ test2()
+
+#~ @debug(0)
+#~ def test2():
+    #~ print 1
+
+#~ test1()
+    
 class TimeoutDesc(object):
     __doc_all__ = []
     __slots__ = ['field']

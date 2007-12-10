@@ -5,6 +5,22 @@ import datetime
 
 from cogen.core import events
 from cogen.core.util import *
+try:
+    import sendfile
+except ImportError:
+    sendfile = None
+    
+__doc_all__ = [
+    'Socket',
+    'SendFile',    
+    'Read',    
+    'ReadAll',    
+    'ReadLine',    
+    'Write',    
+    'WriteAll',    
+    'Accept',    
+    'Connect'
+]
 
 class Socket(socket.socket):
     __slots__ = ['_rl_list', '_rl_list_sz', '_rl_pending']
@@ -46,6 +62,64 @@ class ReadOperation(Operation):
 class WriteOperation(Operation): 
     pass
     
+class SendFile(WriteOperation):
+    """
+        Uses underling OS sendfile call or a regular memory copy operation if there is no sendfile.
+        You can use this as a WriteAll if you specify the length.
+        Usage:
+            
+        .. sourcecode:: python
+            
+            yield sockets.SendFile(<file handle>, <sock>, 0) 
+                # will send till send operations return 0
+                
+            yield sockets.SendFile(<file handle>, <sock>, 0, blocksize=0)
+                # there will be only one send operation (if successfull)
+                # that meas the whole file will be read in memory if there is no sendfile
+                
+            yield sockets.SendFile(<file handle>, <sock>, 0, <file size>)
+                # this will hang if we can't read <file size> bytes from the file
+        
+    """
+    __slots__ = ['sock','sent','file_handle','offset','position','length','blocksize','prio']
+    __doc_all__ = ['__init__']
+    def __init__(t, file_handle, sock, offset, length=None, blocksize=4096, timeout=None, prio=priority.DEFAULT):
+        assert isinstance(sock, Socket)
+        t.sock = sock
+        t.file_handle = file_handle
+        t.offset = t.position = offset
+        t.length = length
+        t.sent = 0
+        t.blocksize = blocksize
+        t.timeout = timeout
+        t.prio = prio
+    def send(offset, len):
+        if sendfile:
+            offset, sent = sendfile.sendfile(t.sock.fileno(), t.file_handle.fileno(), offset, len)
+        else:
+            t.file_handle.seek(offset)
+            sent = t.sock.send(t.file_handle.read(len))
+        return sent
+    def run(t):
+        if t.length:
+            if blocksize:
+                t.sent += t.send(t.offset+t.sent, min(t.length, t.blocksize))
+            else:
+                t.sent += t.send(t.offset+t.sent, t.length)
+            if t.sent == t.length:
+                return t
+        else:
+            if blocksize:
+                sent = t.send(t.offset+t.sent, t.blocksize)
+            else:
+                sent = t.send(t.offset+t.sent, t.blocksize)
+            t.sent += sent
+            if not sent:
+                return t
+    def __repr__(t):
+        return "<%s at 0x%X %s fh:%s S:%r offset:%r len:%s bsz:%s to:%s>" % (t.__class__, id(t), t.sock, t.file_handle, t.offset, t.length, t.blocksize, t.timeout)
+    
+
 class Read(ReadOperation):
     """
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
@@ -53,7 +127,7 @@ class Read(ReadOperation):
     __slots__ = ['sock','len','buff','addr','prio','result']
     __doc_all__ = ['__init__']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.len = len
         t.buff = None
@@ -76,13 +150,13 @@ class Read(ReadOperation):
             else:
                 raise events.ConnectionClosed()
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff, t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:25], t.timeout)
         
 class ReadAll(ReadOperation):
     __slots__ = ['sock','len','buff','addr','prio','result']
     __doc_all__ = ['__init__']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.len = len
         t.buff = None
@@ -110,7 +184,7 @@ class ReadAll(ReadOperation):
         else: # damn ! we still didn't recv enough
             return
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
         
 class ReadLine(ReadOperation):
     """
@@ -119,7 +193,7 @@ class ReadLine(ReadOperation):
     __slots__ = ['sock','len','buff','addr','prio','result']
     __doc_all__ = ['__init__']
     def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.len = len
         t.buff = None
@@ -171,13 +245,13 @@ class ReadLine(ReadOperation):
         else: 
             raise events.ConnectionClosed()
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff, t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
 
 class Write(WriteOperation):
     __slots__ = ['sock','sent','buff','prio','result']
     __doc_all__ = ['__init__']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.buff = buff
         t.sent = 0
@@ -187,13 +261,13 @@ class Write(WriteOperation):
         t.sent = t.result = t.sock.send(t.buff)
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
         
 class WriteAll(WriteOperation):
     __slots__ = ['sock','sent','buff','prio']
     __doc_all__ = ['__init__']
     def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.buff = buff
         t.sent = 0
@@ -206,33 +280,33 @@ class WriteAll(WriteOperation):
             t.result = t.sent
             return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff, t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
  
 class Accept(ReadOperation):
     __slots__ = ['sock','conn','prio','addr','result']
     __doc_all__ = ['__init__']
     def __init__(t, sock, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.conn = None
         t.timeout = timeout
         t.prio = prio
     def run(t):
         t.conn, t.addr = t.sock.accept()
-        t.conn = WrappedSocket(_sock=t.conn)
+        t.conn = Socket(_sock=t.conn)
         t.conn.setblocking(0)
         t.result = t.conn, t.addr
         return t
     def result(t):
         return (t.conn, t.addr)
     def __repr__(t):
-        return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.conn, t.timeout)
+        return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__, id(t), t.sock, t.conn, t.timeout)
              
 class Connect(WriteOperation):
     __slots__ = ['sock','addr','prio']
     __doc_all__ = ['__init__']
     def __init__(t, sock, addr, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, WrappedSocket)
+        assert isinstance(sock, Socket)
         t.sock = sock
         t.addr = addr
         t.timeout = timeout
@@ -255,7 +329,7 @@ class Connect(WriteOperation):
                 raise socket.error(err, errno.errorcode[err])
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s to:%s>" % (t.__class__.__name__, id(t), t.sock, t.timeout)
+        return "<%s at 0x%X %s to:%s>" % (t.__class__, id(t), t.sock, t.timeout)
 
 #~ ops = (Read, ReadAll, ReadLine, Connect, Write, WriteAll, Accept)
 #~ read_ops = (Read, ReadAll, ReadLine, Accept)
