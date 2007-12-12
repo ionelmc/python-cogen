@@ -386,7 +386,7 @@ class WSGIConnection(object):
                     # If request has Content-Length, read its data
                     if not environ.get("wsgi.input", None) and environ["CONTENT_LENGTH"]:
                         postdata = yield sockets.ReadAll(t.conn, int(environ["CONTENT_LENGTH"]))
-                        environ["wsgi.input"] = StringIO(postdata)
+                        environ["wsgi.input"] = StringIO.StringIO(postdata)
                         
                     response = t.wsgi_app(environ, t.start_response)
                     try:

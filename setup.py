@@ -21,7 +21,12 @@ setup(
     author='Maries Ionel Cristian',
     author_email='ionel.mc@gmail.com  ',
     url='http://code.google.com/p/cogen/',
-    packages=['cogen'],
+    packages=[
+        'cogen',
+        'cogen.core',
+        'cogen.web',
+        'cogen.test',
+    ],
     zip_safe=False,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
