@@ -42,9 +42,9 @@ comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
     'WWW-AUTHENTICATE']
 
 class WSGIFileWrapper:
-    def __init__(self, filelike, bloksize=8192):
+    def __init__(self, filelike, blocksize=8192):
         self.filelike = filelike
-        self.bloksize = bloksize
+        self.blocksize = blocksize
         if hasattr(filelike,'close'):
             self.close = filelike.close    
             
@@ -55,6 +55,40 @@ class debugging(object):
         return self.thing
     def __exit__(self, *exc_info):
         print 'Closing', self.thing.no
+
+class WSGIPathInfoDispatcher(object):
+    """A WSGI dispatcher for dispatch based on the PATH_INFO.
+    
+    apps: a dict or list of (path_prefix, app) pairs.
+    """
+    
+    def __init__(self, apps):
+        try:
+            apps = apps.items()
+        except AttributeError:
+            pass
+        
+        # Sort the apps by len(path), descending
+        apps.sort()
+        apps.reverse()
+        
+        # The path_prefix strings must start, but not end, with a slash.
+        # Use "" instead of "/".
+        self.apps = [(p.rstrip("/"), a) for p, a in apps]
+    
+    def __call__(self, environ, start_response):
+        path = environ["PATH_INFO"] or "/"
+        for p, app in self.apps:
+            # The apps list should be sorted by length, descending.
+            if path.startswith(p + "/") or path == p:
+                environ = environ.copy()
+                environ["SCRIPT_NAME"] = environ["SCRIPT_NAME"] + p
+                environ["PATH_INFO"] = path[len(p):]
+                return app(environ, start_response)
+        
+        start_response('404 Not Found', [('Content-Type', 'text/plain'),
+                                         ('Content-Length', '0')])
+        return ['']
         
 class WSGIConnection(object):
     connection_environ = {
@@ -64,8 +98,8 @@ class WSGIConnection(object):
         "wsgi.multiprocess": False,
         "wsgi.run_once": False,
         "wsgi.errors": sys.stderr,
-        "wsgi.input": StringIO.StringIO(),
-       #~ "wsgi.file_wrapper": WSGIFileWrapper,
+        "wsgi.input": None,
+        "wsgi.file_wrapper": WSGIFileWrapper,
     }
     
     def __init__(t, sock, wsgi_app, environ):
@@ -384,10 +418,12 @@ class WSGIConnection(object):
                         yield sockets.WriteAll("HTTP/1.1 100 Continue\r\n\r\n")
                         
                     # If request has Content-Length, read its data
-                    if not environ.get("wsgi.input", None) and environ["CONTENT_LENGTH"]:
-                        postdata = yield sockets.ReadAll(t.conn, int(environ["CONTENT_LENGTH"]))
-                        environ["wsgi.input"] = StringIO.StringIO(postdata)
-                        
+                    if not environ.get("wsgi.input", None):
+                        if environ["CONTENT_LENGTH"]:
+                            postdata = yield sockets.ReadAll(t.conn, int(environ["CONTENT_LENGTH"]))
+                            environ["wsgi.input"] = StringIO.StringIO(postdata)
+                        else:
+                            environ["wsgi.input"] = StringIO.StringIO()
                     response = t.wsgi_app(environ, t.start_response)
                     try:
                         if not t.sent_headers:
