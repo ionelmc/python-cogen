@@ -41,11 +41,19 @@ class Socket(socket.socket):
     def __str__(t):
         return 'sock@0x%X' % id(t)
 class Operation(object):
-    __slots__ = ['_timeout','__weakref__']
-        
+    __slots__ = ['sock', '_timeout', 'weak_timeout', 'last_update', '__weakref__', 'fileno', 'prio']
+    def __init__(t, sock, timeout=None, weak_timeout=True, prio=priority.DEFAULT):
+        assert isinstance(sock, Socket)
+        t.sock = sock
+        t.timeout = timeout
+        t.weak_timeout = weak_timeout
+        t.prio = prio
+    #~ @debug(0)
     def try_run(t):
         try:
-            return t.run()
+            result = t.run()
+            t.last_update = datetime.datetime.now()
+            return result
         except socket.error, exc:
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): 
                 return None
@@ -81,19 +89,16 @@ class SendFile(WriteOperation):
                 # this will hang if we can't read <file size> bytes from the file
         
     """
-    __slots__ = ['sock','sent','file_handle','offset','position','length','blocksize','prio']
+    __slots__ = ['sent', 'file_handle', 'offset', 'position', 'length', 'blocksize']
     __doc_all__ = ['__init__']
-    def __init__(t, file_handle, sock, offset, length=None, blocksize=4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         t.file_handle = file_handle
-        t.offset = t.position = offset
+        t.offset = t.position = offset or file_handle.tell()
         t.length = length
         t.sent = 0
         t.blocksize = blocksize
-        t.timeout = timeout
-        t.prio = prio
-    def send(offset, len):
+        super(t.__class__, t).__init__(sock, **kws)
+    def send(t, offset, len):
         if sendfile:
             offset, sent = sendfile.sendfile(t.sock.fileno(), t.file_handle.fileno(), offset, len)
         else:
@@ -102,14 +107,14 @@ class SendFile(WriteOperation):
         return sent
     def run(t):
         if t.length:
-            if blocksize:
+            if t.blocksize:
                 t.sent += t.send(t.offset+t.sent, min(t.length, t.blocksize))
             else:
                 t.sent += t.send(t.offset+t.sent, t.length)
             if t.sent == t.length:
                 return t
         else:
-            if blocksize:
+            if t.blocksize:
                 sent = t.send(t.offset+t.sent, t.blocksize)
             else:
                 sent = t.send(t.offset+t.sent, t.blocksize)
@@ -117,22 +122,19 @@ class SendFile(WriteOperation):
             if not sent:
                 return t
     def __repr__(t):
-        return "<%s at 0x%X %s fh:%s S:%r offset:%r len:%s bsz:%s to:%s>" % (t.__class__, id(t), t.sock, t.file_handle, t.offset, t.length, t.blocksize, t.timeout)
+        return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (t.__class__, id(t), t.sock, t.file_handle, t.offset, t.length, t.blocksize, t.timeout)
     
 
 class Read(ReadOperation):
     """
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
     """
-    __slots__ = ['sock','len','buff','addr','prio','result']
+    __slots__ = ['len', 'buff', 'addr', 'result']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, len = 4096, **kws):
         t.len = len
         t.buff = None
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def run(t):
         if t.sock._rl_list:
             t.sock._rl_pending = ''.join(t.sock._rl_list) + t.sock._rl_pending
@@ -153,15 +155,12 @@ class Read(ReadOperation):
         return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:25], t.timeout)
         
 class ReadAll(ReadOperation):
-    __slots__ = ['sock','len','buff','addr','prio','result']
+    __slots__ = ['len', 'buff', 'addr', 'result']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, len = 4096, **kws):
         t.len = len
         t.buff = None
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def run(t):
         if t.sock._rl_pending:
             t.sock._rl_list.append(t.sock._rl_pending) 
@@ -190,15 +189,12 @@ class ReadLine(ReadOperation):
     """
         `len` is the max size for a line
     """
-    __slots__ = ['sock','len','buff','addr','prio','result']
+    __slots__ = ['len', 'buff', 'addr', 'result']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, len = 4096, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, len = 4096, **kws):
         t.len = len
         t.buff = None
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def check_overflow(t):
         if t.sock._rl_list_sz>=t.len: 
             #~ rl_list    = t.sock._rl_list   
@@ -248,15 +244,12 @@ class ReadLine(ReadOperation):
         return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
 
 class Write(WriteOperation):
-    __slots__ = ['sock','sent','buff','prio','result']
+    __slots__ = ['sent', 'buff', 'result']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, buff, **kws):
         t.buff = buff
         t.sent = 0
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def run(t):
         t.sent = t.result = t.sock.send(t.buff)
         return t
@@ -264,15 +257,12 @@ class Write(WriteOperation):
         return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
         
 class WriteAll(WriteOperation):
-    __slots__ = ['sock','sent','buff','prio']
+    __slots__ = ['sent', 'buff']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, buff, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, buff, **kws):
         t.buff = buff
         t.sent = 0
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def run(t):
         sent = t.sock.send(buffer(t.buff,t.sent))
         t.sent += sent
@@ -283,14 +273,11 @@ class WriteAll(WriteOperation):
         return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
  
 class Accept(ReadOperation):
-    __slots__ = ['sock','conn','prio','addr','result']
+    __slots__ = ['conn', 'addr', 'result']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, **kws):
         t.conn = None
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def run(t):
         t.conn, t.addr = t.sock.accept()
         t.conn = Socket(_sock=t.conn)
@@ -303,14 +290,11 @@ class Accept(ReadOperation):
         return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__, id(t), t.sock, t.conn, t.timeout)
              
 class Connect(WriteOperation):
-    __slots__ = ['sock','addr','prio']
+    __slots__ = ['addr']
     __doc_all__ = ['__init__']
-    def __init__(t, sock, addr, timeout=None, prio=priority.DEFAULT):
-        assert isinstance(sock, Socket)
-        t.sock = sock
+    def __init__(t, sock, addr, **kws):
         t.addr = addr
-        t.timeout = timeout
-        t.prio = prio
+        super(t.__class__, t).__init__(sock, **kws)
     def run(t):
         """ 
         We need to avoid some non-blocking socket connect quirks: 

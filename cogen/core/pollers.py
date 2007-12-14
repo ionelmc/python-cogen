@@ -57,6 +57,18 @@ class Poller(object):
         return len(t.waiting_reads) + len(t.waiting_writes)
     def __repr__(t):
         return "<%s@%s reads:%r writes:%r>" % (t.__class__.__name__, id(t), t.waiting_reads, t.waiting_writes)
+
+    def handle_errored(t, desc):
+        if desc in t.waiting_reads:
+            waiting_ops = t.waiting_reads
+        elif desc in t.waiting_writes:
+            waiting_ops = t.waiting_writes
+        else:
+            return
+        op, coro = waiting_ops[desc]
+        del waiting_ops[desc]
+        t.scheduler.active.append( (events.CoroutineException((events.ConnectionError, events.ConnectionError(op))), coro) )
+        
 class SelectPoller(Poller):
     def remove(t, op):
         #~ print '> remove', op
@@ -104,24 +116,27 @@ class SelectPoller(Poller):
             ready_to_read, ready_to_write, in_error = select.select(t.waiting_reads.keys(), t.waiting_writes.keys(), [], ptimeout)
             t.handle_events(ready_to_read, t.waiting_reads)
             t.handle_events(ready_to_write, t.waiting_writes)
+            for i in in_error:
+                t.handle_errored(i)
         else:
             time.sleep(t.RESOLUTION)
-        
+
+                    
 class EpollPoller(Poller):
     def __init__(t, scheduler, default_size = 100):
         super(t.__class__, t).__init__(scheduler)
         t.epoll_fd = epoll.epoll_create(default_size)
     def remove(t, op):
-        #~ print '> remove', op
-        fileno = op.sock.fileno()
-        if isinstance(op, sockets.ReadOperation):
-            if fileno in t.waiting_reads:
-                del t.waiting_reads[fileno]
-        if isinstance(op, sockets.WriteOperation):
-            if fileno in t.waiting_writes:
-                del t.waiting_writes[fileno]
+        fileno = getattr(op, 'fileno', None)
+        if fileno:
+            if isinstance(op, sockets.ReadOperation):
+                if fileno in t.waiting_reads:
+                    del t.waiting_reads[fileno]
+            if isinstance(op, sockets.WriteOperation):
+                if fileno in t.waiting_writes:
+                    del t.waiting_writes[fileno]
     def add(t, op, coro):
-        fileno = op.sock.fileno()
+        fileno = op.fileno = op.sock.fileno()
         if isinstance(op, sockets.ReadOperation):
             assert fileno not in t.waiting_reads
             t.waiting_reads[fileno] = op, coro
@@ -145,6 +160,9 @@ class EpollPoller(Poller):
                     waiting_ops = t.waiting_reads
                 elif ev == epoll.EPOLLOUT:
                     waiting_ops = t.waiting_writes
+                else:
+                    t.handle_errored(fd)
+                    continue
                     
                 op, coro = waiting_ops[fd]
                 op = t.run_operation(op)

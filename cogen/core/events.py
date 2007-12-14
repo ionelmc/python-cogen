@@ -11,6 +11,9 @@ __doc_all__ = [
     'Join',
     'Sleep'
 ]
+class ConnectionError(Exception):
+    "Raised when a socket has a error flag (in epoll or select)"
+    __doc_all__ = []
 class ConnectionClosed(Exception):
     "Raised when the other peer has closed connection."
     __doc_all__ = []

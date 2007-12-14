@@ -90,6 +90,8 @@ class Coroutine:
             rop = t._run_completion()
             
         except:
+            #~ import traceback
+            #~ traceback.print_exc()
             t.state = t.STATE_FAILED
             t.result = None
             t.exception = sys.exc_info()

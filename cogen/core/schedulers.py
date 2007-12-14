@@ -14,18 +14,20 @@ from cogen.core.util import *
 
 
 class Timeout(object):
-    __slots__= ['coro','op','timeout']
-    def __init__(t, op, coro):
+    __slots__= ['coro', 'op', 'timeout', 'weak_timeout', 'delta', 'last_checkpoint']
+    def __init__(t, op, coro, weak_timeout=False):
         assert isinstance(op.timeout, datetime.datetime)
         t.timeout = op.timeout
+        t.last_checkpoint = datetime.datetime.now()
+        t.delta = t.timeout - t.last_checkpoint
         t.coro = weakref.ref(coro)
         t.op = weakref.ref(op)
+        t.weak_timeout = weak_timeout
+        
     def __cmp__(t, other):
         return cmp(t.timeout, other.timeout)    
-    def __iter__(t):
-        return iter((t.op(), t.coro()))
     def __repr__(t):
-        return "<%s@%s timeout:%s, coro:%s, op:%s>" % (t.__class__.__name__, id(t), t.timeout, t.coro(), t.op())
+        return "<%s@%s timeout:%s, coro:%s, op:%s, weak:%s, lastcheck:%s, delta:%s>" % (t.__class__.__name__, id(t), t.timeout, t.coro(), t.op(), t.weak_timeout, t.last_checkpoint, t.delta)
 
 class Scheduler(object):
     def __init__(t, poller=DefaultPoller, default_priority=priority.LAST, default_timeout=None):
@@ -70,14 +72,23 @@ class Scheduler(object):
         if len(t.active)<2:
             t.poll.run(timeout = t.next_timer_delta())
 
-    def add_timeout(t, op, coro):
-        heapq.heappush(t.timeouts, Timeout(op, coro))
+    def add_timeout(t, op, coro, weak_timeout):
+        heapq.heappush(t.timeouts, Timeout(op, coro, weak_timeout))
     def handle_timeouts(t):
         now = datetime.datetime.now()
         #~ print '>to:', t.timeouts, t.timeouts and t.timeouts[0].timeout <= now
-        if t.timeouts and t.timeouts[0].timeout <= now:
-            op, coro = heapq.heappop(t.timeouts)
+        while t.timeouts and t.timeouts[0].timeout <= now:
+            timo = heapq.heappop(t.timeouts)
+            op, coro = timo.op(), timo.coro()
             if op:
+                print timo
+                if timo.weak_timeout and hasattr(op, 'last_update'):
+                    if op.last_update > timo.last_checkpoint:
+                        timo.last_checkpoint = op.last_update
+                        timo.timeout = timo.last_checkpoint + timo.delta
+                        heapq.heappush(t.timeouts, timo)
+                        continue
+                
                 if isinstance(op, sockets.Operation):
                     t.poll.remove(op)
                 elif coro and isinstance(op, events.Join):
@@ -100,7 +111,7 @@ class Scheduler(object):
                 if not op.timeout:
                     op.timeout = t.default_timeout
                 if op.timeout and op.timeout != -1:
-                    t.add_timeout(op, coro)
+                    t.add_timeout(op, coro, getattr(op, 'weak_timeout', False))
         
             if isinstance(op, sockets.Operation):
                 r = t.poll.run_or_add(op, coro)

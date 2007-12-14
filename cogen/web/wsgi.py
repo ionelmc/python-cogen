@@ -434,7 +434,7 @@ class WSGIConnection(object):
                             yield sockets.WriteAll(t.conn, write_data)
                             
                         if isinstance(response, WSGIFileWrapper):
-                            yield sockets.SendFile(response.filelike, t.conn, 0, blocksize=response.blocksize)
+                            yield sockets.SendFile(response.filelike, t.conn, blocksize=response.blocksize)#, timeout=-1)
                         else:
                             for chunk in response:
                                 if t.chunked_write and chunk:
@@ -456,7 +456,7 @@ class WSGIConnection(object):
                     yield t.simple_response("500 Internal Server Error",
                                             format_exc())
                 return
-            except (events.OperationTimeout, events.ConnectionClosed):
+            except (events.OperationTimeout, events.ConnectionClosed, events.ConnectionError):
                 return
             except (KeyboardInterrupt, SystemExit):
                 raise
