@@ -81,7 +81,7 @@ class Scheduler(object):
             timo = heapq.heappop(t.timeouts)
             op, coro = timo.op(), timo.coro()
             if op:
-                print timo
+                #~ print timo
                 if timo.weak_timeout and hasattr(op, 'last_update'):
                     if op.last_update > timo.last_checkpoint:
                         timo.last_checkpoint = op.last_update

@@ -41,23 +41,23 @@ class SocketTest_MixIn:
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
-            conn, addr = (yield sockets.Accept(srv, prio=t.prio))
-            t.waitobj = sockets.ReadLine(conn, len=1024, prio=t.prio) 
+            conn, addr = (yield sockets.Accept(srv, prio = t.prio))
+            t.waitobj = sockets.ReadLine(conn, len=1024, prio = t.prio) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
             t.recvobj = yield t.waitobj
             try: 
                 # test for readline overflow'
-                t.waitobj2 = yield sockets.ReadLine(conn, len=512, prio=t.prio)
+                t.waitobj2 = yield sockets.ReadLine(conn, len=512, prio = t.prio)
             except exceptions.OverflowError, e:
                 t.waitobj2 = "OK"
-                t.waitobj_cleanup = yield sockets.Read(conn, len=1024*8, prio=t.prio) 
+                t.waitobj_cleanup = yield sockets.Read(conn, len=1024*8, prio = t.prio) 
                                         # eat up the remaining data waiting on socket
             t.recvobj2 = (
-                (yield sockets.ReadLine(conn, 1024, prio=t.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio=t.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio=t.prio))
+                (yield sockets.ReadLine(conn, 1024, prio = t.prio)),
+                (yield sockets.ReadLine(conn, 1024, prio = t.prio)),
+                (yield sockets.ReadLine(conn, 1024, prio = t.prio))
             )
             srv.close()
         coro = t.m.add(reader)
@@ -95,9 +95,9 @@ class SocketTest_MixIn:
             srv.setblocking(0)
             srv.bind(t.local_addr)
             srv.listen(0)
-            conn, addr = yield sockets.Accept(srv, prio=t.prio)
-            t.recvobj = yield sockets.Read(conn, 1024*4, prio=t.prio)
-            t.recvobj_all = yield sockets.ReadAll(conn, 1024**2-1024*4, prio=t.prio)
+            conn, addr = yield sockets.Accept(srv, prio = t.prio)
+            t.recvobj = yield sockets.Read(conn, 1024*4, prio = t.prio)
+            t.recvobj_all = yield sockets.ReadAll(conn, 1024**2-1024*4, prio = t.prio)
             srv.close()
         coro = t.m.add(reader)
         t.m_run.start()
@@ -336,10 +336,10 @@ class Timer_MixIn:
             yield events.Sleep(1)
             t.msgs.append(time.time() - t.now)
             cli = sockets.Socket()
-            yield sockets.Connect(cli, t.local_addr, t.prio)
+            yield sockets.Connect(cli, t.local_addr, prio = t.prio)
             try:
                 t.now = time.time()
-                yield sockets.ReadAll(cli, 4096, 2, t.prio)
+                yield sockets.ReadAll(cli, 4096, timeout=2, prio = t.prio)
             except events.OperationTimeout:
                 t.msgs.append(time.time() - t.now)
             cli.close()
@@ -351,16 +351,16 @@ class Timer_MixIn:
             srv.listen(10)
             
             t.ev.set()
-            yield sockets.Accept(srv, prio=t.prio)
+            yield sockets.Accept(srv, prio = t.prio)
             try:
                 t.now = time.time()
-                yield sockets.Accept(srv, 3, t.prio)
+                yield sockets.Accept(srv, timeout = 3, prio = t.prio)
             except events.OperationTimeout:
                 t.msgs.append(time.time() - t.now)
             yield events.AddCoro(sleeper, args=(5,))
             try:
                 t.now = time.time()
-                print '> %s;' % (yield events.WaitForSignal('bla', 4, t.prio))
+                print '> %s;' % (yield events.WaitForSignal('bla', 4, prio = t.prio))
             except events.OperationTimeout:
                 t.msgs.append(time.time() - t.now)
             
