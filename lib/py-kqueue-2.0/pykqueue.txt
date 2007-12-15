@@ -1,0 +1,109 @@
+	py-kqueue module programming API description (version 2.0)
+       -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+The module is modelled to resemble the C API, with couple
+convenience changes to take advantage of Python object support.
+Following description covers the python code organization/use
+only; you still need to read the kqueue(2) manpages to get
+understanding on how kqueue works.
+
+Top level
+---------
+The module contains all kqueue contants (EVFILT_*, NOTE_*, EV_*),
+symbol PYKQ_VERSION (string, currently "2.0"), and functions kqueue()
+and EV_SET().
+
+Function kqueue() calls kqueue(2) syscall and creates new kqueue object.
+EV_SET() creates new kevent object and sets it's initial attributes
+according to parameters.
+
+Kqueue object
+-------------
+This object is created by kqueue() function, which has no arguments.
+
+Object kqueue has following methods:
+
+int fileno():
+   returns number of underlying kqueue descriptor
+list kevent(changelist, [int eventlistsize], [timeout]):
+   calls kevent(2) system call and returns list of retrieved kevents
+   (or None, if eventlistsize is <= 0).
+   'changelist' must be a list object containing kevent objects,
+   single kevent object, or None. If changelist is not None, the
+   kevents are registered to system using kevent(2) one by one.
+   If 'eventlistsize' is specified, is says how many maximum kevents should be
+   fetched in one kevent(2) call. Less kevents can be returned.
+   'timo' is optional timeout. It can either be tuple with exactly
+   two items - (sec, nanoseconds), or a integer/long number specifying
+   number of nanoseconds to wait. If not specified or None, the call
+   blocks until a kevent would be available. Use timeout 0 or (0, 0)
+   to poll for kevents (i.e. not block).
+   If any kevent(2) calls returns with error, an exception is raised.
+int kfilter_byname(string name):
+   calls the KFILTER_BYNAME ioctl and returns retrieved filter code
+   raises exception if the name doesn't map to any filter known by
+   currently running kernel
+string kfilter_byfilter(int code):
+   calls the KFILTER_BYFILTER ioctl and returns retrieved filter name
+   raises exception if the code doesn't map to any filter known by
+   currently running kernel
+
+Object kqueue doesn't have any attributes.
+
+KEvent object
+-------------
+Object kevent is created by function EV_SET(), which is defined as
+follows:
+
+object kevent
+EV_SET(long ident, int filter, int flags, [int fflags], [long data],
+         [object udata]):
+  creates object kevent with attributes initially set according
+  to specified parameters. 'ident' is typically a file descriptor
+  or socket to watch. 'filter' is one of EVFILT_* contants, or code
+  returned by kq.kfilter_byname(). 'flags' is set of or'ed
+  EV_* flags. 'fflags' is filter flag value, like NOTE_ATTRIB. Defaults
+  to zero. 'data' is filter data value; defaults to zero and normally
+  doesn't need to be specified as anything else. 'udata' is reference
+  to arbitrary user object. This object together with new kevent whenever
+  registered kevent triggers.
+
+Object kevent has following attributes:
+  long ident
+  int filter
+  int flags
+  int fflags
+  long data
+  object udata
+
+See description of EV_SET() function for description. Any attribute
+can be freely changed once the object is created..
+
+Example of use
+--------------
+Here is simple code to register for EVFILT_READ event and wait for
+the event:
+
+import kqueue
+f = open("myfile", "r+")
+kq = kqueue.kqueue()
+ev = kqueue.EV_SET(f.fileno(), kqueue.EVFILT_READ,
+	kqueue.EV_ADD | kqueue.EV_ENABLE)
+tev = kq.kevent(ev, 1, None)	# wait until event happens
+
+Gotchas
+-------
+To properly support passing Python objects as udata, kqueue object
+keeps reference to any udata passed as part of object kevent to
+kq.kevent(). The reference is added when object is registered with
+EV_ADD, and droppped when either the kevent is removed with EV_DELETE,
+or when EV_ONESHOT kevent is triggered. This should hopefully cover
+most 'normal' cases. However, if you call EV_ADD several times with
+same (ident, filter) pair and different udata, kqueue objects keeps
+several references rather than just single one. This simplifies
+kevent handling, but also means that the udata objects can possibly
+keep floating around if you are not careful. So, _be_ careful and
+only register events with EV_ADD once.
+
+Of course, when the kqueue object is removed, all the udata references
+are dropped.
