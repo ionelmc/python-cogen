@@ -12,6 +12,7 @@ def debug(trace=True, other=None):
             traceback.print_stack(frame, 1)
             return tracer
         def wrapped(*a, **k):
+            print 
             print '--- Calling %s.%s with:' % (func.__module__, func.__name__)
             for i in enumerate(a):
                 print '    | %s: %s' % i
@@ -19,7 +20,7 @@ def debug(trace=True, other=None):
             pprint(k)
             print '    From:'
             for i in traceback.format_stack(sys._getframe(1), 1):
-                print i
+                print i,
             if other:
                 print '---      [ %r ]' % (other(func,a,k))
             if trace: sys.settrace(tracer)

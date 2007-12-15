@@ -90,7 +90,7 @@ class Scheduler(object):
                         continue
                 
                 if isinstance(op, sockets.Operation):
-                    t.poll.remove(op)
+                    t.poll.remove(op, coro)
                 elif coro and isinstance(op, events.Join):
                     op.coro.remove_waiter(coro)
                 elif isinstance(op, events.WaitForSignal):

@@ -58,7 +58,7 @@ class Operation(object):
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): 
                 return None
             elif exc[0] == errno.EPIPE:
-                raise events.ConnectionClosed()
+                raise events.ConnectionClosed(exc)
             else:
                 raise
         return t
@@ -150,7 +150,7 @@ class Read(ReadOperation):
                 t.result = t.buff
                 return t
             else:
-                raise events.ConnectionClosed()
+                raise events.ConnectionClosed("Empty recv.")
     def __repr__(t):
         return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:25], t.timeout)
         
@@ -175,7 +175,7 @@ class ReadAll(ReadOperation):
                 t.sock._rl_list.append(buff)
                 t.sock._rl_list_sz += len(buff)
             else:
-                raise events.ConnectionClosed()
+                raise events.ConnectionClosed("Empty recv.")
         if t.sock._rl_list_sz == t.len:
             t.buff = t.result =  ''.join(t.sock._rl_list)
             t.sock._rl_list = []
@@ -239,7 +239,7 @@ class ReadLine(ReadOperation):
                 t.sock._rl_list_sz += len(x_buff)
                 t.check_overflow()
         else: 
-            raise events.ConnectionClosed()
+            raise events.ConnectionClosed("Empty recv.")
     def __repr__(t):
         return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
 

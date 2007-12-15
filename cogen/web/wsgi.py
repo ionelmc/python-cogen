@@ -642,7 +642,7 @@ An HTTP server for WSGI.
         #~ t.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
         t.socket.bind(t.bind_addr)
     
-def main():    
+def _test_app():    
     from cogen.web import wsgi
     import wsgiref.validate 
     import pprint
@@ -664,7 +664,7 @@ def main():
         """]
 
     server = wsgi.WSGIServer(
-                ('localhost', 8070), 
+                ('0.0.0.0', 8070), 
                 #~ wsgiref.validate.validator(my_crazy_app),
                 my_crazy_app,
                 server_name='localhost')
@@ -685,7 +685,7 @@ def server_factory(global_conf, host, port):
     return serve
     
 if __name__ == "__main__":
-    main()
+    _test_app()
     #~ import cProfile
     #~ cProfile.run("main()", "cprofile.log")
     #~ import pstats
