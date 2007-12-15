@@ -30,6 +30,10 @@
 
 #include <Python.h>
 
+#if defined(PY_LONG_LONG) && !defined(LONG_LONG)
+#define LONG_LONG PY_LONG_LONG
+#endif
+
 #include <sys/event.h>
 
 /* -=-=-=-=-=-=-=-=-=-=-=-= KEvent Object =-=-=-=-=-=-=-=-=-=-=-= */
