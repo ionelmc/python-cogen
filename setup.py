@@ -7,7 +7,7 @@ from cogen import __version__ as version
 setup(
     name='cogen',
     version=version,
-    description='Coroutines in python using enhanced generators from python 2.5, including a WSGI server',
+    description='Coroutines and asynchronous I/O using enhanced generators from python 2.5, including a enhanced WSGI server',
     long_description="""
     Coroutines in python using enhanced generators from python 2.5
 
@@ -32,11 +32,11 @@ setup(
     ],
     zip_safe=False,
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Programming Language :: Python',

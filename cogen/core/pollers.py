@@ -196,7 +196,7 @@ class KqueuePoller(Poller):
                     
 class EpollPoller(Poller):
     def __init__(t, scheduler, default_size = 1024):
-        super(t.__class__, t).__init__(scheduler)
+        t.scheduler = scheduler
         t.epoll_fd = epoll.epoll_create(default_size)
     def remove(t, op, coro):
         fileno = getattr(op, 'fileno', None)
