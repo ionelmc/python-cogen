@@ -38,7 +38,10 @@ class Scheduler(object):
         t.poll = poller(t)
         t.default_priority = default_priority
         t.default_timeout = default_timeout
-        
+    def __repr__(t):
+        return "<%s@0x%X active:%s sigwait:%s timewait:%s poller:%s default_priority:%s default_timeout:%s>" % (
+            t.__class__.__name__, id(t), len(t.active), len(t.sigwait), len(t.timewait), t.poll, t.default_priority, t.default_timeout
+        )
     def _init_coro(t, coro, *args, **kws):
         return coro(*args, **kws)
             

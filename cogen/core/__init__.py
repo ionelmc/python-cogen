@@ -1,4 +1,6 @@
 """
+This module holds the essential stuff.
+
 Programming with this library should be straghtforward. A coroutine is just 
 a generator wrapped in a operation handling class:
 

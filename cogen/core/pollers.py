@@ -129,6 +129,8 @@ class KqueuePoller(Poller):
         t.klist = []
     def __len__(t):
         return len(t.klist)
+    def __repr__(t):
+        return "<%s@%s klist:%r>" % (t.__class__.__name__, id(t), t.klist)
     #~ @debug(0)
     def remove(t, op, coro):
         fileno = getattr(op, 'fileno', None)

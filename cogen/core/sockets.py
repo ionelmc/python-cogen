@@ -122,7 +122,7 @@ class SendFile(WriteOperation):
             if not sent:
                 return t
     def __repr__(t):
-        return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (t.__class__, id(t), t.sock, t.file_handle, t.offset, t.length, t.blocksize, t.timeout)
+        return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (t.__class__.__name__, id(t), t.sock, t.file_handle, t.offset, t.length, t.blocksize, t.timeout)
     
 
 class Read(ReadOperation):
@@ -152,7 +152,7 @@ class Read(ReadOperation):
             else:
                 raise events.ConnectionClosed("Empty recv.")
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:25], t.timeout)
         
 class ReadAll(ReadOperation):
     __slots__ = ['len', 'buff', 'addr', 'result']
@@ -183,7 +183,7 @@ class ReadAll(ReadOperation):
         else: # damn ! we still didn't recv enough
             return
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
         
 class ReadLine(ReadOperation):
     """
@@ -241,7 +241,7 @@ class ReadLine(ReadOperation):
         else: 
             raise events.ConnectionClosed("Empty recv.")
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
 
 class Write(WriteOperation):
     __slots__ = ['sent', 'buff', 'result']
@@ -254,7 +254,7 @@ class Write(WriteOperation):
         t.sent = t.result = t.sock.send(t.buff)
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
         
 class WriteAll(WriteOperation):
     __slots__ = ['sent', 'buff']
@@ -270,7 +270,7 @@ class WriteAll(WriteOperation):
             t.result = t.sent
             return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
  
 class Accept(ReadOperation):
     __slots__ = ['conn', 'addr', 'result']
@@ -287,7 +287,7 @@ class Accept(ReadOperation):
     def result(t):
         return (t.conn, t.addr)
     def __repr__(t):
-        return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__, id(t), t.sock, t.conn, t.timeout)
+        return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.conn, t.timeout)
              
 class Connect(WriteOperation):
     __slots__ = ['addr']
@@ -313,7 +313,7 @@ class Connect(WriteOperation):
                 raise socket.error(err, errno.errorcode[err])
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s to:%s>" % (t.__class__, id(t), t.sock, t.timeout)
+        return "<%s at 0x%X %s to:%s>" % (t.__class__.__name__, id(t), t.sock, t.timeout)
 
 #~ ops = (Read, ReadAll, ReadLine, Connect, Write, WriteAll, Accept)
 #~ read_ops = (Read, ReadAll, ReadLine, Accept)
