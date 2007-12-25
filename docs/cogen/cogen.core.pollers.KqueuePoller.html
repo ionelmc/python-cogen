@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+
+<!-- remove old header -->
+
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
+        - Class: KQueuePoller</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+    <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
+    <link rel="stylesheet" href="css/apydia.css" type="text/css" />
+    <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
+    <script src="js/apydia.js" type="text/javascript"></script>
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <div id="page">
+        <div id="browser">
+            <div class="browser-section">
+                <h2>Module Index</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.html">cogen</a>
+                    </li><li>
+                        <a href="cogen.common.html">cogen.common</a>
+                    </li><li>
+                        <a href="cogen.core.html">cogen.core</a>
+                    </li><li>
+                        <a href="cogen.web.html">cogen.web</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Methods</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.pollers.KQueuePoller.html#method-add">add</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-handle_errored">handle_errored</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.KQueuePoller.html#method-remove">remove</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.KQueuePoller.html#method-run">run</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-run_once">run_once</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-run_operation">run_operation</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-run_or_add">run_or_add</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-waiting_op">waiting_op</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.pollers.SelectPoller.html#attribute-"></a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#attribute-"></a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#attribute-"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="content">
+    <h1>Class: KQueuePoller</h1>
+    <div class="docstring rst"></div>
+    <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L128">View source</a>
+    </li>
+</ul>
+    <div>
+        <h2>Methods</h2>
+            <h3 id="method-add">
+                add
+                <span class="args">(t, op, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>~ @debug(0)</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L149">View source</a>
+    </li>
+</ul>
+            <h3 id="method-handle_errored">
+                handle_errored
+                <span class="args">(t, desc)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L66">View source</a>
+    </li>
+</ul>
+            <h3 id="method-remove">
+                remove
+                <span class="args">(t, op, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>~ @debug(0)</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L139">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run">
+                run
+                <span class="args">(t, timeout=0)</span>
+            </h3>
+            <div class="docstring rst"><p>Run a poller loop and return new socket events. Timeout is a timedelta object, 0 if active coros or None.</p>
+<p>kqueue timeout param is a integer number of nanoseconds (seconds/10**9).</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L162">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run_once">
+                run_once
+                <span class="args">(t, id, waiting_ops)</span>
+            </h3>
+            <div class="docstring rst"><p>Run a operation, remove it from the poller and return the result. Called from the main poller loop.</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L34">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run_operation">
+                run_operation
+                <span class="args">(t, op)</span>
+            </h3>
+            <div class="docstring rst"><p>Run the socket op and return result or exception.</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L41">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run_or_add">
+                run_or_add
+                <span class="args">(t, op, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>Perform operation or add the operation in the poller if socket isn't ready. Called from the scheduller.</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L48">View source</a>
+    </li>
+</ul>
+            <h3 id="method-waiting_op">
+                waiting_op
+                <span class="args">(t, testcoro)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L55">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-"></h3>
+            <div class="docstring rst"></div>
+            <h4>Value of </h4>
+            <pre class="code"><code>0.02</code></pre>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-"></h3>
+            <div class="docstring rst"></div>
+            <h4>Value of </h4>
+            <pre class="code"><code>20000000.0</code></pre>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-"></h3>
+            <div class="docstring rst"></div>
+            <h4>Value of </h4>
+            <pre class="code"><code>20.0</code></pre>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+    </li>
+</ul>
+    </div>
+        </div>
+        <div id="footer">
+            Generated with <a href="http://apydia.ematia.de/" class="extern">
+            Apydia 0.0.1</a> on 2007-12-25 18:33
+        </div>
+    </div>
+</body>
+</html>
