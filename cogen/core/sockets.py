@@ -19,37 +19,65 @@ __doc_all__ = [
     'Write',    
     'WriteAll',    
     'Accept',    
-    'Connect'
+    'Connect',
+    'Operation',
 ]
 
 class Socket(socket.socket):
     __slots__ = ['_rl_list', '_rl_list_sz', '_rl_pending']
     """
-        Wee need some additional buffers and stuff:
+        We need some additional buffers and stuff:
             rl_pending - for unchecked for linebreaks buffer
             rl_list - for checked for linebreaks buffers
             rl_list_sz - a cached size of the summed sizes of rl_list buffers
     """
     def __init__(t, *a, **k):
-        socket.socket.__init__(t, *a, **k)
+        super(t.__class__, t).__init__(*a, **k)
         t._rl_list = []
         t._rl_list_sz = 0
         t._rl_pending = ''
         t.setblocking(0)
+    #~ @debug(0)
+    #~ def close(t):
+        #~ print "> closing sock 0x%X" % id(t)
+        #~ super(t.__class__, t).close()
     def __repr__(t):
         return '<socket at 0x%X>' % id(t)
     def __str__(t):
         return 'sock@0x%X' % id(t)
 class Operation(object):
-    __slots__ = ['sock', '_timeout', 'weak_timeout', 'last_update', '__weakref__', 'fileno', 'prio']
+    __slots__ = ['sock', '_timeout', 'weak_timeout', 'last_update', '__weakref__', 'fileno', 'prio', 'finalized']
+    __doc_all__ = ['__init__', 'try_run']
+    trim = 2000
+    """
+            This is a generic class for a operation that involves some socket call.
+            A socket operation should subclass WriteOperation or ReadOperation, define a `run` method 
+        and call the __init__ method of the superclass.
+    """
     def __init__(t, sock, timeout=None, weak_timeout=True, prio=priority.DEFAULT):
+        """
+                All the socket operations have these generic properties that the 
+            poller and scheduler interprets:
+                * timeout - the ammout of time in seconds or timedelta, or the datetime value till
+                    the poller should wait for this operation.
+                * weak_timeout - if this is True the timeout handling code will take into account
+                    the time of last activity (that would be the time of last `try_run` call)
+                * prio - a flag for the scheduler
+        """
+        
         assert isinstance(sock, Socket)
         t.sock = sock
         t.timeout = timeout
+        t.finalized = False
         t.weak_timeout = weak_timeout
         t.prio = prio
-    #~ @debug(0)
     def try_run(t):
+        """
+                This method will return a None value or raise a exception if the operation can't complete at this time.
+                The socket poller will run this method if the socket is readable/writeable.
+                If this returns a value that evaluates to False, the poller will try to run this 
+            at a later time (when the socket is readable/writeable again).
+        """
         try:
             result = t.run()
             t.last_update = datetime.datetime.now()
@@ -90,7 +118,7 @@ class SendFile(WriteOperation):
         
     """
     __slots__ = ['sent', 'file_handle', 'offset', 'position', 'length', 'blocksize']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         t.file_handle = file_handle
         t.offset = t.position = offset or file_handle.tell()
@@ -128,9 +156,13 @@ class SendFile(WriteOperation):
 class Read(ReadOperation):
     """
         `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
+        Example usage:
+        
+        .. sourcecode:: python
+            yield sockets.Read(socket_object, buffer_length)
     """
     __slots__ = ['len', 'buff', 'addr', 'result']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, len = 4096, **kws):
         t.len = len
         t.buff = None
@@ -152,11 +184,14 @@ class Read(ReadOperation):
             else:
                 raise events.ConnectionClosed("Empty recv.")
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.buff and t.buff[:t.trim], t.timeout)
         
 class ReadAll(ReadOperation):
+    """
+    Run this operator till we've read `len` bytes.
+    """
     __slots__ = ['len', 'buff', 'addr', 'result']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, len = 4096, **kws):
         t.len = len
         t.buff = None
@@ -183,14 +218,16 @@ class ReadAll(ReadOperation):
         else: # damn ! we still didn't recv enough
             return
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:t.trim], t.timeout)
         
 class ReadLine(ReadOperation):
     """
+        Run this operator till we read a newline (\\n) or we have a overflow.
+        
         `len` is the max size for a line
     """
     __slots__ = ['len', 'buff', 'addr', 'result']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, len = 4096, **kws):
         t.len = len
         t.buff = None
@@ -241,11 +278,14 @@ class ReadLine(ReadOperation):
         else: 
             raise events.ConnectionClosed("Empty recv.")
     def __repr__(t):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sock._rl_pending, t.sock._rl_list, t.sock._rl_list_sz, t.buff and t.buff[:t.trim], t.timeout)
 
 class Write(WriteOperation):
+    """
+    Write the buffer to the socket and return the number of bytes written.
+    """    
     __slots__ = ['sent', 'buff', 'result']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, buff, **kws):
         t.buff = buff
         t.sent = 0
@@ -254,11 +294,14 @@ class Write(WriteOperation):
         t.sent = t.result = t.sock.send(t.buff)
         return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff and t.buff[:t.trim], t.timeout)
         
 class WriteAll(WriteOperation):
+    """
+    Run this operation till all the bytes have been written.
+    """
     __slots__ = ['sent', 'buff']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, buff, **kws):
         t.buff = buff
         t.sent = 0
@@ -270,11 +313,14 @@ class WriteAll(WriteOperation):
             t.result = t.sent
             return t
     def __repr__(t):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff and t.buff[:25], t.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.sent, t.buff and t.buff[:t.trim], t.timeout)
  
 class Accept(ReadOperation):
+    """
+    Returns a (conn, addr) tuple when the operation completes.
+    """
     __slots__ = ['conn', 'addr', 'result']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, **kws):
         t.conn = None
         super(t.__class__, t).__init__(sock, **kws)
@@ -290,8 +336,11 @@ class Accept(ReadOperation):
         return "<%s at 0x%X %s conn:%r to:%s>" % (t.__class__.__name__, id(t), t.sock, t.conn, t.timeout)
              
 class Connect(WriteOperation):
+    """
+    Connect to the given `addr` using `sock`.
+    """
     __slots__ = ['addr']
-    __doc_all__ = ['__init__']
+    __doc_all__ = ['__init__', 'run']
     def __init__(t, sock, addr, **kws):
         t.addr = addr
         super(t.__class__, t).__init__(sock, **kws)

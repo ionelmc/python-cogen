@@ -1,7 +1,38 @@
 """
-HTTP protocol handling code taken from the CherryPy wsgi server.
-Refactored to fit my coroutine architecture.
+    This wsgi server is a single threaded, single process server that interleaves the iterations 
+of the wsgi apps - I could add a threadpool for blocking apps in the future.
+    If you don't return iterators from apps and return lists you'll get, at most, 
+the performance of a server that processes requests sequentialy.
+    On the other hand this server has coroutine extensions that suppose to support 
+use of middleware in your application. 
+
+Example app with coroutine extensions:
+
+.. sourcecode:: python
+
+    def wait_app(environ, start_response):
+        start_response('200 OK', [('Content-type','text/html')])
+        yield "I'm waiting for some signal"
+        yield environ['cogen'].core.events.WaitForSignal("abc", timeout=1)
+        if isinstance(environ['cogen'].result, Exception):
+            yield "Your time is up !"
+        else:
+            yield "Someone signaled me: %s" % environ['cogen'].result
+
+- `environ['cogen'].core` is actualy a wrapper that sets environ['cogen'].operation
+with the called object and returns a empty string. This should penetrate most of the
+middleware - according to the wsgi spec, middleware should pass a empty string if it
+doesn't have anything to return on that specific iteration point, or, in other words,
+the length of the app iter returned by middleware should be at least that of the app.
+- the wsigi server will set `environ['cogen'].result` with the result of the operation
+and `environ['cogen'].exception` with the details of the exception - if any: 
+(exc_type, exc_value, traceback_object).
+
+HTTP handling code taken from the CherryPy WSGI server.
 """
+
+# TODO: better application error reporting for the coroutine extensions
+
 from __future__ import with_statement
 __all__ = ['WSGIFileWrapper','WSGIServer','WSGIConnection']
 from contextlib import closing
@@ -46,16 +77,23 @@ class WSGIFileWrapper:
         self.filelike = filelike
         self.blocksize = blocksize
         if hasattr(filelike,'close'):
-            self.close = filelike.close    
-            
-class debugging(object):
-    def __init__(self, thing):
-        self.thing = thing
-    def __enter__(self):
-        return self.thing
-    def __exit__(self, *exc_info):
-        print 'Closing', self.thing.no
-
+            self.close = filelike.close
+    #TODO: iter method            
+class tryclosing(object):
+    """
+    This is the exact context manager as contextlib.closing but it 
+    doesn't throw a exception if the managed object doesn't have a 
+    close method.
+    """
+    def __init__(t, thing):
+        t.thing = thing
+    def __enter__(t):
+        return t.thing
+    def __exit__(t, *exc_info):
+        if hasattr(t.thing, 'close'):
+            t.thing.close()    
+    
+    
 class WSGIPathInfoDispatcher(object):
     """A WSGI dispatcher for dispatch based on the PATH_INFO.
     
@@ -89,7 +127,27 @@ class WSGIPathInfoDispatcher(object):
         start_response('404 Not Found', [('Content-Type', 'text/plain'),
                                          ('Content-Length', '0')])
         return ['']
+
+class COGENOperationWrapper(object):
+    def __init__(t, environ, module):
+        t.module = module
+        t.environ = environ
         
+    def __getattr__(t, key):
+        what = getattr(t.module, key)
+        if callable(what):
+            return COGENOperationCall(t.environ, what)
+        else:
+            return t.__class__(t.environ, what)
+class COGENOperationCall(object):
+    def __init__(t, environ, obj):
+        t.environ = environ
+        t.obj = obj
+    def __call__(t, *args, **kwargs):
+        t.environ['cogen'].operation = t.obj(*args, **kwargs)
+        return ""
+class COGENProxy:
+    pass
 class WSGIConnection(object):
     connection_environ = {
         "wsgi.version": (1, 0),
@@ -174,7 +232,7 @@ class WSGIConnection(object):
         return "".join(buf)
 
     def simple_response(t, status, msg=""):
-        """Write a simple response back to the client."""
+        """Return a operation for writing simple response back to the client."""
         status = str(status)
         buf = ["%s %s\r\n" % (t.environ['ACTUAL_SERVER_PROTOCOL'], status),
                "Content-Length: %s\r\n" % len(msg),
@@ -191,10 +249,8 @@ class WSGIConnection(object):
         return sockets.WriteAll(t.conn, "".join(buf))
         
     @coroutine
-    #~ @cogen.core.schedulers.debug(0, lambda f,a,k:a[0].no)
     def run(t):
-       #~ print 'Running', t.no
-       #~ with debugging(t):
+        """A bit bulky atm..."""
         t.close_connection = False
         with closing(t.conn):
             try:
@@ -390,30 +446,11 @@ class WSGIConnection(object):
                         cl = environ.pop("HTTP_CONTENT_LENGTH", None)
                         if cl:
                             environ["CONTENT_LENGTH"] = cl
-
                         
                         data.seek(0)
                         environ["wsgi.input"] = data
                         environ["CONTENT_LENGTH"] = str(cl) or ""
-                        
-                        
-                    # From PEP 333:
-                    # "Servers and gateways that implement HTTP 1.1 must provide
-                    # transparent support for HTTP 1.1's "expect/continue" mechanism.
-                    # This may be done in any of several ways:
-                    #   1. Respond to requests containing an Expect: 100-continue request
-                    #      with an immediate "100 Continue" response, and proceed normally.
-                    #   2. Proceed with the request normally, but provide the application
-                    #      with a wsgi.input stream that will send the "100 Continue"
-                    #      response if/when the application first attempts to read from
-                    #      the input stream. The read request must then remain blocked
-                    #      until the client responds.
-                    #   3. Wait until the client decides that the server does not support
-                    #      expect/continue, and sends the request body on its own.
-                    #      (This is suboptimal, and is not recommended.)
-                    #
-                    # We used to do 3, but are now doing 1. Maybe we'll do 2 someday,
-                    # but it seems like it would be a big slowdown for such a rare case.
+                    
                     if environ.get("HTTP_EXPECT", "") == "100-continue":
                         yield sockets.WriteAll("HTTP/1.1 100 Continue\r\n\r\n")
                         
@@ -424,27 +461,41 @@ class WSGIConnection(object):
                             environ["wsgi.input"] = StringIO.StringIO(postdata)
                         else:
                             environ["wsgi.input"] = StringIO.StringIO()
+                    environ['cogen'] = COGENProxy()
+                    environ['cogen'].core = COGENOperationWrapper(environ, cogen.core)
+                    environ['cogen'].operation = environ['cogen'].result = environ['cogen'].exception = None
                     response = t.wsgi_app(environ, t.start_response)
-                    try:
-                        if not t.sent_headers:
-                            yield sockets.WriteAll(t.conn, t.render_headers())
-
-                        write_data = t.write_buffer.getvalue()
-                        if write_data:
-                            yield sockets.WriteAll(t.conn, write_data)
-                            
+                    with tryclosing(response):
                         if isinstance(response, WSGIFileWrapper):
                             yield sockets.SendFile(response.filelike, t.conn, blocksize=response.blocksize)#, timeout=-1)
                         else:
                             for chunk in response:
-                                if t.chunked_write and chunk:
-                                    buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-                                    yield sockets.WriteAll(t.conn, "".join(buf))
+                                if not t.sent_headers:
+                                    yield sockets.WriteAll(t.conn, t.render_headers())
+                                    t.sent_headers = True
+                                    write_data = t.write_buffer.getvalue()
+                                    if write_data:
+                                        yield sockets.WriteAll(t.conn, write_data)
+                                if chunk:
+                                    if t.chunked_write:
+                                        buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
+                                        yield sockets.WriteAll(t.conn, "".join(buf))
+                                    else:
+                                        yield sockets.WriteAll(t.conn, chunk)
                                 else:
-                                    yield sockets.WriteAll(t.conn, chunk)
-                    finally:
-                        if hasattr(response, 'close'): response.close()
-
+                                    if environ['cogen'].operation:
+                                        op = environ['cogen'].operation
+                                        environ['cogen'].operation = None
+                                        try:
+                                            #~ print 'op:',environ['cogen'].operation
+                                            environ['cogen'].result = yield op
+                                            #~ print 'result:',environ['cogen'].result
+                                        except:
+                                            #~ print 'exception:', sys.exc_info()
+                                            environ['cogen'].exception = sys.exc_info()
+                                            environ['cogen'].result = environ['cogen'].exception[1]
+                                        del op
+                    
                     if t.chunked_write:
                         yield sockets.WriteAll(t.conn, "0\r\n\r\n")
                 
@@ -461,9 +512,13 @@ class WSGIConnection(object):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                yield t.simple_response("500 Internal Server Error", format_exc())
-        
-
+                if not t.started_response:
+                    yield t.simple_response("500 Internal Server Error", format_exc())
+                else:
+                    print "*" * 60
+                    traceback.print_exc()
+                    print "*" * 60
+                    
 class WSGIServer(object):
     """
 An HTTP server for WSGI.
@@ -500,10 +555,9 @@ An HTTP server for WSGI.
     ConnectionClass = WSGIConnection
     environ = {}
     
-    def __init__(t, bind_addr, wsgi_app, server_name=None, request_queue_size=5):
-        t.requests = Queue.Queue(max)
-        t.request_queue_size = request_queue_size
-        
+    def __init__(t, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=5):
+        t.request_queue_size = int(request_queue_size)
+        t.scheduler = scheduler
         if callable(wsgi_app):
             # We've been handed a single wsgi_app, in CP-2.1 style.
             # Assume it's mounted at "".
@@ -518,7 +572,7 @@ An HTTP server for WSGI.
         if not server_name:
             server_name = socket.gethostname()
         t.server_name = server_name
-    
+        
     def __str__(t):
         return "%s.%s(%r)" % (t.__module__, t.__class__.__name__,
                               t.bind_addr)
@@ -552,13 +606,11 @@ An HTTP server for WSGI.
         IPv6. The empty string or None are not allowed.
         
         For UNIX sockets, supply the filename as a string.""")
+        
     @coroutine
-    def start(t):
+    def serve(t):
         """Run the server forever."""
         # We don't have to trap KeyboardInterrupt or SystemExit here,
-        # because cherrpy.server already does so, calling t.stop() for us.
-        # If you're using this server with another framework, you should
-        # trap those exceptions in whatever code block calls start().
         
         # Select the appropriate socket
         if isinstance(t.bind_addr, basestring):
@@ -599,39 +651,33 @@ An HTTP server for WSGI.
         if not t.socket:
             raise socket.error, msg
         
-        # Timeout so KeyboardInterrupt can be caught on Win32
-        #~ t.socket.settimeout(1)
         t.socket.listen(t.request_queue_size)
-        
-        #~ x=1
-        while True:
-            s, addr = yield sockets.Accept(t.socket, timeout=-1)
-             
-            environ = t.environ.copy()
-            environ["SERVER_SOFTWARE"] = "%s WSGI Server" % t.version
-            # set a non-standard environ entry so the WSGI app can know what
-            # the *real* server protocol is (and what features to support).
-            # See http://www.faqs.org/rfcs/rfc2145.html.
-            environ["ACTUAL_SERVER_PROTOCOL"] = t.protocol
-            environ["SERVER_NAME"] = t.server_name
-            
-            if isinstance(t.bind_addr, basestring):
-                # AF_UNIX. This isn't really allowed by WSGI, which doesn't
-                # address unix domain sockets. But it's better than nothing.
-                environ["SERVER_PORT"] = ""
-            else:
-                environ["SERVER_PORT"] = str(t.bind_addr[1])
-                # optional values
-                # Until we do DNS lookups, omit REMOTE_HOST
-                environ["REMOTE_ADDR"] = addr[0]
-                environ["REMOTE_PORT"] = str(addr[1])
-            
-            conn = t.ConnectionClass(s, t.wsgi_app, environ)
-            #~ conn.no = x
-            #~ print 'Acceptiong', x
-            #~ x += 1
-            yield events.AddCoro(conn.run, prio=priority.CORO)
-            #TODO: how scheduling ?
+        with closing(t.socket):
+            while True:
+                s, addr = yield sockets.Accept(t.socket, timeout=-1)
+                 
+                environ = t.environ.copy()
+                environ["SERVER_SOFTWARE"] = t.version
+                # set a non-standard environ entry so the WSGI app can know what
+                # the *real* server protocol is (and what features to support).
+                # See http://www.faqs.org/rfcs/rfc2145.html.
+                environ["ACTUAL_SERVER_PROTOCOL"] = t.protocol
+                environ["SERVER_NAME"] = t.server_name
+                
+                if isinstance(t.bind_addr, basestring):
+                    # AF_UNIX. This isn't really allowed by WSGI, which doesn't
+                    # address unix domain sockets. But it's better than nothing.
+                    environ["SERVER_PORT"] = ""
+                else:
+                    environ["SERVER_PORT"] = str(t.bind_addr[1])
+                    # optional values
+                    # Until we do DNS lookups, omit REMOTE_HOST
+                    environ["REMOTE_ADDR"] = addr[0]
+                    environ["REMOTE_PORT"] = str(addr[1])
+                
+                conn = t.ConnectionClass(s, t.wsgi_app, environ)
+                yield events.AddCoro(conn.run, prio=priority.CORO)
+                #TODO: how scheduling ?
 
    
     def bind(t, family, type, proto=0):
@@ -643,14 +689,11 @@ An HTTP server for WSGI.
         t.socket.bind(t.bind_addr)
     
 def _test_app():    
-    from cogen.web import wsgi
     import wsgiref.validate 
     import pprint
-    #~ from cogen.web import httpd
-    def my_crazy_app(environ, start_response):
-        status = '200 OK'
-        response_headers = [('Content-type','text/plain')]
-        start_response(status, response_headers)
+    import cgi
+    def lorem_ipsum_app(environ, start_response):
+        start_response('200 OK', [('Content-type','text/plain')])
         return ["""
         Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc feugiat. Nam dictum, eros sed iaculis egestas, odio massa fringilla metus, sed scelerisque velit est id turpis. Integer et arcu vel mi ornare tincidunt. Proin sodales, nibh sit amet posuere porttitor, magna purus facilisis lorem, sed mattis sem lorem auctor magna. Suspendisse aliquet lacus ac turpis. Praesent ut tortor. Nulla facilisi. Phasellus enim. Curabitur lorem nisi, pulvinar at, mollis quis, mattis id, massa. Nulla facilisi. In luctus erat. Proin eget nulla eget felis varius molestie. Curabitur hendrerit massa ac nunc. Donec condimentum leo eu magna. Donec lorem. Vestibulum sed massa in turpis auctor consectetuer. Ut volutpat diam sit amet justo. Mauris et elit tempus tellus gravida tincidunt.
 
@@ -662,26 +705,42 @@ def _test_app():
 
         Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vestibulum luctus. Donec erat quam, facilisis eget, pharetra vel, sagittis et, nisi. Suspendisse hendrerit pellentesque turpis. Curabitur ac velit quis urna rutrum lacinia. Integer pede arcu, laoreet ac, aliquet in, tristique ac, libero. Suspendisse quis mauris. Suspendisse molestie lacinia quam. Phasellus porttitor, odio in posuere vulputate, lorem nunc sollicitudin nisl, et sagittis arcu augue eu urna. Donec tincidunt mauris at ipsum. Sed id neque non ante fringilla tempus. Duis sit amet tortor nec erat condimentum commodo. Vestibulum euismod volutpat erat. In cursus pretium odio. Sed a diam. Mauris at lectus. Integer ipsum augue, tincidunt in, sagittis ac, vestibulum rutrum, tortor. Pellentesque quam. Nam volutpat justo vitae dolor. 
         """]
-
-    server = wsgi.WSGIServer(
+    def wait_app(environ, start_response):
+        start_response('200 OK', [('Content-type','text/html')])
+        yield "I'm waiting for some signal<br>"
+        yield environ['cogen'].core.events.WaitForSignal("abc", timeout=5)
+        if isinstance(environ['cogen'].result, Exception):
+            yield "Your time is up !"
+        else:
+            yield "Someone signaled me with this message: %s" % cgi.escape(`environ['cogen'].result`)
+    def send_app(environ, start_response):
+        start_response('200 OK', [('Content-type','text/html')])
+        yield environ['cogen'].core.events.Signal("abc", environ["PATH_INFO"])
+        yield "Done."
+    m = Scheduler(default_priority=priority.LAST, default_timeout=15)
+    server = WSGIServer(
                 ('0.0.0.0', 8070), 
                 #~ wsgiref.validate.validator(my_crazy_app),
-                my_crazy_app,
+                [('/', lorem_ipsum_app), ('/wait', wait_app), ('/send', send_app)],
+                m, 
                 server_name='localhost')
-    m = Scheduler(default_priority=priority.LAST, default_timeout=15)
-    m.add(server.start)
+    m.add(server.serve)
     try:
         m.run()
     except (KeyboardInterrupt, SystemExit):
         pass
         
-def server_factory(global_conf, host, port):
+def server_factory(global_conf, host, port, **options):
     port = int(port)
     def serve(app):
-        server = WSGIServer( (host, port), app, server_name=host)
-        m = Scheduler(default_priority=priority.LAST, default_timeout=15)
-        m.add(server.start)
-        m.run()
+        sched = Scheduler(
+            poller = getattr(cogen.core.pollers, options.get('scheduler.poller', 'DefaultPoller')), 
+            default_priority=options.get('scheduler.default_priority', priority.LAST), 
+            default_timeout=options.get('scheduler.default_timeout', 15)
+        )
+        server = WSGIServer( (host, port), app, sched, server_name=host, **dict([(k.split('.',1)[1],v) for k,v in options.items() if k.startswith('wsgi_server.')]))
+        sched.add(server.serve)
+        sched.run()
     return serve
     
 if __name__ == "__main__":

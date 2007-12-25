@@ -5,6 +5,18 @@ from cogen.core import events
 from cogen.core.util import *
 
 def coroutine(func):
+    """ 
+    A decorator function for generators.
+    Example:
+    
+    .. sourcecode:: python
+    
+        @coroutine
+        def plain_ol_generator():
+            yield bla
+            yield bla
+            ...
+    """
     def make_new_coroutine(*args, **kws):
         return Coroutine(func, *args, **kws)
     return make_new_coroutine
@@ -61,6 +73,9 @@ class Coroutine:
     running = property(lambda t: t.state < t.STATE_COMPLETED)
     #~ @debug(0)        
     def run_op(t, op): 
+        if hasattr(op, 'finalized'):
+            op.finalized = True
+        assert t.state < t.STATE_COMPLETED, "Coroutine at 0x%X called but it is %s state !" % (id(t), t._state_names[t.state])
         try:
             if t.state == t.STATE_RUNNING:
                 if isinstance(op, events.CoroutineException):

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 '''
-Description, TODO
+This is a library for network oriented, coroutine based programming. 
+The interfaces and events/operations aim to mimic thread features. Coroutines 
+work as simple generators, the operations and events work as objects passed in 
+and out of the generator, these objects are managed by the scheduler/network poller. 
 
-Simple usage:
-
-    TODO
-    
+Check each modules for specific help.
 '''
 
 __license__ = '''

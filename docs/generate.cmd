@@ -1,2 +1,2 @@
-D:\Python25\Scripts\apydia.exe -c cogen.ini
+apydia -c cogen.ini
 REM ~ pause 

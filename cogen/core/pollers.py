@@ -14,7 +14,12 @@ import heapq
 from cogen.core import sockets
 from cogen.core import events
 from cogen.core.util import *
-
+__doc_all__ = [
+    "Poller",
+    "SelectPoller",
+    "KQueuePoller",
+    "EpollPoller",
+]
 class Poller(object):
     """
     A poller just checks if there are ready-sockets for the operations.
@@ -113,7 +118,7 @@ class SelectPoller(Poller):
         """
         ptimeout = timeout.microseconds/1000000+timeout.seconds if timeout else (t.RESOLUTION if timeout is None else 0)
         if t.waiting_reads or t.waiting_writes:
-            #~ print 'SELECTING, timeout:', timeout, 'ptimeout:', ptimeout, 'socks:',t.waiting_reads.keys(), t.waiting_writes.keys()
+            #~ print 'SELECTING, timeout:', timeout, 'ptimeout:', ptimeout, 'socks:',t.waiting_reads, t.waiting_writes
             ready_to_read, ready_to_write, in_error = select.select(t.waiting_reads.keys(), t.waiting_writes.keys(), [], ptimeout)
             t.handle_events(ready_to_read, t.waiting_reads)
             t.handle_events(ready_to_write, t.waiting_writes)
@@ -121,7 +126,7 @@ class SelectPoller(Poller):
                 t.handle_errored(i)
         else:
             time.sleep(t.RESOLUTION)
-class KqueuePoller(Poller):
+class KQueuePoller(Poller):
     def __init__(t, scheduler, default_size = 1024):
         super(t.__class__, t).__init__(scheduler)
         t.default_size = default_size
@@ -265,7 +270,7 @@ except ImportError:
     kqueue = None
 
 if kqueue:
-    DefaultPoller = KqueuePoller
+    DefaultPoller = KQueuePoller
 elif epoll:
     DefaultPoller = EpollPoller
 else:

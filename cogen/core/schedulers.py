@@ -12,7 +12,15 @@ from cogen.core import events
 from cogen.core import sockets
 from cogen.core.util import *
 
-
+class DebugginWrapper:
+    def __init__(t, obj):
+        t.obj = obj
+    
+    def __getattr__(t, name):
+        if 'append' in name:
+            return debug(0)(getattr(t.obj, name))
+        else:
+            return getattr(t.obj, name)
 class Timeout(object):
     __slots__= ['coro', 'op', 'timeout', 'weak_timeout', 'delta', 'last_checkpoint']
     def __init__(t, op, coro, weak_timeout=False):
@@ -101,7 +109,7 @@ class Scheduler(object):
                         t.sigwait[op.name].remove((op, coro))
                     except ValueError:
                         pass
-                if coro and coro.running:
+                if not op.finalized and coro and coro.running:
                     t.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
     #~ @debug(0)        
     def process_op(t, op, coro):
@@ -144,6 +152,8 @@ class Scheduler(object):
                 t.sigwait[op.name].append((op, coro))
             elif isinstance(op, events.Signal):
                 op.result = len(t.sigwait[op.name])
+                for waitop, waitcoro in t.sigwait[op.name]:
+                    waitop.result = op.value
                 if op.prio & priority.OP:
                     t.active.extendleft(t.sigwait[op.name])
                 else:
@@ -175,6 +185,7 @@ class Scheduler(object):
     def run(t):
         while t.active or t.poll or t.timewait:
             if t.active:
+                #~ print 'ACTIVE:', t.active
                 op, coro = t.active.popleft()
                 while True:
                     #~ print coro, op

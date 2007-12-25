@@ -1,3 +1,10 @@
+"""
+todo: 
+- test for timeout: operator runs before the timeout but it remains allocated.
+-
+"""
+
+
 import os 
 import sys
 import thread, threading

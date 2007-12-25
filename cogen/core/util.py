@@ -13,20 +13,20 @@ def debug(trace=True, other=None):
             return tracer
         def wrapped(*a, **k):
             print 
-            print '--- Calling %s.%s with:' % (func.__module__, func.__name__)
+            print '--- Calling %s.%s with:' % (getattr(func, '__module__', ''), func.__name__)
             for i in enumerate(a):
                 print '    | %s: %s' % i
             print '    | ',
             pprint(k)
             print '    From:'
-            for i in traceback.format_stack(sys._getframe(1), 1):
+            for i in traceback.format_stack(sys._getframe(1)):
                 print i,
             if other:
                 print '---      [ %r ]' % (other(func,a,k))
             if trace: sys.settrace(tracer)
             ret = func(*a, **k)
             if trace: sys.settrace(None)
-            print '--- %s.%s returned: %r' % (func.__module__, func.__name__, ret)
+            print '--- %s.%s returned: %r' % (getattr(func, '__module__', ''), func.__name__, ret)
             return ret
         return wrapped
     return debugdeco
