@@ -50,19 +50,21 @@ class Operation(object):
     __doc_all__ = ['__init__', 'try_run']
     trim = 2000
     """
-            This is a generic class for a operation that involves some socket call.
-            A socket operation should subclass WriteOperation or ReadOperation, define a `run` method 
-        and call the __init__ method of the superclass.
+    This is a generic class for a operation that involves some socket call.
+        
+    A socket operation should subclass WriteOperation or ReadOperation, define a `run` method 
+    and call the __init__ method of the superclass.
     """
     def __init__(t, sock, timeout=None, weak_timeout=True, prio=priority.DEFAULT):
         """
-                All the socket operations have these generic properties that the 
-            poller and scheduler interprets:
-                * timeout - the ammout of time in seconds or timedelta, or the datetime value till
-                    the poller should wait for this operation.
-                * weak_timeout - if this is True the timeout handling code will take into account
-                    the time of last activity (that would be the time of last `try_run` call)
-                * prio - a flag for the scheduler
+        All the socket operations have these generic properties that the 
+        poller and scheduler interprets:
+        
+        * timeout - the ammout of time in seconds or timedelta, or the datetime value till
+          the poller should wait for this operation.
+        * weak_timeout - if this is True the timeout handling code will take into account
+          the time of last activity (that would be the time of last `try_run` call)
+        * prio - a flag for the scheduler
         """
         
         assert isinstance(sock, Socket)
@@ -73,10 +75,12 @@ class Operation(object):
         t.prio = prio
     def try_run(t):
         """
-                This method will return a None value or raise a exception if the operation can't complete at this time.
-                The socket poller will run this method if the socket is readable/writeable.
-                If this returns a value that evaluates to False, the poller will try to run this 
-            at a later time (when the socket is readable/writeable again).
+        This method will return a None value or raise a exception if the operation can't complete at this time.
+        
+        The socket poller will run this method if the socket is readable/writeable.
+        
+        If this returns a value that evaluates to False, the poller will try to run this 
+        at a later time (when the socket is readable/writeable again).
         """
         try:
             result = t.run()

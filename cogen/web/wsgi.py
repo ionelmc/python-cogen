@@ -1,9 +1,11 @@
 """
-    This wsgi server is a single threaded, single process server that interleaves the iterations 
+This wsgi server is a single threaded, single process server that interleaves the iterations 
 of the wsgi apps - I could add a threadpool for blocking apps in the future.
-    If you don't return iterators from apps and return lists you'll get, at most, 
+
+If you don't return iterators from apps and return lists you'll get, at most, 
 the performance of a server that processes requests sequentialy.
-    On the other hand this server has coroutine extensions that suppose to support 
+
+On the other hand this server has coroutine extensions that suppose to support 
 use of middleware in your application. 
 
 Example app with coroutine extensions:
@@ -19,14 +21,14 @@ Example app with coroutine extensions:
         else:
             yield "Someone signaled me: %s" % environ['cogen'].result
 
-- `environ['cogen'].core` is actualy a wrapper that sets environ['cogen'].operation
-with the called object and returns a empty string. This should penetrate most of the
-middleware - according to the wsgi spec, middleware should pass a empty string if it
-doesn't have anything to return on that specific iteration point, or, in other words,
-the length of the app iter returned by middleware should be at least that of the app.
-- the wsigi server will set `environ['cogen'].result` with the result of the operation
-and `environ['cogen'].exception` with the details of the exception - if any: 
-(exc_type, exc_value, traceback_object).
+- ``environ['cogen'].core`` is actualy a wrapper that sets ``environ['cogen'].operation``
+  with the called object and returns a empty string. This should penetrate most of the
+  middleware - according to the wsgi spec, middleware should pass a empty string if it
+  doesn't have anything to return on that specific iteration point, or, in other words,
+  the length of the app iter returned by middleware should be at least that of the app.
+- the wsigi server will set ``environ['cogen'].result`` with the result of the operation
+  and ``environ['cogen'].exception`` with the details of the exception - if any: 
+  (exc_type, exc_value, traceback_object).
 
 HTTP handling code taken from the CherryPy WSGI server.
 """

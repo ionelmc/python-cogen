@@ -44,7 +44,7 @@
     <h1>Class: Signal</h1>
     <div class="docstring rst"><p>This will resume the coroutines that where paused with WaitForSignal.</p>
 <p>Usage:</p>
-<div class="source"><pre><span class="n">nr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<div class="source"><pre><span class="n">nr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 </pre></div>
 <ul class="simple">
 <li>nr - the number of coroutines woken up</li>
@@ -53,28 +53,28 @@
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/events.py#L36">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/events.py#L41">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
             <h3 id="method-__init__">
                 __init__
-                <span class="args">(t, obj, prio=-1)</span>
+                <span class="args">(t, name, value=None, prio=-1)</span>
             </h3>
             <div class="docstring rst"><p>All the coroutines waiting for this object will be added back in the active coroutine queue.</p>
 </div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/events.py#L55">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-10 22:16
+            Apydia 0.0.1</a> on 2007-12-25 18:33
         </div>
     </div>
 </body>

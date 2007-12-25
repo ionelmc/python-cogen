@@ -46,10 +46,11 @@
         </div>
         <div id="content">
     <h1>Module: cogen</h1>
-    <div class="docstring rst"><p>Description, TODO</p>
-<p>Simple usage:</p>
-<blockquote>
-TODO</blockquote>
+    <div class="docstring rst"><p>This is a library for network oriented, coroutine based programming.
+The interfaces and events/operations aim to mimic thread features. Coroutines
+work as simple generators, the operations and events work as objects passed in
+and out of the generator, these objects are managed by the scheduler/network poller.</p>
+<p>Check each modules for specific help.</p>
 </div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
@@ -62,7 +63,8 @@ TODO</blockquote>
             <h3>
                 <a href="cogen.common.html">common</a>
             </h3>
-            <div class="docstring rst"><p>A module for quick importing the essential core stuff.</p></div>
+            <div class="docstring rst"><p>A module for quick importing the essential core stuff.
+(coroutine, Scheduler, events, sockets, priority)</p></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -75,8 +77,7 @@ TODO</blockquote>
             <h3>
                 <a href="cogen.core.html">core</a>
             </h3>
-            <div class="docstring rst"><p>Programming with this library should be straghtforward. A coroutine is just
-a generator wrapped in a operation handling class:</p></div>
+            <div class="docstring rst"><p>This module holds the essential stuff.</p></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -89,7 +90,7 @@ a generator wrapped in a operation handling class:</p></div>
             <h3>
                 <a href="cogen.web.html">web</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>This module holds a wsgi server and future web-related code.</p></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -103,7 +104,7 @@ a generator wrapped in a operation handling class:</p></div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-10 22:16
+            Apydia 0.0.1</a> on 2007-12-25 18:33
         </div>
     </div>
 </body>

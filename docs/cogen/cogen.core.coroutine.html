@@ -70,7 +70,7 @@ we want to run functions that don't return generators just like a coroutine</p><
         <a href="cogen.core.coroutine.Coroutine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/coroutine.py#L11">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/coroutine.py#L23">View source</a>
     </li>
 </ul>
     </div>
@@ -80,18 +80,26 @@ we want to run functions that don't return generators just like a coroutine</p><
                 coroutine
                 <span class="args">(func)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>A decorator function for generators.
+Example:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">plain_ol_generator</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/coroutine.py#L6">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-10 22:16
+            Apydia 0.0.1</a> on 2007-12-25 18:33
         </div>
     </div>
 </body>

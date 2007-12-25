@@ -36,37 +36,56 @@
                 <ul>
                     <li>
                         <a href="cogen.core.sockets.Connect.html#method-__init__">__init__</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.Connect.html#method-run">run</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: Connect</h1>
-    <div class="docstring rst"></div>
+    <div class="docstring rst"><p>Connect to the given <cite>addr</cite> using <cite>sock</cite>.</p>
+</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L304">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L341">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
             <h3 id="method-__init__">
                 __init__
-                <span class="args">(t, sock, addr, timeout=None, prio=-1)</span>
+                <span class="args">(t, sock, addr, **kws)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L347">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run">
+                run
+                <span class="args">(t)</span>
+            </h3>
+            <div class="docstring rst"><dl class="docutils">
+<dt>We need to avoid some non-blocking socket connect quirks:</dt>
+<dd>if you attempt a connect in NB mode you will always
+get EWOULDBLOCK, presuming the addr is correct.</dd>
+</dl>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L350">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-10 22:16
+            Apydia 0.0.1</a> on 2007-12-25 18:33
         </div>
     </div>
 </body>

@@ -35,13 +35,15 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.pollers.Poller.html#method-run_once">run_once</a>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-handle_errored">handle_errored</a>
                     </li><li>
-                        <a href="cogen.core.pollers.Poller.html#method-run_operation">run_operation</a>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-run_once">run_once</a>
                     </li><li>
-                        <a href="cogen.core.pollers.Poller.html#method-run_or_add">run_or_add</a>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-run_operation">run_operation</a>
                     </li><li>
-                        <a href="cogen.core.pollers.Poller.html#method-waiting_op">waiting_op</a>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-run_or_add">run_or_add</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#method-waiting_op">waiting_op</a>
                     </li>
                 </ul>
             </div>
@@ -49,9 +51,11 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.pollers.Poller.html#attribute-"></a>
+                        <a href="cogen.core.pollers.SelectPoller.html#attribute-"></a>
                     </li><li>
-                        <a href="cogen.core.pollers.Poller.html#attribute-"></a>
+                        <a href="cogen.core.pollers.SelectPoller.html#attribute-"></a>
+                    </li><li>
+                        <a href="cogen.core.pollers.SelectPoller.html#attribute-"></a>
                     </li>
                 </ul>
             </div>
@@ -64,11 +68,22 @@ The operations are not done here, they are done in the socket ops instances.</p>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L17">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L22">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
+            <h3 id="method-handle_errored">
+                handle_errored
+                <span class="args">(t, desc)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L66">View source</a>
+    </li>
+</ul>
             <h3 id="method-run_once">
                 run_once
                 <span class="args">(t, id, waiting_ops)</span>
@@ -78,7 +93,7 @@ The operations are not done here, they are done in the socket ops instances.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L34">View source</a>
     </li>
 </ul>
             <h3 id="method-run_operation">
@@ -90,7 +105,7 @@ The operations are not done here, they are done in the socket ops instances.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L41">View source</a>
     </li>
 </ul>
             <h3 id="method-run_or_add">
@@ -102,7 +117,7 @@ The operations are not done here, they are done in the socket ops instances.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L48">View source</a>
     </li>
 </ul>
             <h3 id="method-waiting_op">
@@ -113,7 +128,7 @@ The operations are not done here, they are done in the socket ops instances.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/pollers.py#L55">View source</a>
     </li>
 </ul>
     </div>
@@ -123,6 +138,16 @@ The operations are not done here, they are done in the socket ops instances.</p>
             <div class="docstring rst"></div>
             <h4>Value of </h4>
             <pre class="code"><code>0.02</code></pre>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-"></h3>
+            <div class="docstring rst"></div>
+            <h4>Value of </h4>
+            <pre class="code"><code>20000000.0</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -143,7 +168,7 @@ The operations are not done here, they are done in the socket ops instances.</p>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-10 22:16
+            Apydia 0.0.1</a> on 2007-12-25 18:33
         </div>
     </div>
 </body>

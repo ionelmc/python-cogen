@@ -46,8 +46,33 @@
         </div>
         <div id="content">
     <h1>Module: wsgi</h1>
-    <div class="docstring rst"><p>HTTP protocol handling code taken from the CherryPy wsgi server.
-Refactored to fit my coroutine architecture.</p>
+    <div class="docstring rst"><p>This wsgi server is a single threaded, single process server that interleaves the iterations
+of the wsgi apps - I could add a threadpool for blocking apps in the future.</p>
+<p>If you don't return iterators from apps and return lists you'll get, at most,
+the performance of a server that processes requests sequentialy.</p>
+<p>On the other hand this server has coroutine extensions that suppose to support
+use of middleware in your application.</p>
+<p>Example app with coroutine extensions:</p>
+<div class="source"><pre><span class="k">def</span> <span class="nf">wait_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+    <span class="n">start_response</span><span class="p">(</span><span class="s">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s">'Content-type'</span><span class="p">,</span><span class="s">'text/html'</span><span class="p">)])</span>
+    <span class="k">yield</span> <span class="s">"I'm waiting for some signal"</span>
+    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">"abc"</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="s">"Your time is up !"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="s">"Someone signaled me: </span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+</pre></div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">environ['cogen'].core</span></tt> is actualy a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen'].operation</span></tt>
+with the called object and returns a empty string. This should penetrate most of the
+middleware - according to the wsgi spec, middleware should pass a empty string if it
+doesn't have anything to return on that specific iteration point, or, in other words,
+the length of the app iter returned by middleware should be at least that of the app.</li>
+<li>the wsigi server will set <tt class="docutils literal"><span class="pre">environ['cogen'].result</span></tt> with the result of the operation
+and <tt class="docutils literal"><span class="pre">environ['cogen'].exception</span></tt> with the details of the exception - if any:
+(exc_type, exc_value, traceback_object).</li>
+</ul>
+<p>HTTP handling code taken from the CherryPy WSGI server.</p>
 </div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
@@ -67,7 +92,7 @@ Refactored to fit my coroutine architecture.</p>
         <a href="cogen.web.wsgi.WSGIConnection.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L58">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L152">View source</a>
     </li>
 </ul>
             <h3>
@@ -80,7 +105,7 @@ Refactored to fit my coroutine architecture.</p>
         <a href="cogen.web.wsgi.WSGIFileWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L43">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L76">View source</a>
     </li>
 </ul>
             <h3>
@@ -99,14 +124,14 @@ IPv6. The empty string or None are not allowed.</p></div>
         <a href="cogen.web.wsgi.WSGIServer.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L430">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L523">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-10 22:16
+            Apydia 0.0.1</a> on 2007-12-25 18:33
         </div>
     </div>
 </body>
