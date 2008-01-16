@@ -57,11 +57,19 @@ class SocketTest_MixIn:
             self.recvobj = yield self.waitobj
             try: 
                 # test for readline overflow'
-                self.waitobj2 = yield sockets.ReadLine(conn, len=512, prio = self.prio)
+                self.waitobj2 = yield sockets.ReadLine(
+                    conn, 
+                    len=512, 
+                    prio = self.prio
+                )
             except exceptions.OverflowError, e:
                 self.waitobj2 = "OK"
-                self.waitobj_cleanup = yield sockets.Read(conn, len=1024*8, prio = self.prio) 
-                                        # eat up the remaining data waiting on socket
+                self.waitobj_cleanup = yield sockets.Read(
+                    conn, 
+                    len=1024*8, 
+                    prio = self.prio
+                ) 
+                    # eat up the remaining data waiting on socket
             self.recvobj2 = (
                 (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
                 (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
@@ -105,7 +113,11 @@ class SocketTest_MixIn:
             srv.listen(0)
             conn, addr = yield sockets.Accept(srv, prio = self.prio)
             self.recvobj = yield sockets.Read(conn, 1024*4, prio = self.prio)
-            self.recvobj_all = yield sockets.ReadAll(conn, 1024**2-1024*4, prio = self.prio)
+            self.recvobj_all = yield sockets.ReadAll(
+                conn, 
+                1024**2-1024*4, 
+                prio = self.prio
+            )
             srv.close()
         coro = self.m.add(reader)
         self.m_run.start()
@@ -295,7 +307,11 @@ class SchedulerTest_MixIn:
             self.c = self.m.add(callee_3)
             self.c.handle_error=lambda*a:None
             ret = yield events.Join(self.c)
-            self.msgs.append(4 if ret is None and self.c.exception[1].message=='some_message' else -1)
+            self.msgs.append(
+                4 
+                if ret is None and self.c.exception[1].message=='some_message' 
+                else -1
+            )
             
             
         @coroutine
@@ -368,7 +384,9 @@ class Timer_MixIn:
             yield events.AddCoro(sleeper, args=(5,))
             try:
                 self.now = time.time()
-                print '> %s;' % (yield events.WaitForSignal('bla', 4, prio = self.prio))
+                print '> %s;' % (
+                    yield events.WaitForSignal('bla', 4, prio = self.prio)
+                )
             except events.OperationTimeout:
                 self.msgs.append(time.time() - self.now)
             

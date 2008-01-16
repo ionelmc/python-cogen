@@ -25,13 +25,13 @@ class Poller(object):
         self.waiting_reads = {}
         self.waiting_writes = {}
         self.scheduler = scheduler
-    def run_once(self, id, waiting_ops):           
+    def run_once(self, fdesc, waiting_ops):           
         """ Run a operation, remove it from the poller and return the result. 
         Called from the main poller loop. """
-        op, coro = waiting_ops[id]
+        op, coro = waiting_ops[fdesc]
         op = self.run_operation()
         if op:
-            del waiting_ops[id]
+            del waiting_ops[fdesc]
             return op, coro
     def run_operation(self, op):
         " Run the socket op and return result or exception. "

@@ -33,8 +33,9 @@ def handle_error(self):
 
 class Coroutine(object):
     ''' 
-        We need a coroutine wrapper for generators and function alike because
-        we want to run functions that don'self return generators just like a coroutine 
+    We need a coroutine wrapper for generators and function alike because
+    we want to run functions that don'self return generators just like a 
+    coroutine 
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
     _state_names = "notstarted", "running", "completed", "failed"

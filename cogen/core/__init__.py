@@ -22,8 +22,8 @@ a generator wrapped in a operation handling class:
     *   the `operations` from events are related to signals and 
         coroutine/scheduler management.
 -   if a `operation` has a result associated then the yield will return that 
-    result (eg. a string or a (connection, address) tuple) otherwise it will return 
-    the operation instance.
+    result (eg. a string or a (connection, address) tuple) otherwise it will 
+    return the operation instance.
 
 Typical example:
 
