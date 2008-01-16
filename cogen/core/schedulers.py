@@ -6,7 +6,7 @@ import weakref
 from cogen.core.pollers import DefaultPoller
 from cogen.core import events
 from cogen.core import sockets
-from cogen.core.util import *
+from cogen.core.util import debug, TimeoutDesc, priority
 
 class DebugginWrapper:
     def __init__(self, obj):
@@ -18,7 +18,7 @@ class DebugginWrapper:
         else:
             return getattr(self.obj, name)
 class Timeout(object):
-    __slots__= [
+    __slots__ = [
         'coro', 'op', 'timeout', 'weak_timeout', 
         'delta', 'last_checkpoint'
     ]

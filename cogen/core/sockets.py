@@ -4,7 +4,7 @@ import exceptions
 import datetime
 
 from cogen.core import events
-from cogen.core.util import *
+from cogen.core.util import debug, TimeoutDesc, priority
 try:
     import sendfile
 except ImportError:
@@ -46,24 +46,28 @@ class Socket(socket.socket):
     def __str__(self):
         return 'sock@0x%X' % id(self)
 class Operation(object):
-    __slots__ = ['sock', '_timeout', 'weak_timeout', 'last_update', '__weakref__', 'fileno', 'prio', 'finalized']
+    __slots__ = [
+        'sock', '_timeout', 'weak_timeout', 'last_update', 
+        '__weakref__', 'fileno', 'prio', 'finalized'
+    ]
     __doc_all__ = ['__init__', 'try_run']
     trim = 2000
     """
     This is a generic class for a operation that involves some socket call.
         
-    A socket operation should subclass WriteOperation or ReadOperation, define a `run` method 
-    and call the __init__ method of the superclass.
+    A socket operation should subclass WriteOperation or ReadOperation, define a
+    `run` method and call the __init__ method of the superclass.
     """
     def __init__(self, sock, timeout=None, weak_timeout=True, prio=priority.DEFAULT):
         """
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
         
-        * timeout - the ammout of time in seconds or timedelta, or the datetime value till
-          the poller should wait for this operation.
-        * weak_timeout - if this is True the timeout handling code will take into account
-          the time of last activity (that would be the time of last `try_run` call)
+        * timeout - the ammout of time in seconds or timedelta, or the datetime 
+          value till the poller should wait for this operation.
+        * weak_timeout - if this is True the timeout handling code will take 
+          into account the time of last activity (that would be the time of last
+          `try_run` call)
         * prio - a flag for the scheduler
         """
         
@@ -75,12 +79,14 @@ class Operation(object):
         self.prio = prio
     def try_run(self):
         """
-        This method will return a None value or raise a exception if the operation can'self complete at this time.
+        This method will return a None value or raise a exception if the 
+        operation can'self complete at this time.
         
-        The socket poller will run this method if the socket is readable/writeable.
+        The socket poller will run this method if the socket is 
+        readable/writeable.
         
-        If this returns a value that evaluates to False, the poller will try to run this 
-        at a later time (when the socket is readable/writeable again).
+        If this returns a value that evaluates to False, the poller will try to
+        run this at a later time (when the socket is readable/writeable again).
         """
         try:
             result = self.run()
@@ -106,7 +112,8 @@ class WriteOperation(Operation):
     
 class SendFile(WriteOperation):
     """
-        Uses underling OS sendfile call or a regular memory copy operation if there is no sendfile.
+        Uses underling OS sendfile call or a regular memory copy operation if 
+        there is no sendfile.
         You can use this as a WriteAll if you specify the length.
         Usage:
             
@@ -117,13 +124,18 @@ class SendFile(WriteOperation):
                 
             yield sockets.SendFile(<file handle>, <sock>, 0, blocksize=0)
                 # there will be only one send operation (if successfull)
-                # that meas the whole file will be read in memory if there is no sendfile
+                # that meas the whole file will be read in memory if there is 
+                #no sendfile
                 
             yield sockets.SendFile(<file handle>, <sock>, 0, <file size>)
-                # this will hang if we can'self read <file size> bytes from the file
+                # this will hang if we can'self read <file size> bytes 
+                #from the file
         
     """
-    __slots__ = ['sent', 'file_handle', 'offset', 'position', 'length', 'blocksize']
+    __slots__ = [
+        'sent', 'file_handle', 'offset', 
+        'position', 'length', 'blocksize'
+    ]
     __doc_all__ = ['__init__', 'run']
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         self.file_handle = file_handle
@@ -132,17 +144,25 @@ class SendFile(WriteOperation):
         self.sent = 0
         self.blocksize = blocksize
         super(self.__class__, self).__init__(sock, **kws)
-    def send(self, offset, len):
+    def send(self, offset, length):
         if sendfile:
-            offset, sent = sendfile.sendfile(self.sock.fileno(), self.file_handle.fileno(), offset, len)
+            offset, sent = sendfile.sendfile(
+                self.sock.fileno(), 
+                self.file_handle.fileno(), 
+                offset, 
+                length
+            )
         else:
             self.file_handle.seek(offset)
-            sent = self.sock.send(self.file_handle.read(len))
+            sent = self.sock.send(self.file_handle.read(length))
         return sent
     def run(self):
         if self.length:
             if self.blocksize:
-                self.sent += self.send(self.offset+self.sent, min(self.length, self.blocksize))
+                self.sent += self.send(
+                    self.offset + self.sent, 
+                    min(self.length, self.blocksize)
+                )
             else:
                 self.sent += self.send(self.offset+self.sent, self.length)
             if self.sent == self.length:
@@ -156,12 +176,22 @@ class SendFile(WriteOperation):
             if not sent:
                 return self
     def __repr__(self):
-        return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (self.__class__.__name__, id(self), self.sock, self.file_handle, self.offset, self.length, self.blocksize, self.timeout)
+        return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.file_handle, 
+            self.offset, 
+            self.length, 
+            self.blocksize, 
+            self.timeout
+        )
     
 
 class Read(ReadOperation):
     """
-        `len` is max read size, BUT, if if there are buffers from ReadLine return them first.
+        `len` is max read size, BUT, if if there are buffers from ReadLine 
+        return them first.
         Example usage:
         
         .. sourcecode:: python
@@ -190,7 +220,15 @@ class Read(ReadOperation):
             else:
                 raise events.ConnectionClosed("Empty recv.")
     def __repr__(self):
-        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (self.__class__.__name__, id(self), self.sock, self.sock._rl_pending, self.sock._rl_list, self.buff and self.buff[:self.trim], self.timeout)
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sock._rl_pending, 
+            self.sock._rl_list, 
+            self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
         
 class ReadAll(ReadOperation):
     """
@@ -205,9 +243,11 @@ class ReadAll(ReadOperation):
     def run(self):
         if self.sock._rl_pending:
             self.sock._rl_list.append(self.sock._rl_pending) 
-                # we push in the buff list the pending buffer (for the sake of simplicity and effieciency)
-                # but we loose the linebreaks in the pending buffer (i've assumed one would not try to use readline 
-                #     while using read all, but he would use readall after he would use readline)
+                # we push in the buff list the pending buffer (for the sake of 
+                # simplicity and effieciency) but we loose the linebreaks in the
+                # pending buffer (i've assumed one would not try to use readline
+                # while using read all, but he would use readall after he 
+                # would use readline)
             self.sock._rl_list_sz += len(self.sock._rl_pending)
             self.sock._rl_pending = ''
         if self.sock._rl_list_sz < self.len:
@@ -224,7 +264,16 @@ class ReadAll(ReadOperation):
         else: # damn ! we still didn'self recv enough
             return
     def __repr__(self):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (self.__class__.__name__, id(self), self.sock, self.sock._rl_pending, self.sock._rl_list, self.sock._rl_list_sz, self.buff and self.buff[:self.trim], self.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sock._rl_pending, 
+            self.sock._rl_list, 
+            self.sock._rl_list_sz, 
+            self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
         
 class ReadLine(ReadOperation):
     """
@@ -239,7 +288,7 @@ class ReadLine(ReadOperation):
         self.buff = None
         super(self.__class__, self).__init__(sock, **kws)
     def check_overflow(self):
-        if self.sock._rl_list_sz>=self.len: 
+        if self.sock._rl_list_sz >= self.len: 
             #~ rl_list    = self.sock._rl_list   
             #~ rl_list_sz = self.sock._rl_list_sz
             #~ rl_pending = self.sock._rl_pending
@@ -251,7 +300,7 @@ class ReadLine(ReadOperation):
         #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
-            if nl>=0:
+            if nl >= 0:
                 nl += 1
                 self.buff = self.result = ''.join(self.sock._rl_list)+self.sock._rl_pending[:nl]
                 self.sock._rl_list = []
@@ -284,7 +333,16 @@ class ReadLine(ReadOperation):
         else: 
             raise events.ConnectionClosed("Empty recv.")
     def __repr__(self):
-        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (self.__class__.__name__, id(self), self.sock, self.sock._rl_pending, self.sock._rl_list, self.sock._rl_list_sz, self.buff and self.buff[:self.trim], self.timeout)
+        return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sock._rl_pending, 
+            self.sock._rl_list, 
+            self.sock._rl_list_sz, 
+            self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
 
 class Write(WriteOperation):
     """
@@ -300,7 +358,14 @@ class Write(WriteOperation):
         self.sent = self.result = self.sock.send(self.buff)
         return self
     def __repr__(self):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (self.__class__.__name__, id(self), self.sock, self.sent, self.buff and self.buff[:self.trim], self.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sent, 
+            self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
         
 class WriteAll(WriteOperation):
     """
@@ -313,13 +378,20 @@ class WriteAll(WriteOperation):
         self.sent = 0
         super(self.__class__, self).__init__(sock, **kws)
     def run(self):
-        sent = self.sock.send(buffer(self.buff,self.sent))
+        sent = self.sock.send(buffer(self.buff, self.sent))
         self.sent += sent
         if self.sent == len(self.buff):
             self.result = self.sent
             return self
     def __repr__(self):
-        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (self.__class__.__name__, id(self), self.sock, self.sent, self.buff and self.buff[:self.trim], self.timeout)
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sent, 
+            self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
  
 class Accept(ReadOperation):
     """
@@ -336,8 +408,14 @@ class Accept(ReadOperation):
         self.conn.setblocking(0)
         self.result = self.conn, self.addr
         return self
-        def __repr__(self):
-        return "<%s at 0x%X %s conn:%r to:%s>" % (self.__class__.__name__, id(self), self.sock, self.conn, self.timeout)
+    def __repr__(self):
+        return "<%s at 0x%X %s conn:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.conn, 
+            self.timeout
+        )
              
 class Connect(WriteOperation):
     """
@@ -366,7 +444,12 @@ class Connect(WriteOperation):
                 raise socket.error(err, errno.errorcode[err])
         return self
     def __repr__(self):
-        return "<%s at 0x%X %s to:%s>" % (self.__class__.__name__, id(self), self.sock, self.timeout)
+        return "<%s at 0x%X %s to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.timeout
+        )
 
 #~ ops = (Read, ReadAll, ReadLine, Connect, Write, WriteAll, Accept)
 #~ read_ops = (Read, ReadAll, ReadLine, Accept)

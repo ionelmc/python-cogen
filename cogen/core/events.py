@@ -1,5 +1,5 @@
 import datetime
-from cogen.core.util import *
+from cogen.core.util import debug, TimeoutDesc, priority
 
 __doc_all__ = [
     'ConnectionClosed',

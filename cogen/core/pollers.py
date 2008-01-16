@@ -6,7 +6,7 @@ import sys
 
 from cogen.core import sockets
 from cogen.core import events
-from cogen.core.util import *
+from cogen.core.util import debug, TimeoutDesc, priority
 __doc_all__ = [
     "Poller",
     "SelectPoller",

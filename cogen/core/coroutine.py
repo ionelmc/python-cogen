@@ -2,7 +2,7 @@ import types
 import sys
 import gc
 from cogen.core import events
-from cogen.core.util import *
+from cogen.core.util import debug, TimeoutDesc, priority
 
 def coroutine(func):
     """ 
@@ -20,7 +20,17 @@ def coroutine(func):
     def make_new_coroutine(*args, **kws):
         return Coroutine(func, *args, **kws)
     return make_new_coroutine
-    
+
+def handle_error(self):        
+    print 
+    print '-'*40
+    print 'Exception happened during processing of coroutine.'
+    import traceback
+    traceback.print_exc()
+    print "Coroutine %s killed. " % self
+    print '-'*40
+
+
 class Coroutine(object):
     ''' 
         We need a coroutine wrapper for generators and function alike because
@@ -30,7 +40,8 @@ class Coroutine(object):
     _state_names = "notstarted", "running", "completed", "failed"
     __slots__ = [ 
         'f_args', 'f_kws', 'name', 'state', 
-        'exception', 'coro', 'caller', 'waiters', 'result'
+        'exception', 'coro', 'caller', 'waiters', 'result',
+        'prio', 'handle_error', '__weakref__',
     ]
     def __init__(self, coro, *args, **kws):
         self.f_args = args
@@ -48,6 +59,7 @@ class Coroutine(object):
         self.coro = coro
         self.caller = self.prio = None
         self.waiters = []
+        self.handle_error = handle_error
     def add_waiter(self, coro):
         assert self.state < self.STATE_COMPLETED
         assert coro not in self.waiters
@@ -133,14 +145,6 @@ class Coroutine(object):
                 self.handle_error()
                 rop = self._run_completion()
         return rop
-    def handle_error(self):        
-        print 
-        print '-'*40
-        print 'Exception happened during processing of coroutine.'
-        import traceback
-        traceback.print_exc()
-        print "Coroutine %s killed. " % self
-        print '-'*40
         
     def __repr__(self):
         return "<%s Coroutine instance at 0x%08X, state: '%s'>" % (
