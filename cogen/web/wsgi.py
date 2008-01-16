@@ -1,8 +1,9 @@
 """
-This wsgi server is a single threaded, single process server that interleaves the iterations 
-of the wsgi apps - I could add a threadpool for blocking apps in the future.
+This wsgi server is a single threaded, single process server that interleaves 
+the iterations of the wsgi apps - I could add a threadpool for blocking apps in 
+the future.
 
-If you don't return iterators from apps and return lists you'll get, at most, 
+If you don'self return iterators from apps and return lists you'll get, at most,
 the performance of a server that processes requests sequentialy.
 
 On the other hand this server has coroutine extensions that suppose to support 
@@ -21,14 +22,15 @@ Example app with coroutine extensions:
         else:
             yield "Someone signaled me: %s" % environ['cogen'].result
 
-- ``environ['cogen'].core`` is actualy a wrapper that sets ``environ['cogen'].operation``
-  with the called object and returns a empty string. This should penetrate most of the
-  middleware - according to the wsgi spec, middleware should pass a empty string if it
-  doesn't have anything to return on that specific iteration point, or, in other words,
-  the length of the app iter returned by middleware should be at least that of the app.
-- the wsigi server will set ``environ['cogen'].result`` with the result of the operation
-  and ``environ['cogen'].exception`` with the details of the exception - if any: 
-  (exc_type, exc_value, traceback_object).
+- ``environ['cogen'].core`` is actualy a wrapper that sets 
+  ``environ['cogen'].operation`` with the called object and returns a empty 
+  string. This should penetrate most of the middleware - according to the wsgi 
+  spec, middleware should pass a empty string if it doesn't have anything to 
+  return on that specific iteration point, or, in other words, the length of the
+  app iter returned by middleware should be at least that of the app.
+- the wsigi server will set ``environ['cogen'].result`` with the result of the 
+  operation and ``environ['cogen'].exception`` with the details of the 
+  exception - if any: ``(exc_type, exc_value, traceback_object)``.
 
 HTTP handling code taken from the CherryPy WSGI server.
 """
@@ -84,16 +86,16 @@ class WSGIFileWrapper:
 class tryclosing(object):
     """
     This is the exact context manager as contextlib.closing but it 
-    doesn't throw a exception if the managed object doesn't have a 
+    doesn'self throw a exception if the managed object doesn'self have a 
     close method.
     """
-    def __init__(t, thing):
-        t.thing = thing
-    def __enter__(t):
-        return t.thing
-    def __exit__(t, *exc_info):
-        if hasattr(t.thing, 'close'):
-            t.thing.close()    
+    def __init__(self, thing):
+        self.thing = thing
+    def __enter__(self):
+        return self.thing
+    def __exit__(self, *exc_info):
+        if hasattr(self.thing, 'close'):
+            self.thing.close()    
     
     
 class WSGIPathInfoDispatcher(object):
@@ -131,22 +133,22 @@ class WSGIPathInfoDispatcher(object):
         return ['']
 
 class COGENOperationWrapper(object):
-    def __init__(t, environ, module):
-        t.module = module
-        t.environ = environ
+    def __init__(self, environ, module):
+        self.module = module
+        self.environ = environ
         
-    def __getattr__(t, key):
-        what = getattr(t.module, key)
+    def __getattr__(self, key):
+        what = getattr(self.module, key)
         if callable(what):
-            return COGENOperationCall(t.environ, what)
+            return COGENOperationCall(self.environ, what)
         else:
-            return t.__class__(t.environ, what)
+            return self.__class__(self.environ, what)
 class COGENOperationCall(object):
-    def __init__(t, environ, obj):
-        t.environ = environ
-        t.obj = obj
-    def __call__(t, *args, **kwargs):
-        t.environ['cogen'].operation = t.obj(*args, **kwargs)
+    def __init__(self, environ, obj):
+        self.environ = environ
+        self.obj = obj
+    def __call__(self, *args, **kwargs):
+        self.environ['cogen'].operation = self.obj(*args, **kwargs)
         return ""
 class COGENProxy:
     pass
@@ -162,14 +164,14 @@ class WSGIConnection(object):
         "wsgi.file_wrapper": WSGIFileWrapper,
     }
     
-    def __init__(t, sock, wsgi_app, environ):
-        t.conn = sock
-        t.wsgi_app = wsgi_app
-        t.server_environ = environ
+    def __init__(self, sock, wsgi_app, environ):
+        self.conn = sock
+        self.wsgi_app = wsgi_app
+        self.server_environ = environ
         
-    def start_response(t, status, headers, exc_info = None):
+    def start_response(self, status, headers, exc_info = None):
         """WSGI callable to begin the HTTP response."""
-        if t.started_response:
+        if self.started_response:
             if not exc_info:
                 raise AssertionError("WSGI start_response called a second "
                                      "time with no exc_info.")
@@ -178,19 +180,19 @@ class WSGIConnection(object):
                     raise exc_info[0], exc_info[1], exc_info[2]
                 finally:
                     exc_info = None
-        t.started_response = True
-        t.status = status
-        t.outheaders.extend(headers)
+        self.started_response = True
+        self.status = status
+        self.outheaders.extend(headers)
         
-        return t.write_buffer.write
+        return self.write_buffer.write
             
-    def render_headers(t):
-        hkeys = [key.lower() for key, value in t.outheaders]
-        status = int(t.status[:3])
+    def render_headers(self):
+        hkeys = [key.lower() for key, value in self.outheaders]
+        status = int(self.status[:3])
         
         if status == 413:
             # Request Entity Too Large. Close conn to avoid garbage.
-            t.close_connection = True
+            self.close_connection = True
         elif "content-length" not in hkeys:
             # "All 1xx (informational), 204 (no content),
             # and 304 (not modified) responses MUST NOT
@@ -198,31 +200,31 @@ class WSGIConnection(object):
             if status < 200 or status in (204, 205, 304):
                 pass
             else:
-                if t.response_protocol == 'HTTP/1.1':
+                if self.response_protocol == 'HTTP/1.1':
                     # Use the chunked transfer-coding
-                    t.chunked_write = True
-                    t.outheaders.append(("Transfer-Encoding", "chunked"))
+                    self.chunked_write = True
+                    self.outheaders.append(("Transfer-Encoding", "chunked"))
                 else:
                     # Closing the conn is the only way to determine len.
-                    t.close_connection = True
+                    self.close_connection = True
         
         if "connection" not in hkeys:
-            if t.response_protocol == 'HTTP/1.1':
-                if t.close_connection:
-                    t.outheaders.append(("Connection", "close"))
+            if self.response_protocol == 'HTTP/1.1':
+                if self.close_connection:
+                    self.outheaders.append(("Connection", "close"))
             else:
-                if not t.close_connection:
-                    t.outheaders.append(("Connection", "Keep-Alive"))
+                if not self.close_connection:
+                    self.outheaders.append(("Connection", "Keep-Alive"))
         
         if "date" not in hkeys:
-            t.outheaders.append(("Date", rfc822.formatdate()))
+            self.outheaders.append(("Date", rfc822.formatdate()))
         
         if "server" not in hkeys:
-            t.outheaders.append(("Server", t.environ['SERVER_SOFTWARE']))
+            self.outheaders.append(("Server", self.environ['SERVER_SOFTWARE']))
         
-        buf = [t.environ['ACTUAL_SERVER_PROTOCOL'], " ", t.status, "\r\n"]
+        buf = [self.environ['ACTUAL_SERVER_PROTOCOL'], " ", self.status, "\r\n"]
         try:
-            buf += [k + ": " + v + "\r\n" for k, v in t.outheaders]
+            buf += [k + ": " + v + "\r\n" for k, v in self.outheaders]
         except TypeError:
             if not isinstance(k, str):
                 raise TypeError("WSGI response header key %r is not a string.")
@@ -233,46 +235,46 @@ class WSGIConnection(object):
         buf.append("\r\n")
         return "".join(buf)
 
-    def simple_response(t, status, msg=""):
+    def simple_response(self, status, msg=""):
         """Return a operation for writing simple response back to the client."""
         status = str(status)
-        buf = ["%s %s\r\n" % (t.environ['ACTUAL_SERVER_PROTOCOL'], status),
+        buf = ["%s %s\r\n" % (self.environ['ACTUAL_SERVER_PROTOCOL'], status),
                "Content-Length: %s\r\n" % len(msg),
                "Content-Type: text/plain\r\n"]
         
-        if status[:3] == "413" and t.response_protocol == 'HTTP/1.1':
+        if status[:3] == "413" and self.response_protocol == 'HTTP/1.1':
             # Request Entity Too Large
-            t.close_connection = True
+            self.close_connection = True
             buf.append("Connection: close\r\n")
         
         buf.append("\r\n")
         if msg:
             buf.append(msg)
-        return sockets.WriteAll(t.conn, "".join(buf))
+        return sockets.WriteAll(self.conn, "".join(buf))
         
     @coroutine
-    def run(t):
+    def run(self):
         """A bit bulky atm..."""
-        t.close_connection = False
-        with closing(t.conn):
+        self.close_connection = False
+        with closing(self.conn):
             try:
                 while True:
-                    t.started_response = False
-                    t.status = ""
-                    t.outheaders = []
-                    t.sent_headers = False
-                    t.chunked_write = False
-                    t.write_buffer = StringIO.StringIO()
+                    self.started_response = False
+                    self.status = ""
+                    self.outheaders = []
+                    self.sent_headers = False
+                    self.chunked_write = False
+                    self.write_buffer = StringIO.StringIO()
                     # Copy the class environ into self.
-                    environ = t.environ = t.connection_environ.copy()
-                    environ.update(t.server_environ)
+                    environ = self.environ = self.connection_environ.copy()
+                    environ.update(self.server_environ)
                             
-                    request_line = yield sockets.ReadLine(t.conn)
+                    request_line = yield sockets.ReadLine(self.conn)
                     if request_line == "\r\n":
                         # RFC 2616 sec 4.1: "... it should ignore the CRLF."
                         tolerance = 5
                         while tolerance and request_line == "\r\n":
-                            request_line = yield sockets.ReadLine(t.conn)
+                            request_line = yield sockets.ReadLine(self.conn)
                             tolerance -= 1
                         if not tolerance:
                             return
@@ -283,7 +285,7 @@ class WSGIConnection(object):
                     scheme, location, path, params, qs, frag = urlparse(path)
                     
                     if frag:
-                        yield t.simple_response("400 Bad Request",
+                        yield self.simple_response("400 Bad Request",
                                                 "Illegal #fragment in Request-URI.")
                         return
                     
@@ -324,11 +326,11 @@ class WSGIConnection(object):
                     server_protocol = environ["ACTUAL_SERVER_PROTOCOL"]
                     sp = int(server_protocol[5]), int(server_protocol[7])
                     if sp[0] != rp[0]:
-                        yield t.simple_response("505 HTTP Version Not Supported")
+                        yield self.simple_response("505 HTTP Version Not Supported")
                         return
                     # Bah. "SERVER_PROTOCOL" is actually the REQUEST protocol.
                     environ["SERVER_PROTOCOL"] = req_protocol
-                    t.response_protocol = "HTTP/%s.%s" % min(rp, sp)
+                    self.response_protocol = "HTTP/%s.%s" % min(rp, sp)
                     
                     # If the Request-URI was an absoluteURI, use its location atom.
                     if location:
@@ -337,13 +339,13 @@ class WSGIConnection(object):
                     # then all the http headers
                     try:
                         while True:
-                            line = yield sockets.ReadLine(t.conn)
+                            line = yield sockets.ReadLine(self.conn)
                             
                             if line == '\r\n':
                                 # Normal end of headers
                                 break
                             
-                            if line[0] in ' \t':
+                            if line[0] in ' \self':
                                 # It's a continuation line.
                                 v = line.strip()
                             else:
@@ -364,7 +366,7 @@ class WSGIConnection(object):
                         if cl:
                             environ["CONTENT_LENGTH"] = cl
                     except ValueError, ex:
-                        yield t.simple_response("400 Bad Request", repr(ex.args))
+                        yield self.simple_response("400 Bad Request", repr(ex.args))
                         return
                     
                     creds = environ.get("HTTP_AUTHORIZATION", "").split(" ", 1)
@@ -374,17 +376,17 @@ class WSGIConnection(object):
                         environ["REMOTE_USER"] = user
                     
                     # Persistent connection support
-                    if t.response_protocol == "HTTP/1.1":
+                    if self.response_protocol == "HTTP/1.1":
                         if environ.get("HTTP_CONNECTION", "") == "close":
-                            t.close_connection = True
+                            self.close_connection = True
                     else:
                         # HTTP/1.0
                         if environ.get("HTTP_CONNECTION", "") != "Keep-Alive":
-                            t.close_connection = True
+                            self.close_connection = True
                     
                     # Transfer-Encoding support
                     te = None
-                    if t.response_protocol == "HTTP/1.1":
+                    if self.response_protocol == "HTTP/1.1":
                         te = environ.get("HTTP_TRANSFER_ENCODING")
                         if te:
                             te = [x.strip().lower() for x in te.split(",") if x.strip()]
@@ -397,9 +399,9 @@ class WSGIConnection(object):
                                 read_chunked = True
                             else:
                                 # Note that, even if we see "chunked", we must reject
-                                # if there is an extension we don't recognize.
-                                yield t.simple_response("501 Unimplemented")
-                                t.close_connection = True
+                                # if there is an extension we don'self recognize.
+                                yield self.simple_response("501 Unimplemented")
+                                self.close_connection = True
                                 return
                     
                     if read_chunked:
@@ -407,28 +409,30 @@ class WSGIConnection(object):
                         cl = 0
                         data = StringIO.StringIO()
                         while True:
-                            line = (yield sockets.ReadLine(t.conn)).strip().split(";", 1)
+                            line = (yield sockets.ReadLine(self.conn)).strip().split(";", 1)
                             chunk_size = int(line.pop(0), 16)
                             if chunk_size <= 0:
                                 break
                             cl += chunk_size
-                            data.write((yield sockets.ReadAll(t.conn,chunk_size)))
-                            crlf = (yield sockets.ReadAll(t.conn,2))
+                            data.write((yield sockets.ReadAll(self.conn,chunk_size)))
+                            crlf = (yield sockets.ReadAll(self.conn,2))
                             if crlf != "\r\n":
-                                yield t.simple_response("400 Bad Request",
-                                                     "Bad chunked transfer coding "
-                                                     "(expected '\\r\\n', got %r)" % crlf)
+                                yield self.simple_response(
+                                    "400 Bad Request",
+                                    "Bad chunked transfer coding "
+                                    "(expected '\\r\\n', got %r)" % crlf
+                                )
                                 return
                         
                         # Grab any trailer headers
                         while True:
-                            line = yield sockets.ReadLine(t.conn)
+                            line = yield sockets.ReadLine(self.conn)
                             
                             if line == '\r\n':
                                 # Normal end of headers
                                 break
                             
-                            if line[0] in ' \t':
+                            if line[0] in ' \self':
                                 # It's a continuation line.
                                 v = line.strip()
                             else:
@@ -459,31 +463,48 @@ class WSGIConnection(object):
                     # If request has Content-Length, read its data
                     if not environ.get("wsgi.input", None):
                         if environ["CONTENT_LENGTH"]:
-                            postdata = yield sockets.ReadAll(t.conn, int(environ["CONTENT_LENGTH"]))
+                            postdata = yield sockets.ReadAll(
+                                self.conn, 
+                                int(environ["CONTENT_LENGTH"])
+                            )
                             environ["wsgi.input"] = StringIO.StringIO(postdata)
                         else:
                             environ["wsgi.input"] = StringIO.StringIO()
                     environ['cogen'] = COGENProxy()
-                    environ['cogen'].core = COGENOperationWrapper(environ, cogen.core)
-                    environ['cogen'].operation = environ['cogen'].result = environ['cogen'].exception = None
-                    response = t.wsgi_app(environ, t.start_response)
+                    environ['cogen'].core = COGENOperationWrapper(
+                        environ, 
+                        cogen.core
+                    )
+                    environ['cogen'].operation = environ['cogen'].result = \
+                    environ['cogen'].exception = None
+                    response = self.wsgi_app(environ, self.start_response)
                     with tryclosing(response):
                         if isinstance(response, WSGIFileWrapper):
-                            yield sockets.SendFile(response.filelike, t.conn, blocksize=response.blocksize)#, timeout=-1)
+                            yield sockets.SendFile(
+                                response.filelike, 
+                                self.conn, 
+                                blocksize=response.blocksize
+                            )#, timeout=-1)
                         else:
                             for chunk in response:
-                                if not t.sent_headers:
-                                    yield sockets.WriteAll(t.conn, t.render_headers())
-                                    t.sent_headers = True
-                                    write_data = t.write_buffer.getvalue()
+                                if not self.sent_headers:
+                                    yield sockets.WriteAll(
+                                        self.conn, 
+                                        self.render_headers()
+                                    )
+                                    self.sent_headers = True
+                                    write_data = self.write_buffer.getvalue()
                                     if write_data:
-                                        yield sockets.WriteAll(t.conn, write_data)
+                                        yield sockets.WriteAll(
+                                            self.conn, 
+                                            write_data
+                                        )
                                 if chunk:
-                                    if t.chunked_write:
+                                    if self.chunked_write:
                                         buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-                                        yield sockets.WriteAll(t.conn, "".join(buf))
+                                        yield sockets.WriteAll(self.conn, "".join(buf))
                                     else:
-                                        yield sockets.WriteAll(t.conn, chunk)
+                                        yield sockets.WriteAll(self.conn, chunk)
                                 else:
                                     if environ['cogen'].operation:
                                         op = environ['cogen'].operation
@@ -498,15 +519,15 @@ class WSGIConnection(object):
                                             environ['cogen'].result = environ['cogen'].exception[1]
                                         del op
                     
-                    if t.chunked_write:
-                        yield sockets.WriteAll(t.conn, "0\r\n\r\n")
+                    if self.chunked_write:
+                        yield sockets.WriteAll(self.conn, "0\r\n\r\n")
                 
-                    if t.close_connection:
+                    if self.close_connection:
                         return
             except socket.error, e:
                 errno = e.args[0]
                 if errno not in useless_socket_errors:
-                    yield t.simple_response("500 Internal Server Error",
+                    yield self.simple_response("500 Internal Server Error",
                                             format_exc())
                 return
             except (events.OperationTimeout, events.ConnectionClosed, events.ConnectionError):
@@ -514,8 +535,8 @@ class WSGIConnection(object):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                if not t.started_response:
-                    yield t.simple_response("500 Internal Server Error", format_exc())
+                if not self.started_response:
+                    yield self.simple_response("500 Internal Server Error", format_exc())
                 else:
                     print "*" * 60
                     traceback.print_exc()
@@ -525,29 +546,33 @@ class WSGIServer(object):
     """
 An HTTP server for WSGI.
 ------------------------
-    =================== ======================================================================
+    =================== ========================================================
     Option              Description
-    =================== ======================================================================
+    =================== ========================================================
     bind_addr           The interface on which to listen for connections.
-                        For TCP sockets, a (host, port) tuple. Host values may be any IPv4
-                        or IPv6 address, or any valid hostname. The string 'localhost' is a
-                        synonym for '127.0.0.1' (or '::1', if your hosts file prefers IPv6).
-                        The string '0.0.0.0' is a special IPv4 entry meaning "any active
-                        interface" (INADDR_ANY), and '::' is the similar IN6ADDR_ANY for
-                        IPv6. The empty string or None are not allowed.
+                        For TCP sockets, a (host, port) tuple. Host values may 
+                        be any IPv4 or IPv6 address, or any valid hostname. 
+                        The string 'localhost' is a synonym for '127.0.0.1' (or
+                        '::1', if your hosts file prefers IPv6).
+                        The string '0.0.0.0' is a special IPv4 entry meaning 
+                        "any active interface" (INADDR_ANY), and '::' is the 
+                        similar IN6ADDR_ANY for IPv6. The empty string or None 
+                        are not allowed.
                         
                         For UNIX sockets, supply the filename as a string.
                         
-    wsgi_app            the WSGI 'application callable'; multiple WSGI applications
-                        may be passed as (path_prefix, app) pairs.
+    wsgi_app            the WSGI 'application callable'; multiple WSGI 
+                        applications may be passed as (path_prefix, app) pairs.
     server_name         the string to set for WSGI's SERVER_NAME environ entry.
                         Defaults to socket.gethostname().
     request_queue_size  the 'backlog' argument to socket.listen();
-                        specifies the maximum number of queued connections (default 5).
+                        specifies the maximum number of queued connections 
+                        (default 5).
     protocol            the version string to write in the Status-Line of all
-                        HTTP responses. For example, "HTTP/1.1" (the default). This
-                        also limits the supported features used in the response.
-    =================== ======================================================================
+                        HTTP responses. For example, "HTTP/1.1" (the default). 
+                        This also limits the supported features used in the 
+                        response.
+    =================== ========================================================
     """
     
     protocol = "HTTP/1.1"
@@ -557,31 +582,31 @@ An HTTP server for WSGI.
     ConnectionClass = WSGIConnection
     environ = {}
     
-    def __init__(t, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=5):
-        t.request_queue_size = int(request_queue_size)
-        t.scheduler = scheduler
+    def __init__(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=5):
+        self.request_queue_size = int(request_queue_size)
+        self.scheduler = scheduler
         if callable(wsgi_app):
             # We've been handed a single wsgi_app, in CP-2.1 style.
             # Assume it's mounted at "".
-            t.wsgi_app = wsgi_app
+            self.wsgi_app = wsgi_app
         else:
             # We've been handed a list of (path_prefix, wsgi_app) tuples,
             # so that the server can call different wsgi_apps, and also
             # correctly set SCRIPT_NAME.
-            t.wsgi_app = WSGIPathInfoDispatcher(wsgi_app)
+            self.wsgi_app = WSGIPathInfoDispatcher(wsgi_app)
         
-        t.bind_addr = bind_addr
+        self.bind_addr = bind_addr
         if not server_name:
             server_name = socket.gethostname()
-        t.server_name = server_name
+        self.server_name = server_name
         
-    def __str__(t):
-        return "%s.%s(%r)" % (t.__module__, t.__class__.__name__,
-                              t.bind_addr)
+    def __str__(self):
+        return "%s.%s(%r)" % (self.__module__, self.__class__.__name__,
+                              self.bind_addr)
     
-    def _get_bind_addr(t):
-        return t._bind_addr
-    def _set_bind_addr(t, value):
+    def _get_bind_addr(self):
+        return self._bind_addr
+    def _set_bind_addr(self, value):
         if isinstance(value, tuple) and value[0] in ('', None):
             # Despite the socket module docs, using '' does not
             # allow AI_PASSIVE to work. Passing None instead
@@ -596,7 +621,7 @@ An HTTP server for WSGI.
             raise ValueError("Host values of '' or None are not allowed. "
                              "Use '0.0.0.0' (IPv4) or '::' (IPv6) instead "
                              "to listen on all active interfaces.")
-        t._bind_addr = value
+        self._bind_addr = value
     bind_addr = property(_get_bind_addr, _set_bind_addr,
         doc="""The interface on which to listen for connections.
         
@@ -610,85 +635,85 @@ An HTTP server for WSGI.
         For UNIX sockets, supply the filename as a string.""")
         
     @coroutine
-    def serve(t):
+    def serve(self):
         """Run the server forever."""
-        # We don't have to trap KeyboardInterrupt or SystemExit here,
+        # We don'self have to trap KeyboardInterrupt or SystemExit here,
         
         # Select the appropriate socket
-        if isinstance(t.bind_addr, basestring):
+        if isinstance(self.bind_addr, basestring):
             # AF_UNIX socket
             
             # So we can reuse the socket...
-            try: os.unlink(t.bind_addr)
+            try: os.unlink(self.bind_addr)
             except: pass
             
             # So everyone can access the socket...
-            try: os.chmod(t.bind_addr, 0777)
+            try: os.chmod(self.bind_addr, 0777)
             except: pass
             
-            info = [(socket.AF_UNIX, socket.SOCK_STREAM, 0, "", t.bind_addr)]
+            info = [(socket.AF_UNIX, socket.SOCK_STREAM, 0, "", self.bind_addr)]
         else:
             # AF_INET or AF_INET6 socket
             # Get the correct address family for our host (allows IPv6 addresses)
-            host, port = t.bind_addr
+            host, port = self.bind_addr
             try:
                 info = socket.getaddrinfo(host, port, socket.AF_UNSPEC,
                                           socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
             except socket.gaierror:
                 # Probably a DNS issue. Assume IPv4.
-                info = [(socket.AF_INET, socket.SOCK_STREAM, 0, "", t.bind_addr)]
+                info = [(socket.AF_INET, socket.SOCK_STREAM, 0, "", self.bind_addr)]
         
-        t.socket = None
+        self.socket = None
         msg = "No socket could be created"
         for res in info:
             af, socktype, proto, canonname, sa = res
             try:
-                t.bind(af, socktype, proto)
+                self.bind(af, socktype, proto)
             except socket.error, msg:
-                if t.socket:
-                    t.socket.close()
-                t.socket = None
+                if self.socket:
+                    self.socket.close()
+                self.socket = None
                 continue
             break
-        if not t.socket:
+        if not self.socket:
             raise socket.error, msg
         
-        t.socket.listen(t.request_queue_size)
-        with closing(t.socket):
+        self.socket.listen(self.request_queue_size)
+        with closing(self.socket):
             while True:
-                s, addr = yield sockets.Accept(t.socket, timeout=-1)
+                s, addr = yield sockets.Accept(self.socket, timeout=-1)
                  
-                environ = t.environ.copy()
-                environ["SERVER_SOFTWARE"] = t.version
+                environ = self.environ.copy()
+                environ["SERVER_SOFTWARE"] = self.version
                 # set a non-standard environ entry so the WSGI app can know what
                 # the *real* server protocol is (and what features to support).
                 # See http://www.faqs.org/rfcs/rfc2145.html.
-                environ["ACTUAL_SERVER_PROTOCOL"] = t.protocol
-                environ["SERVER_NAME"] = t.server_name
+                environ["ACTUAL_SERVER_PROTOCOL"] = self.protocol
+                environ["SERVER_NAME"] = self.server_name
                 
-                if isinstance(t.bind_addr, basestring):
-                    # AF_UNIX. This isn't really allowed by WSGI, which doesn't
+                if isinstance(self.bind_addr, basestring):
+                    # AF_UNIX. This isn'self really allowed by WSGI, which doesn'self
                     # address unix domain sockets. But it's better than nothing.
                     environ["SERVER_PORT"] = ""
                 else:
-                    environ["SERVER_PORT"] = str(t.bind_addr[1])
+                    environ["SERVER_PORT"] = str(self.bind_addr[1])
                     # optional values
                     # Until we do DNS lookups, omit REMOTE_HOST
                     environ["REMOTE_ADDR"] = addr[0]
                     environ["REMOTE_PORT"] = str(addr[1])
                 
-                conn = t.ConnectionClass(s, t.wsgi_app, environ)
+                conn = self.ConnectionClass(s, self.wsgi_app, environ)
                 yield events.AddCoro(conn.run, prio=priority.CORO)
                 #TODO: how scheduling ?
 
    
-    def bind(t, family, type, proto=0):
+    def bind(self, family, type, proto=0):
         """Create (or recreate) the actual socket object."""
-        t.socket = sockets.Socket(family, type, proto)
-        t.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        t.socket.setblocking(0)
-        #~ t.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
-        t.socket.bind(t.bind_addr)
+        self.socket = sockets.Socket(family, type, proto)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setblocking(0)
+        #~ self.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
+        self.socket.bind(self.bind_addr)
     
 def _test_app():    
     import wsgiref.validate 
@@ -736,11 +761,22 @@ def server_factory(global_conf, host, port, **options):
     port = int(port)
     def serve(app):
         sched = Scheduler(
-            poller = getattr(cogen.core.pollers, options.get('scheduler.poller', 'DefaultPoller')), 
+            poller = getattr(
+                cogen.core.pollers, 
+                options.get('scheduler.poller', 'DefaultPoller')
+            ), 
             default_priority=options.get('scheduler.default_priority', priority.LAST), 
             default_timeout=options.get('scheduler.default_timeout', 15)
         )
-        server = WSGIServer( (host, port), app, sched, server_name=host, **dict([(k.split('.',1)[1],v) for k,v in options.items() if k.startswith('wsgi_server.')]))
+        server = WSGIServer( 
+            (host, port), 
+            app, 
+            sched, 
+            server_name=host, 
+            **dict(
+                [(k.split('.',1)[1],v) for k,v in options.items() if k.startswith('wsgi_server.')]
+            )
+        )
         sched.add(server.serve)
         sched.run()
     return serve

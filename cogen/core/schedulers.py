@@ -1,8 +1,4 @@
 import collections
-import time
-import sys
-import traceback
-import types
 import datetime
 import heapq
 import weakref
@@ -13,83 +9,102 @@ from cogen.core import sockets
 from cogen.core.util import *
 
 class DebugginWrapper:
-    def __init__(t, obj):
-        t.obj = obj
+    def __init__(self, obj):
+        self.obj = obj
     
-    def __getattr__(t, name):
+    def __getattr__(self, name):
         if 'append' in name:
-            return debug(0)(getattr(t.obj, name))
+            return debug(0)(getattr(self.obj, name))
         else:
-            return getattr(t.obj, name)
+            return getattr(self.obj, name)
 class Timeout(object):
-    __slots__= ['coro', 'op', 'timeout', 'weak_timeout', 'delta', 'last_checkpoint']
-    def __init__(t, op, coro, weak_timeout=False):
+    __slots__= [
+        'coro', 'op', 'timeout', 'weak_timeout', 
+        'delta', 'last_checkpoint'
+    ]
+    def __init__(self, op, coro, weak_timeout=False):
         assert isinstance(op.timeout, datetime.datetime)
-        t.timeout = op.timeout
-        t.last_checkpoint = datetime.datetime.now()
-        t.delta = t.timeout - t.last_checkpoint
-        t.coro = weakref.ref(coro)
-        t.op = weakref.ref(op)
-        t.weak_timeout = weak_timeout
+        self.timeout = op.timeout
+        self.last_checkpoint = datetime.datetime.now()
+        self.delta = self.timeout - self.last_checkpoint
+        self.coro = weakref.ref(coro)
+        self.op = weakref.ref(op)
+        self.weak_timeout = weak_timeout
         
-    def __cmp__(t, other):
-        return cmp(t.timeout, other.timeout)    
-    def __repr__(t):
-        return "<%s@%s timeout:%s, coro:%s, op:%s, weak:%s, lastcheck:%s, delta:%s>" % (t.__class__.__name__, id(t), t.timeout, t.coro(), t.op(), t.weak_timeout, t.last_checkpoint, t.delta)
+    def __cmp__(self, other):
+        return cmp(self.timeout, other.timeout)    
+    def __repr__(self):
+        return "<%s@%s timeout:%s, coro:%s, op:%s, weak:%s, lastcheck:%s, delta:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.timeout, 
+            self.coro(), 
+            self.op(), 
+            self.weak_timeout, 
+            self.last_checkpoint, 
+            self.delta
+        )
 
 class Scheduler(object):
-    def __init__(t, poller=DefaultPoller, default_priority=priority.LAST, default_timeout=None):
-        t.timeouts = []
-        t.active = collections.deque()
-        t.sigwait = collections.defaultdict(collections.deque)
-        t.timewait = [] # heapq
-        t.poll = poller(t)
-        t.default_priority = default_priority
-        t.default_timeout = default_timeout
-    def __repr__(t):
+    def __init__(self, poller=DefaultPoller, default_priority=priority.LAST, default_timeout=None):
+        self.timeouts = []
+        self.active = collections.deque()
+        self.sigwait = collections.defaultdict(collections.deque)
+        self.timewait = [] # heapq
+        self.poll = poller(self)
+        self.default_priority = default_priority
+        self.default_timeout = default_timeout
+    def __repr__(self):
         return "<%s@0x%X active:%s sigwait:%s timewait:%s poller:%s default_priority:%s default_timeout:%s>" % (
-            t.__class__.__name__, id(t), len(t.active), len(t.sigwait), len(t.timewait), t.poll, t.default_priority, t.default_timeout
+            self.__class__.__name__, 
+            id(self), 
+            len(self.active), 
+            len(self.sigwait), 
+            len(self.timewait), 
+            self.poll, 
+            self.default_priority, 
+            self.default_timeout
         )
-    def _init_coro(t, coro, *args, **kws):
+    def _init_coro(self, coro, *args, **kws):
         return coro(*args, **kws)
             
-    def add(t, coro, *args, **kws):
-        coro = t._init_coro(coro, *args, **kws)
-        t.active.append( (None, coro) )
+    def add(self, coro, *args, **kws):
+        coro = self._init_coro(coro, *args, **kws)
+        self.active.append( (None, coro) )
         return coro
         
-    def add_first(t, coro, *args, **kws):
-        coro = t._init_coro(coro, *args, **kws)
-        t.active.appendleft( (None, coro) )
+    def add_first(self, coro, *args, **kws):
+        coro = self._init_coro(coro, *args, **kws)
+        self.active.appendleft( (None, coro) )
         return coro
         
-    def run_timer(t):
-        if t.timewait:
+    def run_timer(self):
+        if self.timewait:
             now = datetime.datetime.now() 
-            while t.timewait and t.timewait[0].wake_time <= now:
-                op = heapq.heappop(t.timewait)
-                t.active.appendleft((op, op.coro))
+            while self.timewait and self.timewait[0].wake_time <= now:
+                op = heapq.heappop(self.timewait)
+                self.active.appendleft((op, op.coro))
     
-    def next_timer_delta(t): 
-        if t.timewait and not t.active:
-            return (datetime.datetime.now() - t.timewait[0].wake_time)
+    def next_timer_delta(self): 
+        if self.timewait and not self.active:
+            return (datetime.datetime.now() - self.timewait[0].wake_time)
         else:
-            if t.active:
+            if self.active:
                 return 0
             else:
                 return None
-    def run_poller(t):
+    def run_poller(self):
         
-        if len(t.active)<2:
-            t.poll.run(timeout = t.next_timer_delta())
+        if len(self.active)<2:
+            self.poll.run(timeout = self.next_timer_delta())
 
-    def add_timeout(t, op, coro, weak_timeout):
-        heapq.heappush(t.timeouts, Timeout(op, coro, weak_timeout))
-    def handle_timeouts(t):
+    def add_timeout(self, op, coro, weak_timeout):
+        heapq.heappush(self.timeouts, Timeout(op, coro, weak_timeout))
+    def handle_timeouts(self):
         now = datetime.datetime.now()
-        #~ print '>to:', t.timeouts, t.timeouts and t.timeouts[0].timeout <= now
-        while t.timeouts and t.timeouts[0].timeout <= now:
-            timo = heapq.heappop(t.timeouts)
+        #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
+        while self.timeouts and self.timeouts[0].timeout <= now:
+            timo = heapq.heappop(self.timeouts)
             op, coro = timo.op(), timo.coro()
             if op:
                 #~ print timo
@@ -97,79 +112,85 @@ class Scheduler(object):
                     if op.last_update > timo.last_checkpoint:
                         timo.last_checkpoint = op.last_update
                         timo.timeout = timo.last_checkpoint + timo.delta
-                        heapq.heappush(t.timeouts, timo)
+                        heapq.heappush(self.timeouts, timo)
                         continue
                 
                 if isinstance(op, sockets.Operation):
-                    t.poll.remove(op, coro)
+                    self.poll.remove(op, coro)
                 elif coro and isinstance(op, events.Join):
                     op.coro.remove_waiter(coro)
                 elif isinstance(op, events.WaitForSignal):
                     try:
-                        t.sigwait[op.name].remove((op, coro))
+                        self.sigwait[op.name].remove((op, coro))
                     except ValueError:
                         pass
                 if not op.finalized and coro and coro.running:
-                    t.active.append( (events.CoroutineException((events.OperationTimeout, events.OperationTimeout(op))), coro) )
+                    self.active.append((
+                        events.CoroutineException((
+                            events.OperationTimeout, 
+                            events.OperationTimeout(op)
+                        )), 
+                        coro
+                    ))
     #~ @debug(0)        
-    def process_op(t, op, coro):
+    def process_op(self, op, coro):
         if op is None:
-           t.active.append((op, coro))
+           self.active.append((op, coro))
         else:
             if getattr(op, 'prio', None) == priority.DEFAULT:
-                op.prio = t.default_priority
+                op.prio = self.default_priority
             if hasattr(op, 'timeout'): 
                 if not op.timeout:
-                    op.timeout = t.default_timeout
+                    op.timeout = self.default_timeout
                 if op.timeout and op.timeout != -1:
-                    t.add_timeout(op, coro, getattr(op, 'weak_timeout', False))
+                    self.add_timeout(op, coro, getattr(op, 'weak_timeout', False))
         
             if isinstance(op, sockets.Operation):
-                r = t.poll.run_or_add(op, coro)
+                r = self.poll.run_or_add(op, coro)
                 if r:
                     if op.prio:
                         return r, coro
                     else:
-                        t.active.appendleft((r, coro))
+                        self.active.appendleft((r, coro))
             elif isinstance(op, events.Pass):
                 return op.op, op.coro
             elif isinstance(op, events.AddCoro):
                 if op.prio & priority.OP:
-                    t.add_first(op.coro, *op.args, **op.kwargs)
+                    self.add_first(op.coro, *op.args, **op.kwargs)
                 else:
-                    t.add(op.coro, *op.args, **op.kwargs)
+                    self.add(op.coro, *op.args, **op.kwargs)
                     
                 if op.prio & priority.CORO:
                     return op, coro
                 else:
-                    t.active.append( (None, coro))
+                    self.active.append( (None, coro))
             elif isinstance(op, events.Complete):
                 if op.prio:
-                    t.active.extendleft(op.args)
+                    self.active.extendleft(op.args)
                 else:
-                    t.active.extend(op.args)
+                    self.active.extend(op.args)
             elif isinstance(op, events.WaitForSignal):
-                t.sigwait[op.name].append((op, coro))
+                self.sigwait[op.name].append((op, coro))
             elif isinstance(op, events.Signal):
-                op.result = len(t.sigwait[op.name])
-                for waitop, waitcoro in t.sigwait[op.name]:
+                op.result = len(self.sigwait[op.name])
+                for waitop, waitcoro in self.sigwait[op.name]:
                     waitop.result = op.value
                 if op.prio & priority.OP:
-                    t.active.extendleft(t.sigwait[op.name])
+                    self.active.extendleft(self.sigwait[op.name])
                 else:
-                    t.active.extend(t.sigwait[op.name])
+                    self.active.extend(self.sigwait[op.name])
                 
                 if op.prio & priority.CORO:
-                    t.active.appendleft((None, coro))
+                    self.active.appendleft((None, coro))
                 else:
-                    t.active.append((None, coro))
+                    self.active.append((None, coro))
                     
-                del t.sigwait[op.name]
+                del self.sigwait[op.name]
             elif isinstance(op, events.Call):
                 if op.prio:
-                    callee = t.add_first(op.coro, *op.args, **op.kwargs)
+                    callee = self.add_first(op.coro, *op.args, **op.kwargs)
                 else:
-                    callee = t.add(op.coro, *op.args, **op.kwargs) 
+                    callee = self.add(op.coro, *op.args, **op.kwargs) 
                 callee.caller = coro
                 callee.prio = op.prio
                 del callee
@@ -177,26 +198,26 @@ class Scheduler(object):
                 op.coro.add_waiter(coro)
             elif isinstance(op, events.Sleep):
                 op.coro = coro
-                heapq.heappush(t.timewait, op)
+                heapq.heappush(self.timewait, op)
             else:
                 raise RuntimeError("Bad coroutine operation.")
         return None, None
         
-    def run(t):
-        while t.active or t.poll or t.timewait:
-            if t.active:
-                #~ print 'ACTIVE:', t.active
-                op, coro = t.active.popleft()
+    def run(self):
+        while self.active or self.poll or self.timewait:
+            if self.active:
+                #~ print 'ACTIVE:', self.active
+                op, coro = self.active.popleft()
                 while True:
                     #~ print coro, op
-                    op, coro = t.process_op(coro.run_op(op), coro)
+                    op, coro = self.process_op(coro.run_op(op), coro)
                     if not op:
                         break  
                     
-            t.run_poller()
-            t.run_timer()
-            t.handle_timeouts()
-            #~ print 'active:  ',len(t.active)
-            #~ print 'poll:    ',len(t.poll)
-            #~ print 'timeouts:',len(t.poll._timeouts)
+            self.run_poller()
+            self.run_timer()
+            self.handle_timeouts()
+            #~ print 'active:  ',len(self.active)
+            #~ print 'poll:    ',len(self.poll)
+            #~ print 'timeouts:',len(self.poll._timeouts)
 

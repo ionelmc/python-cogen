@@ -18,10 +18,12 @@ class ConnectionClosed(Exception):
     "Raised when the other peer has closed connection."
     __doc_all__ = []
 class OperationTimeout(Exception):
-    "Raised when the timeout for a operation expires. The exception message will be the operation"
+    """Raised when the timeout for a operation expires. The exception 
+    message will be the operation"""
     __doc_all__ = []
 class CoroutineException(Exception):
-    "This is used intenally to carry exception state in the poller and scheduler."
+    """This is used intenally to carry exception state in the poller and 
+    scheduler."""
     __doc_all__ = []
     prio = priority.DEFAULT
 
@@ -29,16 +31,25 @@ class CoroutineException(Exception):
 class WaitForSignal(object):
     "The coroutine will resume when the same object is Signaled."
         
-    __slots__ = ['name', 'prio', '_timeout', 'finalized', '__weakref__', 'result']
+    __slots__ = [
+        'name', 'prio', '_timeout', 'finalized', 
+        '__weakref__', 'result'
+    ]
     __doc_all__ = ['__init__']
     timeout = TimeoutDesc('_timeout')
-    def __init__(t, name, timeout=None, prio=priority.DEFAULT):
-        t.name = name
-        t.prio = prio
-        t.timeout = timeout
-        t.finalized = False
-    def __repr__(t):
-        return "<%s at 0x%X name:%s timeout:%s prio:%s>" % (t.__class__.__name__, id(t), t.name, t.timeout, t.prio)
+    def __init__(self, name, timeout=None, prio=priority.DEFAULT):
+        self.name = name
+        self.prio = prio
+        self.timeout = timeout
+        self.finalized = False
+    def __repr__(self):
+        return "<%s at 0x%X name:%s timeout:%s prio:%s>" % (
+            self.__class__, 
+            id(self), 
+            self.name, 
+            self.timeout, 
+            self.prio
+        )
 class Signal(object):
     """
     This will resume the coroutines that where paused with WaitForSignal.
@@ -53,15 +64,17 @@ class Signal(object):
     """
     __slots__ = ['name', 'value', 'len', 'prio', 'result']
     __doc_all__ = ['__init__']
-    def __init__(t, name, value=None, prio=priority.DEFAULT):
-        "All the coroutines waiting for this object will be added back in the active coroutine queue."
-        t.name = name
-        t.value = value
-        t.prio = prio
+    def __init__(self, name, value=None, prio=priority.DEFAULT):
+        """All the coroutines waiting for this object will be added back in the
+        active coroutine queue."""
+        self.name = name
+        self.value = value
+        self.prio = prio
         
 class Call(object):
     """
-    This will pause the current coroutine, add a new coro in the scheduler and resume the callee when it returns.
+    This will pause the current coroutine, add a new coro in the scheduler and 
+    resume the callee when it returns.
     
     Usage:
     
@@ -69,17 +82,25 @@ class Call(object):
     
         result = yield events.Call(mycoro, args=<a tuple>, kwargs=<a dict>, prio=<int>)
         
-    - if `prio` is set the new coroutine will be added in the top of the scheduler queue
+    - if `prio` is set the new coroutine will be added in the top of the 
+    scheduler queue
     """
     __slots__ = ['coro', 'args', 'kwargs', 'prio']
     __doc_all__ = ['__init__']
-    def __init__(t, coro, args=None, kwargs=None, prio=priority.DEFAULT):
-        t.coro = coro
-        t.args = args or ()
-        t.kwargs = kwargs or {}
-        t.prio = prio
-    def __repr__(t):
-        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__, id(t), t.coro, t.args, t.kwargs, t.prio)
+    def __init__(self, coro, args=None, kwargs=None, prio=priority.DEFAULT):
+        self.coro = coro
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+        self.prio = prio
+    def __repr__(self):
+        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (
+            self.__class__, 
+            id(self), 
+            self.coro, 
+            self.args, 
+            self.kwargs, 
+            self.prio
+        )
     
 class AddCoro(object):
     """
@@ -92,39 +113,59 @@ class AddCoro(object):
     """
     __slots__ = ['coro', 'args', 'kwargs', 'prio']
     __doc_all__ = ['__init__']
-    def __init__(t, coro, args=None, kwargs=None, prio=priority.DEFAULT):
+    def __init__(self, coro, args=None, kwargs=None, prio=priority.DEFAULT):
         "Some DOC."
-        t.coro = coro
-        t.args = args or ()
-        t.kwargs = kwargs or {}
-        t.prio = prio
-    def __repr__(t):
-        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (t.__class__, id(t), t.coro, t.args, t.kwargs, t.prio)
+        self.coro = coro
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+        self.prio = prio
+    def __repr__(self):
+        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (
+            self.__class__, 
+            id(self), 
+            self.coro, 
+            self.args, 
+            self.kwargs, 
+            self.prio
+        )
 
 class Pass(object):
     """
-    A operator for setting the next (coro, op) pair to be runned by the scheduler. Used internally.
+    A operator for setting the next (coro, op) pair to be runned by the 
+    scheduler. Used internally.
     """
     __slots__ = ['coro', 'op', 'prio']
     __doc_all__ = ['__init__']
-    def __init__(t, coro, op=None, prio=priority.DEFAULT):
-        t.coro = coro
-        t.op = op
-        t.prio = prio
-    def __repr__(t):
-        return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (t.__class__, id(t), t.coro, t.op, t.prio)
+    def __init__(self, coro, op=None, prio=priority.DEFAULT):
+        self.coro = coro
+        self.op = op
+        self.prio = prio
+    def __repr__(self):
+        return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (
+            self.__class__, 
+            id(self), 
+            self.coro, 
+            self.op, 
+            self.prio
+        )
 
 class Complete(object):
     """
-    A operator for adding a list of (coroutine, operator) pairs. Used internally.
+    A operator for adding a list of (coroutine, operator) pairs. Used 
+    internally.
     """
     __slots__ = ['args', 'prio']
     __doc_all__ = ['__init__']
-    def __init__(t, *args):
-        t.args = tuple(args)
-        t.prio = priority.DEFAULT
-    def __repr__(t):
-        return '<%s instance at 0x%X, args: %s, prio: %s>' % (t.__class__, id(t), t.args, t.prio)
+    def __init__(self, *args):
+        self.args = tuple(args)
+        self.prio = priority.DEFAULT
+    def __repr__(self):
+        return '<%s instance at 0x%X, args: %s, prio: %s>' % (
+            self.__class__, 
+            id(self), 
+            self.args, 
+            self.prio
+        )
     
 class Join(object):
     """
@@ -149,12 +190,16 @@ class Join(object):
     __slots__ = ['coro', '_timeout', 'finalized', '__weakref__']
     timeout = TimeoutDesc('_timeout')
     __doc_all__ = ['__init__']
-    def __init__(t, coro, timeout=None):
-        t.coro = coro
-        t.timeout = timeout
-        t.finalized = False
-    def __repr__(t):
-        return '<%s instance at 0x%X, coro: %s>' % (t.__class__, id(t), t.coro)
+    def __init__(self, coro, timeout=None):
+        self.coro = coro
+        self.timeout = timeout
+        self.finalized = False
+    def __repr__(self):
+        return '<%s instance at 0x%X, coro: %s>' % (
+            self.__class__, 
+            id(self), 
+            self.coro
+        )
 
     
 class Sleep(object):
@@ -175,16 +220,17 @@ class Sleep(object):
     """
     __slots__ = ['wake_time', 'coro']
     __doc_all__ = ['__init__']
-    def __init__(t, val=None, timestamp=None):
+    def __init__(self, val=None, timestamp=None):
         if isinstance(val, datetime.timedelta):
-            t.wake_time = datetime.datetime.now() + val
+            self.wake_time = datetime.datetime.now() + val
         elif isinstance(val, datetime.datetime):
-            t.wake_time = val
+            self.wake_time = val
         else:
             if timestamp:
-                t.wake_time = datetime.datetime.fromtimestamp(int(timestamp))
+                self.wake_time = datetime.datetime.fromtimestamp(int(timestamp))
             else:
-                t.wake_time = datetime.datetime.now() + datetime.timedelta(seconds=val)
+                self.wake_time = datetime.datetime.now() + \
+                                 datetime.timedelta(seconds=val)
         
-    def __cmp__(t, other):
-        return cmp(t.wake_time, other.wake_time)
+    def __cmp__(self, other):
+        return cmp(self.wake_time, other.wake_time)

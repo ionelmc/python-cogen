@@ -25,92 +25,92 @@ from cogen.core.coroutine import coroutine
 
 import unittest
 class SocketTest_MixIn:
-    def setUp(t):
-        t.local_addr = ('localhost', random.randint(19000,20000))
-        t.m = t.scheduler()
+    def setUp(self):
+        self.local_addr = ('localhost', random.randint(19000,20000))
+        self.m = self.scheduler()
         def run():
             try:
                 time.sleep(1)
-                t.m.run()
+                self.m.run()
             except:
                 import traceback
                 traceback.print_exc()
-        t.m_run = threading.Thread(target=run)
+        self.m_run = threading.Thread(target=run)
         
-    def tearDown(t):
+    def tearDown(self):
         pass
         
-    def test_read_lines(t):
-        t.waitobj = None
+    def test_read_lines(self):
+        self.waitobj = None
         @coroutine
         def reader():
             srv = sockets.Socket()
             srv.setblocking(0)
-            srv.bind(t.local_addr)
+            srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = (yield sockets.Accept(srv, prio = t.prio))
-            t.waitobj = sockets.ReadLine(conn, len=1024, prio = t.prio) 
+            conn, addr = (yield sockets.Accept(srv, prio = self.prio))
+            self.waitobj = sockets.ReadLine(conn, len=1024, prio = self.prio) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
-            t.recvobj = yield t.waitobj
+            self.recvobj = yield self.waitobj
             try: 
                 # test for readline overflow'
-                t.waitobj2 = yield sockets.ReadLine(conn, len=512, prio = t.prio)
+                self.waitobj2 = yield sockets.ReadLine(conn, len=512, prio = self.prio)
             except exceptions.OverflowError, e:
-                t.waitobj2 = "OK"
-                t.waitobj_cleanup = yield sockets.Read(conn, len=1024*8, prio = t.prio) 
+                self.waitobj2 = "OK"
+                self.waitobj_cleanup = yield sockets.Read(conn, len=1024*8, prio = self.prio) 
                                         # eat up the remaining data waiting on socket
-            t.recvobj2 = (
-                (yield sockets.ReadLine(conn, 1024, prio = t.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio = t.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio = t.prio))
+            self.recvobj2 = (
+                (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
+                (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
+                (yield sockets.ReadLine(conn, 1024, prio = self.prio))
             )
             srv.close()
-        coro = t.m.add(reader)
-        t.m_run.start()
+        coro = self.m.add(reader)
+        self.m_run.start()
         sleep(1.5)
         sock = socket()
-        sock.connect(t.local_addr)
+        sock.connect(self.local_addr)
         sock.send("X"*512)
         sleep(0.5)
-        t.assert_(coro not in t.m.active)
-        t.assert_(t.m.poll.waiting_op(coro) is t.waitobj)            
+        self.assert_(coro not in self.m.active)
+        self.assert_(self.m.poll.waiting_op(coro) is self.waitobj)            
         sock.send("\n")
         sleep(0.5)
-        t.assert_(len(t.m.poll)==1)
-        t.assert_(t.waitobj.buff is t.recvobj)
-        t.assertEqual(t.waitobj.buff, "X"*512+"\n")
+        self.assert_(len(self.m.poll)==1)
+        self.assert_(self.waitobj.buff is self.recvobj)
+        self.assertEqual(self.waitobj.buff, "X"*512+"\n")
         sleep(0.5)
         sock.send("X"*1024)
 
         sleep(0.5)
-        t.assertEqual(t.waitobj2, "OK")
+        self.assertEqual(self.waitobj2, "OK")
         sleep(0.5)
         a_line = "X"*64+"\n"
         sock.send(a_line*3)
         sleep(1.5)
-        t.assertEqual(t.recvobj2, (a_line,a_line,a_line))
-        t.assertEqual(len(t.m.poll), 0)
-        t.assertEqual(len(t.m.active), 0)
-        t.failIf(t.m_run.isAlive())
+        self.assertEqual(self.recvobj2, (a_line,a_line,a_line))
+        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.active), 0)
+        self.failIf(self.m_run.isAlive())
         
-    def test_read_all(t):
+    def test_read_all(self):
         @coroutine
         def reader():
             srv = sockets.Socket()
             srv.setblocking(0)
-            srv.bind(t.local_addr)
+            srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = yield sockets.Accept(srv, prio = t.prio)
-            t.recvobj = yield sockets.Read(conn, 1024*4, prio = t.prio)
-            t.recvobj_all = yield sockets.ReadAll(conn, 1024**2-1024*4, prio = t.prio)
+            conn, addr = yield sockets.Accept(srv, prio = self.prio)
+            self.recvobj = yield sockets.Read(conn, 1024*4, prio = self.prio)
+            self.recvobj_all = yield sockets.ReadAll(conn, 1024**2-1024*4, prio = self.prio)
             srv.close()
-        coro = t.m.add(reader)
-        t.m_run.start()
+        coro = self.m.add(reader)
+        self.m_run.start()
         sleep(1.5)
         sock = socket()
-        sock.connect(t.local_addr)
+        sock.connect(self.local_addr)
         sent = 0
         length = 1024**2
         buff = "X"*length
@@ -118,27 +118,27 @@ class SocketTest_MixIn:
             sent += sock.send(buff[sent:])
             
         sleep(0.5)
-        t.assert_(len(t.recvobj)<=1024*4)
+        self.assert_(len(self.recvobj)<=1024*4)
         sleep(1)
         
-        t.assertEqual(len(t.recvobj_all)+len(t.recvobj),1024**2)
-        t.assertEqual(len(t.m.poll), 0)
-        t.assertEqual(len(t.m.active), 0)
-        t.failIf(t.m_run.isAlive())
-    def test_write_all(t):
+        self.assertEqual(len(self.recvobj_all)+len(self.recvobj),1024**2)
+        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.active), 0)
+        self.failIf(self.m_run.isAlive())
+    def test_write_all(self):
         @coroutine
         def writer():
-            obj = yield sockets.Connect(sockets.Socket(), t.local_addr)    
-            t.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
-            t.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
+            obj = yield sockets.Connect(sockets.Socket(), self.local_addr)    
+            self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
+            self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
             obj.sock.close()
 
         srv = socket()
         srv.setblocking(0)
-        srv.bind(t.local_addr)
+        srv.bind(self.local_addr)
         srv.listen(0)
-        coro = t.m.add(writer)
-        t.m_run.start()
+        coro = self.m.add(writer)
+        self.m_run.start()
         sleep(1)
         while 1:
             sleep(0.2)
@@ -168,76 +168,76 @@ class SocketTest_MixIn:
                 else:
                     raise
         srv.close()
-        t.assertEqual(t.writeobj+t.writeobj_all, total)
-        t.assertEqual(len(t.m.poll), 0)
-        t.assertEqual(len(t.m.active), 0)
-        t.failIf(t.m_run.isAlive())
+        self.assertEqual(self.writeobj+self.writeobj_all, total)
+        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.active), 0)
+        self.failIf(self.m_run.isAlive())
 class SchedulerTest_MixIn:
-    def setUp(t):
-        t.m = t.scheduler()
-        t.msgs = []
+    def setUp(self):
+        self.m = self.scheduler()
+        self.msgs = []
         
-    def tearDown(t):
+    def tearDown(self):
         pass
-    def test_signal(t):
+    def test_signal(self):
         class X:
             pass
         x = X()
         @coroutine
         def signalee():
-            t.msgs.append(1)
+            self.msgs.append(1)
             yield events.WaitForSignal("test_sig")
-            t.msgs.append(3)
+            self.msgs.append(3)
             yield events.WaitForSignal(x)
-            t.msgs.append(5)
+            self.msgs.append(5)
         @coroutine
         def signaler():
-            t.msgs.append(2)
+            self.msgs.append(2)
             yield events.Signal("test_sig")
-            t.msgs.append(4)
+            self.msgs.append(4)
             yield events.Signal(x)
-            t.msgs.append(6)
+            self.msgs.append(6)
             
-        t.m.add(signalee)
-        t.m.add(signaler)
-        t.m.run()
-        t.assertEqual(t.msgs, [1,2,3,4,5,6])
-    def test_add_coro(t):
+        self.m.add(signalee)
+        self.m.add(signaler)
+        self.m.run()
+        self.assertEqual(self.msgs, [1,2,3,4,5,6])
+    def test_add_coro(self):
         @coroutine
         def added(x):
-            t.msgs.append(x)
+            self.msgs.append(x)
         @coroutine
         def adder(c):
-            t.msgs.append(1)
+            self.msgs.append(1)
             yield events.AddCoro(c, args=(2,))
-            t.msgs.append(3)
-        t.m.add(adder, added)
-        t.m.run()
-        t.assertEqual(t.msgs, [1,2,3])
-    def test_call(t):
+            self.msgs.append(3)
+        self.m.add(adder, added)
+        self.m.run()
+        self.assertEqual(self.msgs, [1,2,3])
+    def test_call(self):
         @coroutine
         def caller():
-            t.msgs.append(1)
+            self.msgs.append(1)
             ret = yield events.Call(callee_1)
-            t.msgs.append(ret)
+            self.msgs.append(ret)
             ret = yield events.Call(callee_2)
-            t.msgs.append(ret is None and 3 or -1)
+            self.msgs.append(ret is None and 3 or -1)
             try:
                 ret = yield events.Call(callee_3)
             except Exception, e:
-                t.msgs.append(e.message=='some_message' and 4 or -1)
+                self.msgs.append(e.message=='some_message' and 4 or -1)
              
             ret = yield events.Call(callee_4)
-            t.msgs.append(ret)
+            self.msgs.append(ret)
             try:
                 ret = yield events.Call(callee_5)
             except:
                 import traceback
                 s = traceback.format_exc()
-                t.exc = s
+                self.exc = s
 
             ret = yield events.Call(callee_6, args=(6,))
-            t.msgs.append(ret)
+            self.msgs.append(ret)
             
         @coroutine
         def callee_1():
@@ -276,25 +276,25 @@ class SchedulerTest_MixIn:
             raise StopIteration(x)
             
         
-        t.m.add(caller)
-        t.m.run()
-        t.assertEqual(t.msgs, [1,2,3,4,5,6])
-        t.assert_('raise StopIteration((yield events.Call(callee_5_1)))' in t.exc)
-        t.assert_('raise StopIteration((yield events.Call(callee_5_2)))' in t.exc)
-        t.assert_('raise Exception("long_one")' in t.exc)
-    def test_join(t):
+        self.m.add(caller)
+        self.m.run()
+        self.assertEqual(self.msgs, [1,2,3,4,5,6])
+        self.assert_('raise StopIteration((yield events.Call(callee_5_1)))' in self.exc)
+        self.assert_('raise StopIteration((yield events.Call(callee_5_2)))' in self.exc)
+        self.assert_('raise Exception("long_one")' in self.exc)
+    def test_join(self):
         @coroutine
         def caller():
-            t.msgs.append(1)
-            ret = yield events.Join(t.m.add(callee_1))
-            t.msgs.append(ret)
-            ret = yield events.Join(t.m.add(callee_2))
-            t.msgs.append(3 if ret is None else -1)
+            self.msgs.append(1)
+            ret = yield events.Join(self.m.add(callee_1))
+            self.msgs.append(ret)
+            ret = yield events.Join(self.m.add(callee_2))
+            self.msgs.append(3 if ret is None else -1)
             #~ try:
-            t.c = t.m.add(callee_3)
-            t.c.handle_error=lambda*a:None
-            ret = yield events.Join(t.c)
-            t.msgs.append(4 if ret is None and t.c.exception[1].message=='some_message' else -1)
+            self.c = self.m.add(callee_3)
+            self.c.handle_error=lambda*a:None
+            ret = yield events.Join(self.c)
+            self.msgs.append(4 if ret is None and self.c.exception[1].message=='some_message' else -1)
             
             
         @coroutine
@@ -308,93 +308,93 @@ class SchedulerTest_MixIn:
             yield
             raise Exception("some_message")
             yield
-        t.m.add(caller)
-        t.m.run()
-        t.assertEqual(t.msgs, [1,2,3,4])
+        self.m.add(caller)
+        self.m.run()
+        self.assertEqual(self.msgs, [1,2,3,4])
 class Timer_MixIn:
-    def setUp(t):
-        t.local_addr = ('localhost', random.randint(19000,20000))
-        t.m = t.scheduler()
+    def setUp(self):
+        self.local_addr = ('localhost', random.randint(19000,20000))
+        self.m = self.scheduler()
         def run():
             try:
                 time.sleep(1)
-                t.m.run()
+                self.m.run()
             except:
                 import traceback
                 traceback.print_exc()
-        t.m_run = threading.Thread(target=run)
-        t.m_run.setDaemon(False)        
-        t.local_sock = socket()        
-        t.msgs = []
-    def tearDown(t):
-        t.local_sock.close()
-    def test_sock_connect_timeout(t):
-        t.ev = threading.Event()
-        t.ev.clear()
+        self.m_run = threading.Thread(target=run)
+        self.m_run.setDaemon(False)        
+        self.local_sock = socket()        
+        self.msgs = []
+    def tearDown(self):
+        self.local_sock.close()
+    def test_sock_connect_timeout(self):
+        self.ev = threading.Event()
+        self.ev.clear()
         @coroutine 
         def sleeper(secs):
-            t.now = time.time()
+            self.now = time.time()
             yield events.Sleep(secs)
-            t.msgs.append(time.time() - t.now)
+            self.msgs.append(time.time() - self.now)
         @coroutine
         def coro():
             
-            t.now = time.time()
+            self.now = time.time()
             yield events.Sleep(1)
-            t.msgs.append(time.time() - t.now)
+            self.msgs.append(time.time() - self.now)
             cli = sockets.Socket()
-            yield sockets.Connect(cli, t.local_addr, prio = t.prio)
+            yield sockets.Connect(cli, self.local_addr, prio = self.prio)
             try:
-                t.now = time.time()
-                yield sockets.ReadAll(cli, 4096, timeout=2, prio = t.prio)
+                self.now = time.time()
+                yield sockets.ReadAll(cli, 4096, timeout=2, prio = self.prio)
             except events.OperationTimeout:
-                t.msgs.append(time.time() - t.now)
+                self.msgs.append(time.time() - self.now)
             cli.close()
             
             time.sleep(5)
             srv = sockets.Socket()
-            t.local_addr = ('localhost', random.randint(20000,21000))
-            srv.bind(t.local_addr)
+            self.local_addr = ('localhost', random.randint(20000,21000))
+            srv.bind(self.local_addr)
             srv.listen(10)
             
-            t.ev.set()
-            yield sockets.Accept(srv, prio = t.prio)
+            self.ev.set()
+            yield sockets.Accept(srv, prio = self.prio)
             try:
-                t.now = time.time()
-                yield sockets.Accept(srv, timeout = 3, prio = t.prio)
+                self.now = time.time()
+                yield sockets.Accept(srv, timeout = 3, prio = self.prio)
             except events.OperationTimeout:
-                t.msgs.append(time.time() - t.now)
+                self.msgs.append(time.time() - self.now)
             yield events.AddCoro(sleeper, args=(5,))
             try:
-                t.now = time.time()
-                print '> %s;' % (yield events.WaitForSignal('bla', 4, prio = t.prio))
+                self.now = time.time()
+                print '> %s;' % (yield events.WaitForSignal('bla', 4, prio = self.prio))
             except events.OperationTimeout:
-                t.msgs.append(time.time() - t.now)
+                self.msgs.append(time.time() - self.now)
             
             
             
-        t.local_sock.bind(t.local_addr)
-        t.local_sock.listen(10)
-        t.m.add(coro)
-        t.m_run.start()
-        t.sock = t.local_sock.accept()
-        t.local_sock.close()
-        t.ev.wait()
+        self.local_sock.bind(self.local_addr)
+        self.local_sock.listen(10)
+        self.m.add(coro)
+        self.m_run.start()
+        self.sock = self.local_sock.accept()
+        self.local_sock.close()
+        self.ev.wait()
         time.sleep(0.1)
-        t.local_sock = socket()
-        t.local_sock.connect(t.local_addr)
-        t.local_sock.getpeername()
+        self.local_sock = socket()
+        self.local_sock.connect(self.local_addr)
+        self.local_sock.getpeername()
         time.sleep(1)
-        #~ print t.m.active
-        #~ print t.m.poll
-        t.m_run.join()
-        t.assertEqual(len(t.m.poll), 0)
-        t.assertEqual(len(t.m.active), 0)
-        t.assertAlmostEqual(t.msgs[0], 1.0, 1)
-        t.assertAlmostEqual(t.msgs[1], 2.0, 1)
-        t.assertAlmostEqual(t.msgs[2], 3.0, 1)
-        t.assertAlmostEqual(t.msgs[3], 4.0, 1)
-        t.assertAlmostEqual(t.msgs[4], 5.0, 1)
+        #~ print self.m.active
+        #~ print self.m.poll
+        self.m_run.join()
+        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.active), 0)
+        self.assertAlmostEqual(self.msgs[0], 1.0, 1)
+        self.assertAlmostEqual(self.msgs[1], 2.0, 1)
+        self.assertAlmostEqual(self.msgs[2], 3.0, 1)
+        self.assertAlmostEqual(self.msgs[3], 4.0, 1)
+        self.assertAlmostEqual(self.msgs[4], 5.0, 1)
         
 class PrioMixIn:
     prio = priority.FIRST

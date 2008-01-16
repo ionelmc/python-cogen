@@ -21,118 +21,133 @@ def coroutine(func):
         return Coroutine(func, *args, **kws)
     return make_new_coroutine
     
-class Coroutine:
+class Coroutine(object):
     ''' 
         We need a coroutine wrapper for generators and function alike because
-        we want to run functions that don't return generators just like a coroutine 
+        we want to run functions that don'self return generators just like a coroutine 
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
     _state_names = "notstarted", "running", "completed", "failed"
-    __slots__ = ['f_args','f_kws']
-    def __init__(t, coro, *args, **kws):
-        t.f_args = args
-        t.f_kws = kws
-        if t._valid_gen(coro):
-            t.state = t.STATE_RUNNING
-            t.name = coro.gi_frame.f_code.co_name
+    __slots__ = [ 
+        'f_args', 'f_kws', 'name', 'state', 
+        'exception', 'coro', 'caller', 'waiters', 'result'
+    ]
+    def __init__(self, coro, *args, **kws):
+        self.f_args = args
+        self.f_kws = kws
+        if self._valid_gen(coro):
+            self.state = self.STATE_RUNNING
+            self.name = coro.gi_frame.f_code.co_name
         elif callable(coro):
-            t.state = t.STATE_NEED_INIT
-            t.name = coro.func_name
+            self.state = self.STATE_NEED_INIT
+            self.name = coro.func_name
         else:
-            t.state = t.STATE_FAILED
-            t.exception = ValueError("Bad generator")
-            raise t.exception 
-        t.coro = coro
-        t.caller = t.prio = None
-        t.waiters = []
-    def add_waiter(t, coro):
-        assert t.state < t.STATE_COMPLETED
-        assert coro not in t.waiters
-        t.waiters.append((t, coro))
-    def remove_waiter(t, coro):
+            self.state = self.STATE_FAILED
+            self.exception = ValueError("Bad generator")
+            raise self.exception 
+        self.coro = coro
+        self.caller = self.prio = None
+        self.waiters = []
+    def add_waiter(self, coro):
+        assert self.state < self.STATE_COMPLETED
+        assert coro not in self.waiters
+        self.waiters.append((self, coro))
+    def remove_waiter(self, coro):
         try:
-            t.waiters.remove((t, coro))
+            self.waiters.remove((self, coro))
         except ValueError:
             pass
         
-    def _valid_gen(t, coro):
+    def _valid_gen(self, coro):
         if isinstance(coro, types.GeneratorType):
             return True
         elif hasattr(coro, 'send') and \
              hasattr(coro, 'throw'):
             return True
-    def _run_completion(t):
+    def _run_completion(self):
         coros = []
-        if t.caller:
-            coros.append((t, t.caller))
-        if t.waiters:
-            coros.extend(t.waiters)
-        t.waiters = None
-        t.caller = None
+        if self.caller:
+            coros.append((self, self.caller))
+        if self.waiters:
+            coros.extend(self.waiters)
+        self.waiters = None
+        self.caller = None
         return events.Complete(*coros)
-    running = property(lambda t: t.state < t.STATE_COMPLETED)
+    running = property(lambda self: self.state < self.STATE_COMPLETED)
     #~ @debug(0)        
-    def run_op(t, op): 
+    def run_op(self, op): 
         if hasattr(op, 'finalized'):
             op.finalized = True
-        assert t.state < t.STATE_COMPLETED, "Coroutine at 0x%X called but it is %s state !" % (id(t), t._state_names[t.state])
+        assert self.state < self.STATE_COMPLETED, \
+            "Coroutine at 0x%X called but it is %s state !" % (
+                id(self), 
+                self._state_names[self.state]
+            )
         try:
-            if t.state == t.STATE_RUNNING:
+            if self.state == self.STATE_RUNNING:
                 if isinstance(op, events.CoroutineException):
-                    rop = t.coro.throw(*op.message)
+                    rop = self.coro.throw(*op.message)
                 else:
-                    rop = t.coro.send(getattr(op, 'result', op))
-            elif t.state == t.STATE_NEED_INIT:
+                    rop = self.coro.send(getattr(op, 'result', op))
+            elif self.state == self.STATE_NEED_INIT:
                 assert op is None
-                t.coro = t.coro(*t.f_args, **t.f_kws)
-                del t.f_args
-                del t.f_kws 
-                if t._valid_gen(t.coro):
-                    t.state = t.STATE_RUNNING
+                self.coro = self.coro(*self.f_args, **self.f_kws)
+                del self.f_args
+                del self.f_kws 
+                if self._valid_gen(self.coro):
+                    self.state = self.STATE_RUNNING
                     rop = None
                 else:
-                    t.state = t.STATE_COMPLETED
-                    t.result = t.coro
-                    t.coro = None
-                    rop = t._run_completion()
+                    self.state = self.STATE_COMPLETED
+                    self.result = self.coro
+                    self.coro = None
+                    rop = self._run_completion()
             else:
                 return None
                 
         except StopIteration, e:
-            t.state = t.STATE_COMPLETED
-            t.result = e.message
-            if hasattr(t.coro, 'close'): t.coro.close()
-            rop = t._run_completion()
+            self.state = self.STATE_COMPLETED
+            self.result = e.message
+            if hasattr(self.coro, 'close'): self.coro.close()
+            rop = self._run_completion()
             
         except:
             #~ import traceback
             #~ traceback.print_exc()
-            t.state = t.STATE_FAILED
-            t.result = None
-            t.exception = sys.exc_info()
-            if hasattr(t.coro, 'close'): t.coro.close()
-            if t.caller:
-                if t.waiters:
-                    rop = t._run_completion()
+            self.state = self.STATE_FAILED
+            self.result = None
+            self.exception = sys.exc_info()
+            if hasattr(self.coro, 'close'): self.coro.close()
+            if self.caller:
+                if self.waiters:
+                    rop = self._run_completion()
                 else:
-                    rop = events.Pass(t.caller, events.CoroutineException(t.exception), prio=t.prio)
-                t.waiters = None
-                t.caller = None
+                    rop = events.Pass(
+                        self.caller, 
+                        events.CoroutineException(self.exception), 
+                        prio=self.prio
+                    )
+                self.waiters = None
+                self.caller = None
             else:
-                t.handle_error()
-                rop = t._run_completion()
+                self.handle_error()
+                rop = self._run_completion()
         return rop
-    def handle_error(t):        
+    def handle_error(self):        
         print 
         print '-'*40
         print 'Exception happened during processing of coroutine.'
         import traceback
         traceback.print_exc()
-        print "Coroutine %s killed. " % t
+        print "Coroutine %s killed. " % self
         print '-'*40
         
-    def __repr__(t):
-        return "<%s Coroutine instance at 0x%08X, state: '%s'>" % (t.name, id(t), t._state_names[t.state])
+    def __repr__(self):
+        return "<%s Coroutine instance at 0x%08X, state: '%s'>" % (
+            self.name, 
+            id(self), 
+            self._state_names[self.state]
+        )
         
 if __name__ == "__main__":
     @coroutine
