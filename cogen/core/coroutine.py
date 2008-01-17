@@ -1,12 +1,10 @@
 import types
 import sys
 import gc
-from decorator import decorator
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
 
-@decorator
-def coroutine(*args, **kws):
+def coroutine(func):
     """ 
     A decorator function for generators.
     Example:
@@ -19,16 +17,9 @@ def coroutine(*args, **kws):
             yield bla
             ...
     """
-    return Coroutine(func, *args, **kws)
-
-def handle_error(self):        
-    print 
-    print '-'*40
-    print 'Exception happened during processing of coroutine.'
-    import traceback
-    traceback.print_exc()
-    print "Coroutine %s killed. " % self
-    print '-'*40
+    def make_new_coroutine(*args, **kws):
+        return Coroutine(func, *args, **kws)
+    return make_new_coroutine
 
 
 class Coroutine(object):
@@ -60,7 +51,7 @@ class Coroutine(object):
         self.coro = coro
         self.caller = self.prio = None
         self.waiters = []
-        self.handle_error = handle_error
+        #~ self.handle_error = handle_error
     def add_waiter(self, coro):
         assert self.state < self.STATE_COMPLETED
         assert coro not in self.waiters
@@ -146,6 +137,14 @@ class Coroutine(object):
                 self.handle_error()
                 rop = self._run_completion()
         return rop
+
+    def handle_error(self):        
+        print>>sys.stderr, '-'*40
+        print>>sys.stderr, 'Exception happened during processing of coroutine.'
+        import traceback
+        traceback.print_exc()
+        print>>sys.stderr, "Coroutine %s killed. " % self
+        print>>sys.stderr, '-'*40
         
     def __repr__(self):
         return "<%s Coroutine instance at 0x%08X, state: '%s'>" % (

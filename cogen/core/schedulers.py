@@ -65,19 +65,14 @@ class Scheduler(object):
             self.default_priority, 
             self.default_timeout
         )
-    def _init_coro(self, coro, *args, **kws):
-        return coro(*args, **kws)
-            
-    def add(self, coro, *args, **kws):
-        coro = self._init_coro(coro, *args, **kws)
-        self.active.append( (None, coro) )
+    def add(self, coro, args=(), kwargs={}, first=True):
+        coro = coro(*args, **kwargs)
+        if first:
+            self.active.append( (None, coro) )
+        else:
+            self.active.appendleft( (None, coro) )    
         return coro
-        
-    def add_first(self, coro, *args, **kws):
-        coro = self._init_coro(coro, *args, **kws)
-        self.active.appendleft( (None, coro) )
-        return coro
-        
+       
     def run_timer(self):
         if self.timewait:
             now = datetime.datetime.now() 
@@ -94,48 +89,51 @@ class Scheduler(object):
             else:
                 return None
     def run_poller(self):
-        
-        if len(self.active)<2:
+        if self.poll:
             self.poll.run(timeout = self.next_timer_delta())
 
     def add_timeout(self, op, coro, weak_timeout):
         heapq.heappush(self.timeouts, Timeout(op, coro, weak_timeout))
     def handle_timeouts(self):
-        now = datetime.datetime.now()
-        #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
-        while self.timeouts and self.timeouts[0].timeout <= now:
-            timo = heapq.heappop(self.timeouts)
-            op, coro = timo.op(), timo.coro()
-            if op:
-                #~ print timo
-                if timo.weak_timeout and hasattr(op, 'last_update'):
-                    if op.last_update > timo.last_checkpoint:
-                        timo.last_checkpoint = op.last_update
-                        timo.timeout = timo.last_checkpoint + timo.delta
-                        heapq.heappush(self.timeouts, timo)
-                        continue
-                
-                if isinstance(op, sockets.Operation):
-                    self.poll.remove(op, coro)
-                elif coro and isinstance(op, events.Join):
-                    op.coro.remove_waiter(coro)
-                elif isinstance(op, events.WaitForSignal):
-                    try:
-                        self.sigwait[op.name].remove((op, coro))
-                    except ValueError:
-                        pass
-                if not op.finalized and coro and coro.running:
-                    self.active.append((
-                        events.CoroutineException((
-                            events.OperationTimeout, 
-                            events.OperationTimeout(op)
-                        )), 
-                        coro
-                    ))
+        if self.timeouts:
+            now = datetime.datetime.now()
+            #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
+            while self.timeouts and self.timeouts[0].timeout <= now:
+                timo = heapq.heappop(self.timeouts)
+                op, coro = timo.op(), timo.coro()
+                if op:
+                    #~ print timo
+                    if timo.weak_timeout and hasattr(op, 'last_update'):
+                        if op.last_update > timo.last_checkpoint:
+                            timo.last_checkpoint = op.last_update
+                            timo.timeout = timo.last_checkpoint + timo.delta
+                            heapq.heappush(self.timeouts, timo)
+                            continue
+                    
+                    if isinstance(op, sockets.Operation):
+                        self.poll.remove(op, coro)
+                    elif coro and isinstance(op, events.Join):
+                        op.coro.remove_waiter(coro)
+                    elif isinstance(op, events.WaitForSignal):
+                        try:
+                            self.sigwait[op.name].remove((op, coro))
+                        except ValueError:
+                            pass
+                    if not op.finalized and coro and coro.running:
+                        self.active.append((
+                            events.CoroutineException((
+                                events.OperationTimeout, 
+                                events.OperationTimeout(op)
+                            )), 
+                            coro
+                        ))
     #~ @debug(0)        
     def process_op(self, op, coro):
         if op is None:
-           self.active.append((op, coro))
+            if self.active:
+                self.active.append((op, coro))
+            else:
+                return op, coro 
         else:
             if getattr(op, 'prio', None) == priority.DEFAULT:
                 op.prio = self.default_priority
@@ -149,26 +147,24 @@ class Scheduler(object):
                 r = self.poll.run_or_add(op, coro)
                 if r:
                     if op.prio:
-                        return r, coro
+                        return r, r and coro
                     else:
                         self.active.appendleft((r, coro))
             elif isinstance(op, events.Pass):
                 return op.op, op.coro
             elif isinstance(op, events.AddCoro):
-                if op.prio & priority.OP:
-                    self.add_first(op.coro, *op.args, **op.kwargs)
-                else:
-                    self.add(op.coro, *op.args, **op.kwargs)
+                self.add(op.coro, op.args, op.kwargs, op.prio & priority.OP)
                     
                 if op.prio & priority.CORO:
                     return op, coro
                 else:
                     self.active.append( (None, coro))
             elif isinstance(op, events.Complete):
-                if op.prio:
-                    self.active.extendleft(op.args)
-                else:
-                    self.active.extend(op.args)
+                if op.args:
+                    if op.prio:
+                        self.active.extendleft(op.args)
+                    else:
+                        self.active.extend(op.args)
             elif isinstance(op, events.WaitForSignal):
                 self.sigwait[op.name].append((op, coro))
             elif isinstance(op, events.Signal):
@@ -187,10 +183,7 @@ class Scheduler(object):
                     
                 del self.sigwait[op.name]
             elif isinstance(op, events.Call):
-                if op.prio:
-                    callee = self.add_first(op.coro, *op.args, **op.kwargs)
-                else:
-                    callee = self.add(op.coro, *op.args, **op.kwargs) 
+                callee = self.add(op.coro, op.args, op.kwargs, op.prio) 
                 callee.caller = coro
                 callee.prio = op.prio
                 del callee
@@ -211,7 +204,7 @@ class Scheduler(object):
                 while True:
                     #~ print coro, op
                     op, coro = self.process_op(coro.run_op(op), coro)
-                    if not op:
+                    if not op and not coro:
                         break  
                     
             self.run_poller()

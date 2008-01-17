@@ -224,7 +224,7 @@ class SchedulerTest_MixIn:
             self.msgs.append(1)
             yield events.AddCoro(c, args=(2,))
             self.msgs.append(3)
-        self.m.add(adder, added)
+        self.m.add(adder, args=(added,))
         self.m.run()
         self.assertEqual(self.msgs, [1,2,3])
     def test_call(self):
@@ -305,8 +305,10 @@ class SchedulerTest_MixIn:
             self.msgs.append(3 if ret is None else -1)
             #~ try:
             self.c = self.m.add(callee_3)
-            self.c.handle_error=lambda*a:None
+            sys.stderr = StringIO()
+            #~ self.c.handle_error=lambda*a:None
             ret = yield events.Join(self.c)
+            sys.stderr = sys.__stderr__
             self.msgs.append(
                 4 
                 if ret is None and self.c.exception[1].message=='some_message' 
