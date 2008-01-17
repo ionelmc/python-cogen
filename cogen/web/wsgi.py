@@ -77,6 +77,7 @@ comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
     'WWW-AUTHENTICATE']
 
 class WSGIFileWrapper:
+    __doc_all__ = ['__init__']
     def __init__(self, filelike, blocksize=8192):
         self.filelike = filelike
         self.blocksize = blocksize
@@ -84,6 +85,7 @@ class WSGIFileWrapper:
             self.close = filelike.close
     #TODO: iter method            
 class tryclosing(object):
+    __doc_all__ = ['__init__', '__enter__', '__exit__']
     """
     This is the exact context manager as contextlib.closing but it 
     doesn'self throw a exception if the managed object doesn'self have a 
@@ -99,6 +101,7 @@ class tryclosing(object):
     
     
 class WSGIPathInfoDispatcher(object):
+    __doc_all__ = ['__init__', '__call__']
     """A WSGI dispatcher for dispatch based on the PATH_INFO.
     
     apps: a dict or list of (path_prefix, app) pairs.
@@ -153,6 +156,10 @@ class COGENOperationCall(object):
 class COGENProxy:
     pass
 class WSGIConnection(object):
+    __doc_all__ = [
+        '__init__', 'start_response', 'render_headers', 
+        'simple_response', 'run',
+    ]
     connection_environ = {
         "wsgi.version": (1, 0),
         "wsgi.url_scheme": "http",
@@ -530,13 +537,18 @@ class WSGIConnection(object):
                     yield self.simple_response("500 Internal Server Error",
                                             format_exc())
                 return
-            except (events.OperationTimeout, events.ConnectionClosed, events.ConnectionError):
+            except (events.OperationTimeout, 
+                    events.ConnectionClosed, 
+                    events.ConnectionError):
                 return
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
                 if not self.started_response:
-                    yield self.simple_response("500 Internal Server Error", format_exc())
+                    yield self.simple_response(
+                        "500 Internal Server Error", 
+                        format_exc()
+                    )
                 else:
                     print "*" * 60
                     traceback.print_exc()

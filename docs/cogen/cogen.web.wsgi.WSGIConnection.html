@@ -35,21 +35,15 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.web.wsgi.WSGIConnection.html#method-make_new_coroutine">make_new_coroutine</a>
+                        <a href="cogen.web.wsgi.WSGIConnection.html#method-__init__">__init__</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIConnection.html#method-render_headers">render_headers</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.WSGIConnection.html#method-run">run</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIConnection.html#method-simple_response">simple_response</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIConnection.html#method-start_response">start_response</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="browser-section">
-                <h2>Attributes</h2>
-                <ul>
-                    <li>
-                        <a href="cogen.web.wsgi.WSGIConnection.html#attribute-"></a>
                     </li>
                 </ul>
             </div>
@@ -60,82 +54,74 @@
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L152">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L157">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
-            <h3 id="method-make_new_coroutine">
-                make_new_coroutine
-                <span class="args">(*args, **kws)</span>
+            <h3 id="method-__init__">
+                __init__
+                <span class="args">(self, sock, wsgi_app, environ)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/coroutine.py#L19">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L173">View source</a>
     </li>
 </ul>
             <h3 id="method-render_headers">
                 render_headers
-                <span class="args">(t)</span>
+                <span class="args">(self)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L186">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L195">View source</a>
     </li>
 </ul>
-            <h3 id="method-simple_response">
-                simple_response
-                <span class="args">(t, status, msg='')</span>
+            <h3 id="method-run">
+                run
+                <span class="args">(self)</span>
             </h3>
-            <div class="docstring rst"><p>Return a operation for writing simple response back to the client.</p>
+            <div class="docstring rst"><p>A bit bulky atm...</p>
 </div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L235">View source</a>
-    </li>
-</ul>
-            <h3 id="method-start_response">
-                start_response
-                <span class="args">(t, status, headers, exc_info=None)</span>
-            </h3>
-            <div class="docstring rst"><p>WSGI callable to begin the HTTP response.</p>
-</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L169">View source</a>
-    </li>
-</ul>
-    </div>
-    <div>
-        <h2>Attributes</h2>
-            <h3 id="attribute-"></h3>
-            <div class="docstring rst"></div>
-            <h4>Value of </h4>
-            <pre class="code"><code>{'wsgi.errors': &lt;open file '&lt;stderr&gt;', mode 'w' at 0x0096F0B0&gt;,
- 'wsgi.file_wrapper': &lt;class cogen.web.wsgi.WSGIFileWrapper at 0x00FE39F0&gt;,
- 'wsgi.input': None,
- 'wsgi.multiprocess': False,
- 'wsgi.multithread': True,
- 'wsgi.run_once': False,
- 'wsgi.url_scheme': 'http',
- 'wsgi.version': (1, 0)}</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
         <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
     </li>
 </ul>
+            <h3 id="method-simple_response">
+                simple_response
+                <span class="args">(self, status, msg='')</span>
+            </h3>
+            <div class="docstring rst"><p>Return a operation for writing simple response back to the client.</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L244">View source</a>
+    </li>
+</ul>
+            <h3 id="method-start_response">
+                start_response
+                <span class="args">(self, status, headers, exc_info=None)</span>
+            </h3>
+            <div class="docstring rst"><p>WSGI callable to begin the HTTP response.</p>
+</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L178">View source</a>
+    </li>
+</ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-25 18:33
+            Apydia 0.0.2</a> on 2008-01-17 23:10
         </div>
     </div>
 </body>

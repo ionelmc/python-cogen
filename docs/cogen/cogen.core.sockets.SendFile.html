@@ -44,7 +44,8 @@
         </div>
         <div id="content">
     <h1>Class: SendFile</h1>
-    <div class="docstring rst"><p>Uses underling OS sendfile call or a regular memory copy operation if there is no sendfile.
+    <div class="docstring rst"><p>Uses underling OS sendfile call or a regular memory copy operation if
+there is no sendfile.
 You can use this as a WriteAll if you specify the length.
 Usage:</p>
 <div class="source"><pre><span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="o">&lt;</span><span class="nb">file</span> <span class="n">handle</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">,</span> <span class="mf">0</span><span class="p">)</span>
@@ -52,47 +53,49 @@ Usage:</p>
 
 <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="o">&lt;</span><span class="nb">file</span> <span class="n">handle</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="n">blocksize</span><span class="o">=</span><span class="mf">0</span><span class="p">)</span>
     <span class="c"># there will be only one send operation (if successfull)</span>
-    <span class="c"># that meas the whole file will be read in memory if there is no sendfile</span>
+    <span class="c"># that meas the whole file will be read in memory if there is</span>
+    <span class="c">#no sendfile</span>
 
 <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="o">&lt;</span><span class="nb">file</span> <span class="n">handle</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="o">&lt;</span><span class="nb">file</span> <span class="n">size</span><span class="o">&gt;</span><span class="p">)</span>
-    <span class="c"># this will hang if we can't read &lt;file size&gt; bytes from the file</span>
+    <span class="c"># this will hang if we can'self read &lt;file size&gt; bytes</span>
+    <span class="c">#from the file</span>
 </pre></div>
 </div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L104">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\core\sockets.py#L112">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
             <h3 id="method-__init__">
                 __init__
-                <span class="args">(t, file_handle, sock, offset=None, length=None, blocksize=4096, **kws)</span>
+                <span class="args">(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L125">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\core\sockets.py#L139">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
                 run
-                <span class="args">(t)</span>
+                <span class="args">(self)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/sockets.py#L139">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\core\sockets.py#L158">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-25 18:33
+            Apydia 0.0.2</a> on 2008-01-17 23:10
         </div>
     </div>
 </body>

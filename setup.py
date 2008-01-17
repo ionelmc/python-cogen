@@ -7,20 +7,26 @@ from cogen import __version__ as version
 setup(
     name='cogen',
     version=version,
-    description='Coroutines and asynchronous I/O using enhanced generators from python 2.5, including a enhanced WSGI server',
+    description='''
+        Coroutines and asynchronous I/O using enhanced generators 
+        from python 2.5, including a enhanced WSGI server.
+    ''',
     long_description="""
-Coroutines in python using enhanced generators from python 2.5
+        Coroutines in python using enhanced generators from python 2.5
 
-This is a library for network oriented, coroutine based programming. 
-The interfaces and events/operations aim to mimic thread features. Coroutines 
-work as simple generators, the operations and events work as objects passed in 
-and out of the generator, these objects are managed by the scheduler/network poller. 
+        This is a library for network oriented, coroutine based programming. 
+        The interfaces and events/operations aim to mimic thread features. 
+        Coroutines work as simple generators, the operations and events work as 
+        objects passed in and out of the generator, these objects are managed 
+        by the scheduler/network poller. 
 
-Other features include a wsgi server with coroutine extensions, epoll/kqueue/sendfile enhancements, support for both win32 and linux.
+        Other features include a wsgi server with coroutine extensions, 
+        epoll/kqueue/sendfile enhancements, support for both win32 and linux.
 
-Project page at: http://cogen.googlecode.com/
+        Project page at: http://cogen.googlecode.com/
 
-Development version at: http://cogen.googlecode.com/svn/trunk/cogen/#egg=cogen-dev
+        Development version at: 
+            http://cogen.googlecode.com/svn/trunk/cogen/#egg=cogen-dev
     """,
     author='Maries Ionel Cristian',
     author_email='ionel.mc@gmail.com  ',
@@ -49,5 +55,9 @@ Development version at: http://cogen.googlecode.com/svn/trunk/cogen/#egg=cogen-d
         'paste.server_factory': [
             'wsgi=cogen.web.wsgi:server_factory',
         ],
+        'apydia.themes': [
+            'cogen=cogen.docs.theme'
+        ]
     },
+    install_requires = ['decorator']
 )

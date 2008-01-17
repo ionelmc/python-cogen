@@ -73,7 +73,7 @@ class priority(object):
     DEFAULT       Use the default_priority set in the Scheduler
     ------------ ---------------------------------------------------------------
     LAST, NOPRIO  Allways scheduler the operation/coroutine at the end of the
-                 queue   
+                  queue   
     ------------ ---------------------------------------------------------------
     CORO          Favor the coroutine - if it's the case.
     ------------ ---------------------------------------------------------------

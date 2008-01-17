@@ -42,38 +42,40 @@
         </div>
         <div id="content">
     <h1>Class: Call</h1>
-    <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and resume the callee when it returns.</p>
+    <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
+resume the callee when it returns.</p>
 <p>Usage:</p>
 <div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=&lt;</span><span class="n">a</span> <span class="nb">tuple</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=&lt;</span><span class="n">a</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">prio</span><span class="o">=&lt;</span><span class="nb">int</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 <ul class="simple">
-<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the scheduler queue</li>
+<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the
+scheduler queue</li>
 </ul>
 </div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/events.py#L61">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\core\events.py#L73">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
             <h3 id="method-__init__">
                 __init__
-                <span class="args">(t, coro, args=None, kwargs=None, prio=-1)</span>
+                <span class="args">(self, coro, args=None, kwargs=None, prio=-1)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/core/events.py#L75">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\core\events.py#L89">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-25 18:33
+            Apydia 0.0.2</a> on 2008-01-17 23:10
         </div>
     </div>
 </body>

@@ -1,10 +1,12 @@
 import types
 import sys
 import gc
+from decorator import decorator
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
 
-def coroutine(func):
+@decorator
+def coroutine(*args, **kws):
     """ 
     A decorator function for generators.
     Example:
@@ -17,9 +19,7 @@ def coroutine(func):
             yield bla
             ...
     """
-    def make_new_coroutine(*args, **kws):
-        return Coroutine(func, *args, **kws)
-    return make_new_coroutine
+    return Coroutine(func, *args, **kws)
 
 def handle_error(self):        
     print 

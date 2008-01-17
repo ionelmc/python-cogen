@@ -83,7 +83,7 @@ class Call(object):
         result = yield events.Call(mycoro, args=<a tuple>, kwargs=<a dict>, prio=<int>)
         
     - if `prio` is set the new coroutine will be added in the top of the 
-    scheduler queue
+      scheduler queue
     """
     __slots__ = ['coro', 'args', 'kwargs', 'prio']
     __doc_all__ = ['__init__']

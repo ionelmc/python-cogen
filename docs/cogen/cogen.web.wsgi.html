@@ -46,9 +46,10 @@
         </div>
         <div id="content">
     <h1>Module: wsgi</h1>
-    <div class="docstring rst"><p>This wsgi server is a single threaded, single process server that interleaves the iterations
-of the wsgi apps - I could add a threadpool for blocking apps in the future.</p>
-<p>If you don't return iterators from apps and return lists you'll get, at most,
+    <div class="docstring rst"><p>This wsgi server is a single threaded, single process server that interleaves
+the iterations of the wsgi apps - I could add a threadpool for blocking apps in
+the future.</p>
+<p>If you don'self return iterators from apps and return lists you'll get, at most,
 the performance of a server that processes requests sequentialy.</p>
 <p>On the other hand this server has coroutine extensions that suppose to support
 use of middleware in your application.</p>
@@ -63,21 +64,22 @@ use of middleware in your application.</p>
         <span class="k">yield</span> <span class="s">"Someone signaled me: </span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
 </pre></div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">environ['cogen'].core</span></tt> is actualy a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen'].operation</span></tt>
-with the called object and returns a empty string. This should penetrate most of the
-middleware - according to the wsgi spec, middleware should pass a empty string if it
-doesn't have anything to return on that specific iteration point, or, in other words,
-the length of the app iter returned by middleware should be at least that of the app.</li>
-<li>the wsigi server will set <tt class="docutils literal"><span class="pre">environ['cogen'].result</span></tt> with the result of the operation
-and <tt class="docutils literal"><span class="pre">environ['cogen'].exception</span></tt> with the details of the exception - if any:
-(exc_type, exc_value, traceback_object).</li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen'].core</span></tt> is actualy a wrapper that sets
+<tt class="docutils literal"><span class="pre">environ['cogen'].operation</span></tt> with the called object and returns a empty
+string. This should penetrate most of the middleware - according to the wsgi
+spec, middleware should pass a empty string if it doesn't have anything to
+return on that specific iteration point, or, in other words, the length of the
+app iter returned by middleware should be at least that of the app.</li>
+<li>the wsigi server will set <tt class="docutils literal"><span class="pre">environ['cogen'].result</span></tt> with the result of the
+operation and <tt class="docutils literal"><span class="pre">environ['cogen'].exception</span></tt> with the details of the
+exception - if any: <tt class="docutils literal"><span class="pre">(exc_type,</span> <span class="pre">exc_value,</span> <span class="pre">traceback_object)</span></tt>.</li>
 </ul>
 <p>HTTP handling code taken from the CherryPy WSGI server.</p>
 </div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L1">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L1">View source</a>
     </li>
 </ul>
     <div>
@@ -92,7 +94,7 @@ and <tt class="docutils literal"><span class="pre">environ['cogen'].exception</s
         <a href="cogen.web.wsgi.WSGIConnection.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L152">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L157">View source</a>
     </li>
 </ul>
             <h3>
@@ -105,33 +107,35 @@ and <tt class="docutils literal"><span class="pre">environ['cogen'].exception</s
         <a href="cogen.web.wsgi.WSGIFileWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L76">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L78">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.wsgi.WSGIServer.html">WSGIServer</a>
             </h3>
             <div class="docstring rst"><p class="first">The interface on which to listen for connections.
-For TCP sockets, a (host, port) tuple. Host values may be any IPv4
-or IPv6 address, or any valid hostname. The string 'localhost' is a
-synonym for '127.0.0.1' (or '::1', if your hosts file prefers IPv6).
-The string '0.0.0.0' is a special IPv4 entry meaning "any active
-interface" (INADDR_ANY), and '::' is the similar IN6ADDR_ANY for
-IPv6. The empty string or None are not allowed.</p></div>
+For TCP sockets, a (host, port) tuple. Host values may
+be any IPv4 or IPv6 address, or any valid hostname.
+The string 'localhost' is a synonym for '127.0.0.1' (or
+'::1', if your hosts file prefers IPv6).
+The string '0.0.0.0' is a special IPv4 entry meaning
+"any active interface" (INADDR_ANY), and '::' is the
+similar IN6ADDR_ANY for IPv6. The empty string or None
+are not allowed.</p></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.wsgi.WSGIServer.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen/web/wsgi.py#L523">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\web\wsgi.py#L556">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.1</a> on 2007-12-25 18:33
+            Apydia 0.0.2</a> on 2008-01-17 23:10
         </div>
     </div>
 </body>
