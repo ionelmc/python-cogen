@@ -32,9 +32,9 @@ THE SOFTWARE.
 '''
 
 __author__ = "Mărieş Ionel Cristian"
-__email__ = "ionel.mc at gmail dot com"
+__email__ = "ionel dot mc at gmail dot com"
 __revision__ = "$Revision$"
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __svnid__ = "$Id$"
 
 from cogen import core
