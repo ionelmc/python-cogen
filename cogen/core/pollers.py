@@ -252,6 +252,7 @@ class EpollPoller(Poller):
     def remove(self, op, coro):
         fileno = getattr(op, 'fileno', None)
         if fileno:
+            epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_DEL, fileno, 0)
             if isinstance(op, sockets.ReadOperation):
                 if fileno in self.waiting_reads:
                     del self.waiting_reads[fileno]
@@ -298,7 +299,7 @@ class EpollPoller(Poller):
                 else:
                     self.handle_errored(fd)
                     continue
-                    
+                
                 op, coro = waiting_ops[fd]
                 op = self.run_operation(op)
                 if op:
@@ -314,7 +315,6 @@ class EpollPoller(Poller):
                             self.scheduler.active.appendleft( (op, coro) )
                         else:
                             self.scheduler.active.append( (op, coro) )    
-                
         else:
             time.sleep(self.RESOLUTION)
 try:
