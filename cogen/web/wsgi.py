@@ -486,6 +486,18 @@ class WSGIConnection(object):
                     environ['cogen'].exception = None
                     response = self.wsgi_app(environ, self.start_response)
                     with tryclosing(response):
+                        if not self.sent_headers:
+                            yield sockets.WriteAll(
+                                self.conn, 
+                                self.render_headers()
+                            )
+                            self.sent_headers = True
+                            write_data = self.write_buffer.getvalue()
+                            if write_data:
+                                yield sockets.WriteAll(
+                                    self.conn, 
+                                    write_data
+                                )
                         if isinstance(response, WSGIFileWrapper):
                             yield sockets.SendFile(
                                 response.filelike, 
@@ -494,18 +506,6 @@ class WSGIConnection(object):
                             )#, timeout=-1)
                         else:
                             for chunk in response:
-                                if not self.sent_headers:
-                                    yield sockets.WriteAll(
-                                        self.conn, 
-                                        self.render_headers()
-                                    )
-                                    self.sent_headers = True
-                                    write_data = self.write_buffer.getvalue()
-                                    if write_data:
-                                        yield sockets.WriteAll(
-                                            self.conn, 
-                                            write_data
-                                        )
                                 if chunk:
                                     if self.chunked_write:
                                         buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
