@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+
+<!-- remove old header -->
+
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
+        - Module: wsgi</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+    <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
+    <link rel="stylesheet" href="css/apydia.css" type="text/css" />
+    <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
+    <script src="js/apydia.js" type="text/javascript"></script>
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <div id="page">
+        <div id="browser">
+            <div class="browser-section">
+                <h2>Module Index</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.html">cogen</a>
+                    </li><li>
+                        <a href="cogen.common.html">cogen.common</a>
+                    </li><li>
+                        <a href="cogen.core.html">cogen.core</a>
+                    </li><li>
+                        <a href="cogen.web.html">cogen.web</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Classes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.web.wsgi.WSGIConnection.html">WSGIConnection</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.WSGIFileWrapper.html">WSGIFileWrapper</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.WSGIServer.html">WSGIServer</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="content">
+    <h1>Module:
+        cogen.web.wsgi
+    </h1>
+    <div class="docstring rst"><p>This wsgi server is a single threaded, single process server that interleaves
+the iterations of the wsgi apps - I could add a threadpool for blocking apps in
+the future.</p>
+<p>If you don'self return iterators from apps and return lists you'll get, at most,
+the performance of a server that processes requests sequentialy.</p>
+<p>On the other hand this server has coroutine extensions that suppose to support
+use of middleware in your application.</p>
+<p>Example app with coroutine extensions:</p>
+<div class="source"><pre><span class="k">def</span> <span class="nf">wait_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+    <span class="n">start_response</span><span class="p">(</span><span class="s">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s">'Content-type'</span><span class="p">,</span><span class="s">'text/html'</span><span class="p">)])</span>
+    <span class="k">yield</span> <span class="s">"I'm waiting for some signal"</span>
+    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">"abc"</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="s">"Your time is up !"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="s">"Someone signaled me: </span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+</pre></div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">environ['cogen'].core</span></tt> is actualy a wrapper that sets
+<tt class="docutils literal"><span class="pre">environ['cogen'].operation</span></tt> with the called object and returns a empty
+string. This should penetrate most of the middleware - according to the wsgi
+spec, middleware should pass a empty string if it doesn't have anything to
+return on that specific iteration point, or, in other words, the length of the
+app iter returned by middleware should be at least that of the app.</li>
+<li>the wsigi server will set <tt class="docutils literal"><span class="pre">environ['cogen'].result</span></tt> with the result of the
+operation and <tt class="docutils literal"><span class="pre">environ['cogen'].exception</span></tt> with the details of the
+exception - if any: <tt class="docutils literal"><span class="pre">(exc_type,</span> <span class="pre">exc_value,</span> <span class="pre">traceback_object)</span></tt>.</li>
+</ul>
+<p>HTTP handling code taken from the CherryPy WSGI server.</p>
+</div>
+    <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L1">View source</a>
+    </li>
+</ul>
+    <div>
+        <h2>Classes</h2>
+            <h3>
+                <a href="cogen.web.wsgi.WSGIConnection.html">WSGIConnection</a>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.wsgi.WSGIConnection.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L157">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.wsgi.WSGIFileWrapper.html">WSGIFileWrapper</a>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.wsgi.WSGIFileWrapper.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L78">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.wsgi.WSGIServer.html">WSGIServer</a>
+            </h3>
+            <div class="docstring rst"><p class="first">The interface on which to listen for connections.
+For TCP sockets, a (host, port) tuple. Host values may
+be any IPv4 or IPv6 address, or any valid hostname.
+The string 'localhost' is a synonym for '127.0.0.1' (or
+'::1', if your hosts file prefers IPv6).
+The string '0.0.0.0' is a special IPv4 entry meaning
+"any active interface" (INADDR_ANY), and '::' is the
+similar IN6ADDR_ANY for IPv6. The empty string or None
+are not allowed.</p></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.wsgi.WSGIServer.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L556">View source</a>
+    </li>
+</ul>
+    </div>
+        </div>
+        <div id="footer">
+            Generated with <a href="http://apydia.ematia.de/" class="extern">
+            Apydia 0.0.2</a>
+        </div>
+    </div>
+</body>
+</html>

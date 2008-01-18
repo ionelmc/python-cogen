@@ -29,7 +29,7 @@ setup(
             http://cogen.googlecode.com/svn/trunk/cogen/#egg=cogen-dev
     """,
     author='Maries Ionel Cristian',
-    author_email='ionel.mc@gmail.com  ',
+    author_email='ionel dot mc at gmail dot com',
     url='http://code.google.com/p/cogen/',
     packages=[
         'cogen',
@@ -59,7 +59,7 @@ setup(
             'cogen=cogen.docs.theme'
         ]
     },
-    install_requires = ['decorator'],
+    install_requires = [],
     test_suite = "cogen.test"
     
 )

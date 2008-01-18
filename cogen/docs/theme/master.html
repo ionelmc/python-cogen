@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      py:strip="">
+
+<head py:match="head" py:attrs="select('@*')">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    
+    <title>${project.name} API Reference Documentation
+        - <span py:replace="select('title/text()')" /></title>
+    
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <meta py:replace="select('meta')" />
+    
+    <link href="css/default.css" rel="stylesheet" type="text/css" />
+    <link href="css/pygments.css" rel="stylesheet" type="text/css" />
+    
+    <meta py:replace="select('link')" />    
+    <meta py:replace="select('script')" />
+</head>
+
+<ul py:def="link_bar(link_desc, details_link=True)" class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li py:if="details_link and link_desc.details">
+        <a href="${link_desc.details}">Details</a>
+    </li>
+    <li py:if="link_desc.sourcelink(project)" class="link-to-sourcecode">
+        <a href="${link_desc.sourcelink(project)}">View source</a>
+    </li>
+</ul>
+
+
+<body py:match="body" py:attrs="select('@*')">
+    <div id="page">
+        <div id="header">            
+            <h1>${project.name} API Reference</h1>
+        </div>
+        
+        <div id="browser">
+            <div class="browser-section">
+                <h2>Module Index</h2>
+            
+                <ul>
+                    <li py:for="module in project.modules"
+                        class="${(module.contains(desc)) and 'active' or None}">
+                        <a href="${module.href}">${module.pathname}</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div py:if="desc.modules" class="browser-section">
+                <h2>Submodules</h2>
+            
+                <ul>
+                    <li py:for="member in desc.modules"
+                        py:if="member.pathname not in project.options.exclude_modules">
+                        <a href="${member.href}">${member.name}</a>
+                    </li>
+                </ul>
+            </div>
+                
+            <div py:if="desc.classes" class="browser-section">
+                <h2>Classes</h2>
+            
+                <ul>
+                    <li py:for="member in desc.classes">
+                        <a href="${member.href}">${member.name}</a>
+                    </li>
+                </ul>
+            </div>
+                
+            <div py:if="desc.methods" class="browser-section">
+                <h2>Methods</h2>
+            
+                <ul>
+                    <li py:for="member in desc.methods">
+                        <a href="${member.href}">${member.name}</a>
+                    </li>
+                </ul>
+            </div>                
+            
+            <div py:if="desc.functions" class="browser-section">
+                <h2>Functions</h2>
+            
+                <ul>
+                    <li py:for="member in desc.functions">
+                        <a href="${member.href}">${member.name}</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div py:if="desc.attributes" class="browser-section">
+                <h2>Attributes</h2>
+            
+                <ul>
+                    <li py:for="member in desc.attributes">
+                        <a href="${member.href}">${member.name}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    
+        <div id="content">
+            <div py:replace="select('*|text()')"/>
+        </div>
+        
+        <div id="footer">
+            Generated with <a href="http://apydia.ematia.de/" class="extern">
+            Apydia ${project.apydia_version}</a>
+        </div>
+    </div>
+</body>
+
+<xi:include href="site.html"><xi:fallback /></xi:include>
+
+</html>
