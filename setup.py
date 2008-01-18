@@ -59,5 +59,7 @@ setup(
             'cogen=cogen.docs.theme'
         ]
     },
-    install_requires = ['decorator']
+    install_requires = ['decorator'],
+    test_suite = "cogen.test"
+    
 )
