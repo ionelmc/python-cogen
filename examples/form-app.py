@@ -21,7 +21,4 @@ def show_post(environ, start_response):
 
 from cogen.web import wsgi
 from cogen.common import *
-server = wsgi.WSGIServer( ('localhost', 9000), show_post)
-m = Scheduler(default_priority=priority.LAST, default_timeout=15)
-m.add(server.start)
-m.run()
+wsgi.server_factory({}, '0.0.0.0', 9001)(show_post)

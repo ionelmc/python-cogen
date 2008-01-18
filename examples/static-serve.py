@@ -135,10 +135,11 @@ class Static(object):
                     return [generate_xhtml(path_info, *get_entries(full_path))]
         content_type = self._guess_type(full_path)
         try:
-            etag, last_modified = self._conditions(full_path, environ)
+            etag, last_modified, length = self._conditions(full_path, environ)
             headers = [('Date', rfc822.formatdate(time.time())),
                        ('Last-Modified', last_modified),
-                       ('ETag', etag)]
+                       ('ETag', etag),
+                       ('Content-Length', str(length))]
             if_modified = environ.get('HTTP_IF_MODIFIED_SINCE')
             if if_modified and (rfc822.parsedate(if_modified)
                                 >= rfc822.parsedate(last_modified)):
@@ -167,7 +168,8 @@ class Static(object):
     def _conditions(self, full_path, environ):
         """Return a tuple of etag, last_modified by mtime from stat."""
         mtime = os.stat(full_path).st_mtime
-        return str(mtime), rfc822.formatdate(mtime)
+        size = os.stat(full_path).st_size
+        return str(mtime), rfc822.formatdate(mtime), size
 
     def _file_like(self, full_path):
         """Return the appropriate file object."""
@@ -192,10 +194,7 @@ def iter_and_close(file_like, block_size):
 
 from cogen.web import wsgi
 from cogen.common import *
-server = wsgi.WSGIServer( ('localhost', 9000), Static('.'))
-m = Scheduler(default_priority=priority.LAST, default_timeout=15)
-m.add(server.start)
-m.run()
+wsgi.server_factory({}, '0.0.0.0', 9000)(Static('.'))
 
 
 #~ from wsgiref.simple_server import make_server
