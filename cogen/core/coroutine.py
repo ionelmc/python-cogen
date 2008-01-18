@@ -19,6 +19,9 @@ def coroutine(func):
     """
     def make_new_coroutine(*args, **kws):
         return Coroutine(func, *args, **kws)
+    make_new_coroutine.__name__ = func.__name__
+    make_new_coroutine.__doc__ = func.__doc__
+    make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
 
 
