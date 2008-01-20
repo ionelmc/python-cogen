@@ -1,4 +1,6 @@
 import datetime
+import heapq
+
 from cogen.core.util import debug, TimeoutDesc, priority
 
 __doc_all__ = [
@@ -27,21 +29,72 @@ class CoroutineException(Exception):
     __doc_all__ = []
     prio = priority.DEFAULT
 
-
-class WaitForSignal(object):
-    "The coroutine will resume when the same object is Signaled."
-        
-    __slots__ = [
-        'name', 'prio', '_timeout', 'finalized', 
-        '__weakref__', 'result'
-    ]
-    __doc_all__ = ['__init__']
-    timeout = TimeoutDesc('_timeout')
-    def __init__(self, name, timeout=None, prio=priority.DEFAULT):
-        self.name = name
+class Operation(object):
+    """All operations derive from this. This base class handles 
+    the priority flag. 
+    
+    Eg:
+    
+    .. sourcecode:: python
+    
+        yield Operation(prio=<int constant>)
+    """
+    __slots__ = ['prio', 'result']
+    def __init__(self, prio=priority.DEFAULT):
         self.prio = prio
+    def process(self, sched, coro):
+        if self.prio == priority.DEFAULT:
+            self.prio = sched.default_priority
+            
+
+class TimedOperation(Operation):
+    """Operations that have a timeout derive from this.
+    
+    Eg:
+    
+    .. sourcecode:: python
+    
+        yield TimedOperation(
+            timeout=<secs or datetime or timedelta>, 
+            weak_timeout=<bool>,
+            prio=<int constant>
+        )
+    """
+    __slots__ = ['_timeout', '__weakref__', 'finalized', 'weak_timeout']
+    timeout = TimeoutDesc('_timeout')
+    def __init__(self, timeout=None, weak_timeout=True, **kws):
+        super(TimedOperation, self).__init__(**kws)
         self.timeout = timeout
         self.finalized = False
+        self.weak_timeout = weak_timeout
+        
+    def process(self, sched, coro):
+        super(TimedOperation, self).process(sched, coro)
+        
+        if not self.timeout:
+            self.timeout = sched.default_timeout
+        if self.timeout and self.timeout != -1:
+            sched.add_timeout(self, coro, False)
+        
+class WaitForSignal(TimedOperation):
+    "The coroutine will resume when the same object is Signaled."
+        
+    __slots__ = ['name']
+    __doc_all__ = ['__init__']
+    def __init__(self, name, **kws):
+        super(WaitForSignal, self).__init__(**kws)
+        self.name = name
+    def process(self, sched, coro):
+        super(WaitForSignal, self).process(sched, coro)
+        waitlist = sched.sigwait[self.name]
+        waitlist.append((self, coro))
+        if sched.signals.has_key(self.name):
+            sig = sched.signals[self.name]
+            if sig.recipients <= len(waitlist):
+                sig.process(sched, sig.coro)
+                del sig.coro
+                del sched.signals[self.name]
+            
     def __repr__(self):
         return "<%s at 0x%X name:%s timeout:%s prio:%s>" % (
             self.__class__, 
@@ -50,7 +103,7 @@ class WaitForSignal(object):
             self.timeout, 
             self.prio
         )
-class Signal(object):
+class Signal(Operation):
     """
     This will resume the coroutines that where paused with WaitForSignal.
     
@@ -62,16 +115,38 @@ class Signal(object):
         
     - nr - the number of coroutines woken up
     """
-    __slots__ = ['name', 'value', 'len', 'prio', 'result']
+    __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
     __doc_all__ = ['__init__']
-    def __init__(self, name, value=None, prio=priority.DEFAULT):
+    def __init__(self, name, value=None, recipients=0, **kws):
         """All the coroutines waiting for this object will be added back in the
         active coroutine queue."""
+        super(Signal, self).__init__(**kws)
         self.name = name
         self.value = value
-        self.prio = prio
+        self.recipients = recipients
         
-class Call(object):
+    def process(self, sched, coro):
+        super(Signal, self).process(sched, coro)
+        self.result = len(sched.sigwait[self.name])
+        if self.result < self.recipients:
+            sched.signals[self.name] = self
+            self.coro = coro
+            return
+            
+        for waitop, waitcoro in sched.sigwait[self.name]:
+            waitop.result = self.value
+        if self.prio & priority.OP:
+            sched.active.extendleft(sched.sigwait[self.name])
+        else:
+            sched.active.extend(sched.sigwait[self.name])
+        
+        if self.prio & priority.CORO:
+            sched.active.appendleft((None, coro))
+        else:
+            sched.active.append((None, coro))
+            
+        del sched.sigwait[self.name]        
+class Call(Operation):
     """
     This will pause the current coroutine, add a new coro in the scheduler and 
     resume the callee when it returns.
@@ -85,13 +160,18 @@ class Call(object):
     - if `prio` is set the new coroutine will be added in the top of the 
       scheduler queue
     """
-    __slots__ = ['coro', 'args', 'kwargs', 'prio']
+    __slots__ = ['coro', 'args', 'kwargs']
     __doc_all__ = ['__init__']
-    def __init__(self, coro, args=None, kwargs=None, prio=priority.DEFAULT):
+    def __init__(self, coro, args=None, kwargs=None, **kws):
+        super(Call, self).__init__(**kws)
         self.coro = coro
         self.args = args or ()
         self.kwargs = kwargs or {}
-        self.prio = prio
+    def process(self, sched, coro):
+        super(Call, self).process(sched, coro)
+        callee = sched.add(self.coro, self.args, self.kwargs, self.prio) 
+        callee.caller = coro
+        callee.prio = self.prio
     def __repr__(self):
         return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (
             self.__class__, 
@@ -102,7 +182,7 @@ class Call(object):
             self.prio
         )
     
-class AddCoro(object):
+class AddCoro(Operation):
     """
     A operator for adding a coroutine in the scheduler.
     Example:
@@ -111,14 +191,20 @@ class AddCoro(object):
         
         yield events.AddCoro(some_coro, args=(), kwargs={})
     """
-    __slots__ = ['coro', 'args', 'kwargs', 'prio']
+    __slots__ = ['coro', 'args', 'kwargs']
     __doc_all__ = ['__init__']
-    def __init__(self, coro, args=None, kwargs=None, prio=priority.DEFAULT):
-        "Some DOC."
+    def __init__(self, coro, args=None, kwargs=None, **kws):
+        super(AddCoro, self).__init__(**kws)
         self.coro = coro
         self.args = args or ()
         self.kwargs = kwargs or {}
-        self.prio = prio
+    def process(self, sched, coro):
+        super(AddCoro, self).process(sched, coro)
+        sched.add(self.coro, self.args, self.kwargs, self.prio & priority.OP)
+        if self.prio & priority.CORO:
+            return self, coro
+        else:
+            sched.active.append( (None, coro))
     def __repr__(self):
         return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (
             self.__class__, 
@@ -129,17 +215,20 @@ class AddCoro(object):
             self.prio
         )
 
-class Pass(object):
+class Pass(Operation):
     """
     A operator for setting the next (coro, op) pair to be runned by the 
     scheduler. Used internally.
     """
-    __slots__ = ['coro', 'op', 'prio']
+    __slots__ = ['coro', 'op']
     __doc_all__ = ['__init__']
-    def __init__(self, coro, op=None, prio=priority.DEFAULT):
+    def __init__(self, coro, op=None, **kws):
+        super(Pass, self).__init__(**kws)
         self.coro = coro
         self.op = op
-        self.prio = prio
+    def process(self, sched, coro):
+        super(Pass, self).process(sched, coro)
+        return self.op, self.coro
     def __repr__(self):
         return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (
             self.__class__, 
@@ -149,16 +238,23 @@ class Pass(object):
             self.prio
         )
 
-class Complete(object):
+class Complete(Operation):
     """
     A operator for adding a list of (coroutine, operator) pairs. Used 
     internally.
     """
-    __slots__ = ['args', 'prio']
+    __slots__ = ['args']
     __doc_all__ = ['__init__']
-    def __init__(self, *args):
+    def __init__(self, *args, **kws):
+        super(Complete, self).__init__(**kws)
         self.args = tuple(args)
-        self.prio = priority.DEFAULT
+    def process(self, sched, coro):
+        super(Complete, self).process(sched, coro)
+        if self.args:
+            if self.prio:
+                sched.active.extendleft(self.args)
+            else:
+                sched.active.extend(self.args)
     def __repr__(self):
         return '<%s instance at 0x%X, args: %s, prio: %s>' % (
             self.__class__, 
@@ -167,7 +263,7 @@ class Complete(object):
             self.prio
         )
     
-class Join(object):
+class Join(TimedOperation):
     """
     A operator for waiting on a coroutine. 
     Example:
@@ -187,13 +283,14 @@ class Join(object):
         ref = scheduler.add(coro_b)
         scheduler.add(coro_a)
     """
-    __slots__ = ['coro', '_timeout', 'finalized', '__weakref__']
-    timeout = TimeoutDesc('_timeout')
+    __slots__ = ['coro']
     __doc_all__ = ['__init__']
-    def __init__(self, coro, timeout=None):
+    def __init__(self, coro, **kws):
+        super(Join, self).__init__(**kws)
         self.coro = coro
-        self.timeout = timeout
-        self.finalized = False
+    def process(self, sched, coro):
+        super(Join, self).process(sched, coro)
+        self.coro.add_waiter(coro)
     def __repr__(self):
         return '<%s instance at 0x%X, coro: %s>' % (
             self.__class__, 
@@ -202,7 +299,7 @@ class Join(object):
         )
 
     
-class Sleep(object):
+class Sleep(Operation):
     """
     Usage:
     
@@ -221,6 +318,7 @@ class Sleep(object):
     __slots__ = ['wake_time', 'coro']
     __doc_all__ = ['__init__']
     def __init__(self, val=None, timestamp=None):
+        super(Sleep, self).__init__()
         if isinstance(val, datetime.timedelta):
             self.wake_time = datetime.datetime.now() + val
         elif isinstance(val, datetime.datetime):
@@ -231,6 +329,10 @@ class Sleep(object):
             else:
                 self.wake_time = datetime.datetime.now() + \
                                  datetime.timedelta(seconds=val)
-        
+    def process(self, sched, coro):
+        super(Sleep, self).process(sched, coro)
+        self.coro = coro
+        heapq.heappush(sched.timewait, self)
     def __cmp__(self, other):
         return cmp(self.wake_time, other.wake_time)
+        

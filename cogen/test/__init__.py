@@ -387,7 +387,7 @@ class Timer_MixIn:
             try:
                 self.now = time.time()
                 print '> %s;' % (
-                    yield events.WaitForSignal('bla', 4, prio = self.prio)
+                    yield events.WaitForSignal('bla', timeout=4, prio=self.prio)
                 )
             except events.OperationTimeout:
                 self.msgs.append(time.time() - self.now)
@@ -436,6 +436,6 @@ class TimerTest_NoPrio(Timer_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 
 if __name__ == '__main__':
-    sys.argv.append('-v')
+    sys.argv.insert(1,'-v')
     unittest.main()
             

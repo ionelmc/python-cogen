@@ -32,7 +32,7 @@ class Socket(socket.socket):
             rl_list_sz - a cached size of the summed sizes of rl_list buffers
     """
     def __init__(self, *a, **k):
-        super(self.__class__, self).__init__(*a, **k)
+        super(Socket, self).__init__(*a, **k)
         self._rl_list = []
         self._rl_list_sz = 0
         self._rl_pending = ''
@@ -45,11 +45,8 @@ class Socket(socket.socket):
         return '<socket at 0x%X>' % id(self)
     def __str__(self):
         return 'sock@0x%X' % id(self)
-class Operation(object):
-    __slots__ = [
-        'sock', '_timeout', 'weak_timeout', 'last_update', 
-        '__weakref__', 'fileno', 'prio', 'finalized'
-    ]
+class SocketOperation(events.TimedOperation):
+    __slots__ = ['sock', 'last_update', 'fileno']
     __doc_all__ = ['__init__', 'try_run']
     trim = 2000
     """
@@ -58,7 +55,7 @@ class Operation(object):
     A socket operation should subclass WriteOperation or ReadOperation, define a
     `run` method and call the __init__ method of the superclass.
     """
-    def __init__(self, sock, timeout=None, weak_timeout=True, prio=priority.DEFAULT):
+    def __init__(self, sock, **kws):
         """
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
@@ -70,13 +67,11 @@ class Operation(object):
           `try_run` call)
         * prio - a flag for the scheduler
         """
-        
         assert isinstance(sock, Socket)
+        
+        super(SocketOperation, self).__init__(**kws)
         self.sock = sock
-        self.timeout = timeout
-        self.finalized = False
-        self.weak_timeout = weak_timeout
-        self.prio = prio
+        
     def try_run(self):
         """
         This method will return a None value or raise a exception if the 
@@ -100,14 +95,22 @@ class Operation(object):
             else:
                 raise
         return self
+    def process(self, sched, coro):
+        super(SocketOperation, self).process(sched, coro)
+        r = sched.poll.run_or_add(self, coro)
+        if r:
+            if self.prio:
+                return r, r and coro
+            else:
+                sched.active.appendleft((r, coro))
     def run(self):
         raise NotImplementedError()
     timeout = TimeoutDesc('_timeout')
 
-class ReadOperation(Operation): 
+class ReadOperation(SocketOperation): 
     pass
 
-class WriteOperation(Operation): 
+class WriteOperation(SocketOperation): 
     pass
     
 class SendFile(WriteOperation):
@@ -138,12 +141,12 @@ class SendFile(WriteOperation):
     ]
     __doc_all__ = ['__init__', 'run']
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
+        super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
         self.offset = self.position = offset or file_handle.tell()
         self.length = length
         self.sent = 0
         self.blocksize = blocksize
-        super(self.__class__, self).__init__(sock, **kws)
     def send(self, offset, length):
         if sendfile:
             offset, sent = sendfile.sendfile(
@@ -200,9 +203,9 @@ class Read(ReadOperation):
     __slots__ = ['len', 'buff', 'addr', 'result']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, len = 4096, **kws):
+        super(Read, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-        super(self.__class__, self).__init__(sock, **kws)
     def run(self):
         if self.sock._rl_list:
             self.sock._rl_pending = ''.join(self.sock._rl_list) + self.sock._rl_pending
@@ -237,9 +240,9 @@ class ReadAll(ReadOperation):
     __slots__ = ['len', 'buff', 'addr', 'result']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, len = 4096, **kws):
+        super(ReadAll, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-        super(self.__class__, self).__init__(sock, **kws)
     def run(self):
         if self.sock._rl_pending:
             self.sock._rl_list.append(self.sock._rl_pending) 
@@ -284,9 +287,9 @@ class ReadLine(ReadOperation):
     __slots__ = ['len', 'buff', 'addr', 'result']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, len = 4096, **kws):
+        super(ReadLine, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-        super(self.__class__, self).__init__(sock, **kws)
     def check_overflow(self):
         if self.sock._rl_list_sz >= self.len: 
             #~ rl_list    = self.sock._rl_list   
@@ -351,9 +354,9 @@ class Write(WriteOperation):
     __slots__ = ['sent', 'buff', 'result']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, buff, **kws):
+        super(Write, self).__init__(sock, **kws)
         self.buff = buff
         self.sent = 0
-        super(self.__class__, self).__init__(sock, **kws)
     def run(self):
         self.sent = self.result = self.sock.send(self.buff)
         return self
@@ -374,9 +377,9 @@ class WriteAll(WriteOperation):
     __slots__ = ['sent', 'buff']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, buff, **kws):
+        super(WriteAll, self).__init__(sock, **kws)
         self.buff = buff
         self.sent = 0
-        super(self.__class__, self).__init__(sock, **kws)
     def run(self):
         sent = self.sock.send(buffer(self.buff, self.sent))
         self.sent += sent
@@ -400,8 +403,8 @@ class Accept(ReadOperation):
     __slots__ = ['conn', 'addr', 'result']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, **kws):
+        super(Accept, self).__init__(sock, **kws)
         self.conn = None
-        super(self.__class__, self).__init__(sock, **kws)
     def run(self):
         self.conn, self.addr = self.sock.accept()
         self.conn = Socket(_sock=self.conn)
@@ -424,8 +427,8 @@ class Connect(WriteOperation):
     __slots__ = ['addr']
     __doc_all__ = ['__init__', 'run']
     def __init__(self, sock, addr, **kws):
+        super(Connect, self).__init__(sock, **kws)
         self.addr = addr
-        super(self.__class__, self).__init__(sock, **kws)
     def run(self):
         """ 
         We need to avoid some non-blocking socket connect quirks: 

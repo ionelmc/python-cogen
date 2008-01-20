@@ -50,6 +50,7 @@ class Scheduler(object):
         self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
+        self.signals = {}
         self.timewait = [] # heapq
         self.poll = poller(self)
         self.default_priority = default_priority
@@ -110,7 +111,7 @@ class Scheduler(object):
                             heapq.heappush(self.timeouts, timo)
                             continue
                     
-                    if isinstance(op, sockets.Operation):
+                    if isinstance(op, sockets.SocketOperation):
                         self.poll.remove(op, coro)
                     elif coro and isinstance(op, events.Join):
                         op.coro.remove_waiter(coro)
@@ -135,65 +136,7 @@ class Scheduler(object):
             else:
                 return op, coro 
         else:
-            if getattr(op, 'prio', None) == priority.DEFAULT:
-                op.prio = self.default_priority
-            if hasattr(op, 'timeout'): 
-                if not op.timeout:
-                    op.timeout = self.default_timeout
-                if op.timeout and op.timeout != -1:
-                    self.add_timeout(op, coro, getattr(op, 'weak_timeout', False))
-        
-            if isinstance(op, sockets.Operation):
-                r = self.poll.run_or_add(op, coro)
-                if r:
-                    if op.prio:
-                        return r, r and coro
-                    else:
-                        self.active.appendleft((r, coro))
-            elif isinstance(op, events.Pass):
-                return op.op, op.coro
-            elif isinstance(op, events.AddCoro):
-                self.add(op.coro, op.args, op.kwargs, op.prio & priority.OP)
-                    
-                if op.prio & priority.CORO:
-                    return op, coro
-                else:
-                    self.active.append( (None, coro))
-            elif isinstance(op, events.Complete):
-                if op.args:
-                    if op.prio:
-                        self.active.extendleft(op.args)
-                    else:
-                        self.active.extend(op.args)
-            elif isinstance(op, events.WaitForSignal):
-                self.sigwait[op.name].append((op, coro))
-            elif isinstance(op, events.Signal):
-                op.result = len(self.sigwait[op.name])
-                for waitop, waitcoro in self.sigwait[op.name]:
-                    waitop.result = op.value
-                if op.prio & priority.OP:
-                    self.active.extendleft(self.sigwait[op.name])
-                else:
-                    self.active.extend(self.sigwait[op.name])
-                
-                if op.prio & priority.CORO:
-                    self.active.appendleft((None, coro))
-                else:
-                    self.active.append((None, coro))
-                    
-                del self.sigwait[op.name]
-            elif isinstance(op, events.Call):
-                callee = self.add(op.coro, op.args, op.kwargs, op.prio) 
-                callee.caller = coro
-                callee.prio = op.prio
-                del callee
-            elif isinstance(op, events.Join):
-                op.coro.add_waiter(coro)
-            elif isinstance(op, events.Sleep):
-                op.coro = coro
-                heapq.heappush(self.timewait, op)
-            else:
-                raise RuntimeError("Bad coroutine operation.")
+            return op.process(self, coro) or (None, None)
         return None, None
         
     def run(self):
