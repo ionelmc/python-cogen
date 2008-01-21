@@ -88,6 +88,7 @@ class Coroutine(object):
     def finalize(self):
         return self.result
     
+    #~ @debug(0)
     def run_op(self, op): 
         assert self.state < self.STATE_COMPLETED, \
             "Coroutine at 0x%X called but it is %s state !" % (

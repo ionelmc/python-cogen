@@ -79,14 +79,28 @@ class QPut(events.TimedOperation):
         self.caller = coro
         if self.queue._full():
             if self.block:
+                self.queue.unfinished_tasks += 1
                 self.queue.waiting_puts.append(self)
             else:
                 raise Full
         else:
+            self.queue.unfinished_tasks += 1
             if self.queue.waiting_gets:
                 getop = self.queue.waiting_gets.popleft()
                 getop.result = self.item
-                return getop, coro
+                if self.prio:
+                    if self.prio & priority.CORO:
+                        sched.active.appendleft((self, coro))
+                    else:
+                        sched.active.append((self, coro))
+                    return getop, getop.caller
+                else:
+                    if getop.prio:
+                        sched.active.appendleft((getop, getop.caller))
+                    else:
+                        sched.active.append((getop, getop.caller))
+                    return self, coro
+                    
             else:
                 self.queue._put(self.item)
                 return self, coro
@@ -160,6 +174,7 @@ class Queue:
         placed in the queue.
         """
         unfinished = self.unfinished_tasks - 1
+        op = None
         if unfinished <= 0:
             if unfinished < 0:
                 raise ValueError('task_done() called too many times')
