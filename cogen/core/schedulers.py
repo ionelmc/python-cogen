@@ -68,6 +68,7 @@ class Scheduler(object):
             self.default_timeout
         )
     def add(self, coro, args=(), kwargs={}, first=True):
+        assert callable(coro), "Coroutine not a callable object"
         coro = coro(*args, **kwargs)
         if first:
             self.active.append( (None, coro) )
