@@ -2,7 +2,8 @@ import collections
 import datetime
 import heapq
 import weakref
-                
+import sys                
+
 from cogen.core.pollers import DefaultPoller
 from cogen.core import events
 from cogen.core import sockets
@@ -50,7 +51,7 @@ class Scheduler(object):
         self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
-        self.signals = {}
+        self.signals = collections.defaultdict(collections.deque)
         self.timewait = [] # heapq
         self.poll = poller(self)
         self.default_priority = default_priority
@@ -136,7 +137,11 @@ class Scheduler(object):
             else:
                 return op, coro 
         else:
-            return op.process(self, coro) or (None, None)
+            try:
+                result = op.process(self, coro) or (None, None)
+            except:
+                result = events.CoroutineException(sys.exc_info()), coro
+            return result
         return None, None
         
     def run(self):

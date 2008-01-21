@@ -38,6 +38,8 @@ class Coroutine(object):
         'exception', 'coro', 'caller', 'waiters', 'result',
         'prio', 'handle_error', '__weakref__',
     ]
+    running = property(lambda self: self.state < self.STATE_COMPLETED)
+    
     def __init__(self, coro, *args, **kws):
         self.f_args = args
         self.f_kws = kws
@@ -54,11 +56,12 @@ class Coroutine(object):
         self.coro = coro
         self.caller = self.prio = None
         self.waiters = []
-        #~ self.handle_error = handle_error
+    
     def add_waiter(self, coro):
         assert self.state < self.STATE_COMPLETED
         assert coro not in self.waiters
         self.waiters.append((self, coro))
+
     def remove_waiter(self, coro):
         try:
             self.waiters.remove((self, coro))
@@ -71,6 +74,7 @@ class Coroutine(object):
         elif hasattr(coro, 'send') and \
              hasattr(coro, 'throw'):
             return True
+    
     def _run_completion(self):
         coros = []
         if self.caller:
@@ -80,11 +84,11 @@ class Coroutine(object):
         self.waiters = None
         self.caller = None
         return events.Complete(*coros)
-    running = property(lambda self: self.state < self.STATE_COMPLETED)
-    #~ @debug(0)        
+    
+    def finalize(self):
+        return self.result
+    
     def run_op(self, op): 
-        if hasattr(op, 'finalized'):
-            op.finalized = True
         assert self.state < self.STATE_COMPLETED, \
             "Coroutine at 0x%X called but it is %s state !" % (
                 id(self), 
@@ -95,7 +99,7 @@ class Coroutine(object):
                 if isinstance(op, events.CoroutineException):
                     rop = self.coro.throw(*op.message)
                 else:
-                    rop = self.coro.send(getattr(op, 'result', op))
+                    rop = self.coro.send(op and op.finalize())
             elif self.state == self.STATE_NEED_INIT:
                 assert op is None
                 self.coro = self.coro(*self.f_args, **self.f_kws)

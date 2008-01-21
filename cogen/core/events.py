@@ -39,12 +39,17 @@ class Operation(object):
     
         yield Operation(prio=<int constant>)
     """
-    __slots__ = ['prio', 'result']
+    __slots__ = ['prio']
+    
     def __init__(self, prio=priority.DEFAULT):
         self.prio = prio
+    
     def process(self, sched, coro):
         if self.prio == priority.DEFAULT:
             self.prio = sched.default_priority
+    
+    def finalize(self):
+        return self
             
 
 class TimedOperation(Operation):
@@ -62,11 +67,16 @@ class TimedOperation(Operation):
     """
     __slots__ = ['_timeout', '__weakref__', 'finalized', 'weak_timeout']
     timeout = TimeoutDesc('_timeout')
+    
     def __init__(self, timeout=None, weak_timeout=True, **kws):
         super(TimedOperation, self).__init__(**kws)
         self.timeout = timeout
         self.finalized = False
         self.weak_timeout = weak_timeout
+    
+    def finalize(self):
+        self.finalized = True
+        return self
         
     def process(self, sched, coro):
         super(TimedOperation, self).process(sched, coro)
@@ -79,11 +89,13 @@ class TimedOperation(Operation):
 class WaitForSignal(TimedOperation):
     "The coroutine will resume when the same object is Signaled."
         
-    __slots__ = ['name']
+    __slots__ = ['name', 'result']
     __doc_all__ = ['__init__']
+    
     def __init__(self, name, **kws):
         super(WaitForSignal, self).__init__(**kws)
         self.name = name
+    
     def process(self, sched, coro):
         super(WaitForSignal, self).process(sched, coro)
         waitlist = sched.sigwait[self.name]
@@ -94,7 +106,11 @@ class WaitForSignal(TimedOperation):
                 sig.process(sched, sig.coro)
                 del sig.coro
                 del sched.signals[self.name]
-            
+    
+    def finalize(self):
+        super(WaitForSignal, self).finalize()
+        return self.result
+           
     def __repr__(self):
         return "<%s at 0x%X name:%s timeout:%s prio:%s>" % (
             self.__class__, 
@@ -117,6 +133,7 @@ class Signal(Operation):
     """
     __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
     __doc_all__ = ['__init__']
+    
     def __init__(self, name, value=None, recipients=0, **kws):
         """All the coroutines waiting for this object will be added back in the
         active coroutine queue."""
@@ -124,7 +141,11 @@ class Signal(Operation):
         self.name = name
         self.value = value
         self.recipients = recipients
-        
+    
+    def finalize(self):
+        super(Signal, self).finalize()
+        return self.result
+            
     def process(self, sched, coro):
         super(Signal, self).process(sched, coro)
         self.result = len(sched.sigwait[self.name])
@@ -146,6 +167,7 @@ class Signal(Operation):
             sched.active.append((None, coro))
             
         del sched.sigwait[self.name]        
+        
 class Call(Operation):
     """
     This will pause the current coroutine, add a new coro in the scheduler and 
@@ -162,16 +184,19 @@ class Call(Operation):
     """
     __slots__ = ['coro', 'args', 'kwargs']
     __doc_all__ = ['__init__']
+
     def __init__(self, coro, args=None, kwargs=None, **kws):
         super(Call, self).__init__(**kws)
         self.coro = coro
         self.args = args or ()
         self.kwargs = kwargs or {}
+    
     def process(self, sched, coro):
         super(Call, self).process(sched, coro)
         callee = sched.add(self.coro, self.args, self.kwargs, self.prio) 
         callee.caller = coro
         callee.prio = self.prio
+    
     def __repr__(self):
         return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (
             self.__class__, 

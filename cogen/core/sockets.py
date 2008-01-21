@@ -200,28 +200,33 @@ class Read(ReadOperation):
         .. sourcecode:: python
             yield sockets.Read(socket_object, buffer_length)
     """
-    __slots__ = ['len', 'buff', 'addr', 'result']
+    __slots__ = ['len', 'buff', 'addr']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, len = 4096, **kws):
         super(Read, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
+        
     def run(self):
         if self.sock._rl_list:
             self.sock._rl_pending = ''.join(self.sock._rl_list) + self.sock._rl_pending
             self.sock._rl_list = []
         if self.sock._rl_pending: # XXX tofix
-            self.buff = self.result = self.sock._rl_pending
+            self.buff = self.sock._rl_pending
             self.addr = None
             self.sock._rl_pending = ''
             return self
         else:
             self.buff, self.addr = self.sock.recvfrom(self.len)
             if self.buff:
-                self.result = self.buff
                 return self
             else:
                 raise events.ConnectionClosed("Empty recv.")
+    def finalize(self):
+        super(Read, self).finalize()
+        return self.buff
+                
     def __repr__(self):
         return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (
             self.__class__.__name__, 
@@ -237,12 +242,14 @@ class ReadAll(ReadOperation):
     """
     Run this operator till we've read `len` bytes.
     """
-    __slots__ = ['len', 'buff', 'addr', 'result']
+    __slots__ = ['len', 'buff', 'addr']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, len = 4096, **kws):
         super(ReadAll, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
+        
     def run(self):
         if self.sock._rl_pending:
             self.sock._rl_list.append(self.sock._rl_pending) 
@@ -261,11 +268,16 @@ class ReadAll(ReadOperation):
             else:
                 raise events.ConnectionClosed("Empty recv.")
         if self.sock._rl_list_sz == self.len:
-            self.buff = self.result =  ''.join(self.sock._rl_list)
+            self.buff = ''.join(self.sock._rl_list)
             self.sock._rl_list = []
             return self
         else: # damn ! we still didn'self recv enough
             return
+
+    def finalize(self):
+        super(ReadAll, self).finalize()
+        return self.buff
+            
     def __repr__(self):
         return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
@@ -284,12 +296,14 @@ class ReadLine(ReadOperation):
         
         `len` is the max size for a line
     """
-    __slots__ = ['len', 'buff', 'addr', 'result']
+    __slots__ = ['len', 'buff', 'addr']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, len = 4096, **kws):
         super(ReadLine, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
+        
     def check_overflow(self):
         if self.sock._rl_list_sz >= self.len: 
             #~ rl_list    = self.sock._rl_list   
@@ -298,14 +312,17 @@ class ReadLine(ReadOperation):
             self.sock._rl_list    = []
             self.sock._rl_list_sz = 0
             self.sock._rl_pending = ''
-            raise exceptions.OverflowError("Recieved %s bytes and no linebreak" % self.len)
+            raise exceptions.OverflowError(
+                "Recieved %s bytes and no linebreak" % self.len
+            )
     def run(self):
         #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
             if nl >= 0:
                 nl += 1
-                self.buff = self.result = ''.join(self.sock._rl_list)+self.sock._rl_pending[:nl]
+                self.buff = ''.join(self.sock._rl_list) + \
+                                            self.sock._rl_pending[:nl]
                 self.sock._rl_list = []
                 self.sock._rl_list_sz = 0
                 self.sock._rl_pending = self.sock._rl_pending[nl:]
@@ -323,7 +340,7 @@ class ReadLine(ReadOperation):
             if nl >= 0:
                 nl += 1
                 self.sock._rl_list.append(x_buff[:nl])
-                self.buff = self.result = ''.join(self.sock._rl_list)
+                self.buff = ''.join(self.sock._rl_list)
                 self.sock._rl_list = []
                 self.sock._rl_list_sz = 0
                 self.sock._rl_pending = x_buff[nl:]
@@ -335,6 +352,11 @@ class ReadLine(ReadOperation):
                 self.check_overflow()
         else: 
             raise events.ConnectionClosed("Empty recv.")
+            
+    def finalize(self):
+        super(ReadLine, self).finalize()
+        return self.buff
+            
     def __repr__(self):
         return "<%s at 0x%X %s P:%r L:%r S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
@@ -351,15 +373,22 @@ class Write(WriteOperation):
     """
     Write the buffer to the socket and return the number of bytes written.
     """    
-    __slots__ = ['sent', 'buff', 'result']
+    __slots__ = ['sent', 'buff']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, buff, **kws):
         super(Write, self).__init__(sock, **kws)
         self.buff = buff
         self.sent = 0
+        
     def run(self):
-        self.sent = self.result = self.sock.send(self.buff)
+        self.sent = self.sock.send(self.buff)
         return self
+    
+    def finalize(self):
+        super(Write, self).finalize()
+        return self.sent
+        
     def __repr__(self):
         return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
@@ -376,16 +405,22 @@ class WriteAll(WriteOperation):
     """
     __slots__ = ['sent', 'buff']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, buff, **kws):
         super(WriteAll, self).__init__(sock, **kws)
         self.buff = buff
         self.sent = 0
+        
     def run(self):
         sent = self.sock.send(buffer(self.buff, self.sent))
         self.sent += sent
         if self.sent == len(self.buff):
-            self.result = self.sent
             return self
+    
+    def finalize(self):
+        super(WriteAll, self).finalize()
+        return self.sent
+    
     def __repr__(self):
         return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
@@ -400,17 +435,23 @@ class Accept(ReadOperation):
     """
     Returns a (conn, addr) tuple when the operation completes.
     """
-    __slots__ = ['conn', 'addr', 'result']
+    __slots__ = ['conn', 'addr']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, **kws):
         super(Accept, self).__init__(sock, **kws)
         self.conn = None
+        
     def run(self):
         self.conn, self.addr = self.sock.accept()
         self.conn = Socket(_sock=self.conn)
         self.conn.setblocking(0)
-        self.result = self.conn, self.addr
         return self
+
+    def finalize(self):
+        super(Accept, self).finalize()
+        return (self.conn, self.addr)
+        
     def __repr__(self):
         return "<%s at 0x%X %s conn:%r to:%s>" % (
             self.__class__.__name__, 
@@ -426,9 +467,11 @@ class Connect(WriteOperation):
     """
     __slots__ = ['addr']
     __doc_all__ = ['__init__', 'run']
+    
     def __init__(self, sock, addr, **kws):
         super(Connect, self).__init__(sock, **kws)
         self.addr = addr
+        
     def run(self):
         """ 
         We need to avoid some non-blocking socket connect quirks: 
@@ -446,6 +489,7 @@ class Connect(WriteOperation):
             else:
                 raise socket.error(err, errno.errorcode[err])
         return self
+        
     def __repr__(self):
         return "<%s at 0x%X %s to:%s>" % (
             self.__class__.__name__, 
