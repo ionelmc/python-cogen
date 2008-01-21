@@ -9,6 +9,7 @@ class Full(Exception):
 class Empty(Exception):
     pass
 class QGet(events.TimedOperation):
+    "A operation for the queue get call."
     __slots__ = ['queue', 'block', 'caller', 'result']
     def __init__(self, queue, block, **kws):
         super(QGet, self).__init__(**kws)
@@ -46,16 +47,6 @@ class QGet(events.TimedOperation):
                             sched.active.appendleft((putop, putop.caller))
                         else:
                             sched.active.append((putop, putop.caller))
-                    
-                    #~ self.result = putop.item
-                    #~ ops = [(putop, putop.caller), (self, coro)]
-                    #~ if self.prio:
-                        #~ sched.active.extendleft(ops)
-                    #~ else:
-                        #~ sched.active.extend(ops)
-                    #~ return
-
-            
             return self, coro
     def __repr__(self):
         return "<%s caller:%s block:%s result:%s>" % (
@@ -66,6 +57,7 @@ class QGet(events.TimedOperation):
         )
         
 class QPut(events.TimedOperation):
+    "A operation for the queue put call."
     __slots__ = ['queue', 'item', 'block', 'caller', 'result']
     def __init__(self, queue, item, block, **kws):
         super(QPut, self).__init__(**kws)
@@ -114,6 +106,7 @@ class QPut(events.TimedOperation):
                 
         
 class QDone(events.Operation):
+    "A operation for the queue done_task call"
     __slots__ = ['queue']
     
     def __init__(self, queue, **kws):
@@ -130,6 +123,7 @@ class QDone(events.Operation):
         return self, coro
         
 class QJoin(events.Operation):
+    "A operation for the queue join call."
     __slots__ = ['queue']
     
     def __init__(self, queue, **kws):
@@ -144,6 +138,21 @@ class QJoin(events.Operation):
             self.queue.joinees.append( (self, coro) )
             
 class Queue:
+    """This class attempts to mimic the exact functionality of the 
+    python standard library Queue.Queue class, but with a coroutine context:
+    
+    * the queue calls return coroutine operations
+    
+    So, to use this you write someting like:
+    
+    .. sourcecode:: python
+        
+        @coroutine
+        def foo():
+            q = cogen.core.queue.Queue(<size>)
+            yield q.put(123)
+            val = yield q.get()
+    """
     def __init__(self, maxsize=0):
         self._init(maxsize)
         self.waiting_puts = collections.deque()
