@@ -7,7 +7,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
-        - Class: Timeout</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+        - Class: QJoin</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
     <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
     <link rel="stylesheet" href="css/apydia.css" type="text/css" />
     <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
@@ -32,38 +32,66 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Methods</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.queue.QJoin.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.core.queue.QJoin.html#method-process">process</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Attributes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.schedulers.Timeout.html#attribute-coro">coro</a>
+                        <a href="cogen.core.queue.QPut.html#attribute-prio">prio</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Timeout.html#attribute-delta">delta</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.Timeout.html#attribute-last_checkpoint">last_checkpoint</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.Timeout.html#attribute-op">op</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.Timeout.html#attribute-timeout">timeout</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.Timeout.html#attribute-weak_timeout">weak_timeout</a>
+                        <a href="cogen.core.queue.QJoin.html#attribute-queue">queue</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
-    <h1>Class: cogen.core.schedulers.Timeout</h1>
-    <div class="docstring rst"></div>
+    <h1>Class: cogen.core.queue.QJoin</h1>
+    <div class="docstring rst"><p>A operation for the queue join call.</p>
+</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L20">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L124">View source</a>
     </li>
 </ul>
     <div>
+        <h2>Methods</h2>
+            <h3 id="method-finalize">
+                finalize
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L50">View source</a>
+    </li>
+</ul>
+            <h3 id="method-process">
+                process
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L132">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
         <h2>Attributes</h2>
-            <h3 id="attribute-coro">coro</h3>
+            <h3 id="attribute-prio">prio</h3>
             <div class="docstring rst"></div>
-            <h4>Value of coro</h4>
+            <h4>Value of prio</h4>
             <pre class="code"><code>None</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
@@ -71,49 +99,9 @@
         <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
     </li>
 </ul>
-            <h3 id="attribute-delta">delta</h3>
+            <h3 id="attribute-queue">queue</h3>
             <div class="docstring rst"></div>
-            <h4>Value of delta</h4>
-            <pre class="code"><code>None</code></pre>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-last_checkpoint">last_checkpoint</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of last_checkpoint</h4>
-            <pre class="code"><code>None</code></pre>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-op">op</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of op</h4>
-            <pre class="code"><code>None</code></pre>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-timeout">timeout</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of timeout</h4>
-            <pre class="code"><code>None</code></pre>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-weak_timeout">weak_timeout</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of weak_timeout</h4>
+            <h4>Value of queue</h4>
             <pre class="code"><code>None</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
