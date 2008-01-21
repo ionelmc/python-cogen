@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 import ez_setup
 ez_setup.use_setuptools()
 
