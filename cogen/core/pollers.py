@@ -3,6 +3,7 @@ import select
 import collections
 import time
 import sys
+import warnings
 
 from cogen.core import sockets
 from cogen.core import events
@@ -252,12 +253,21 @@ class EpollPoller(Poller):
     def remove(self, op, coro):
         fileno = getattr(op, 'fileno', None)
         if fileno:
-            epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_DEL, fileno, 0)
             if isinstance(op, sockets.ReadOperation):
                 if fileno in self.waiting_reads:
+                    try:
+                        epoll.epoll_ctl(self.epoll_fd, 
+                                        epoll.EPOLL_CTL_DEL, fileno, 0)
+                    except OSError, e:
+                        warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_reads[fileno]
             if isinstance(op, sockets.WriteOperation):
                 if fileno in self.waiting_writes:
+                    try:
+                        epoll.epoll_ctl(self.epoll_fd, 
+                                        epoll.EPOLL_CTL_DEL, fileno, 0)
+                    except OSError:
+                        warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_writes[fileno]
     def add(self, op, coro):
         fileno = op.fileno = op.sock.fileno()
@@ -289,6 +299,7 @@ class EpollPoller(Poller):
         """
         ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
                 if timeout else (self.mRESOLUTION if timeout is None else 0))
+        #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
             events = epoll.epoll_wait(self.epoll_fd, 10, ptimeout)
             for ev, fd in events:

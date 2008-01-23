@@ -23,16 +23,18 @@ def debug(trace=True, other=None):
             print '    | ',
             pprint(k)
             print '    From:'
-            for i in traceback.format_stack(sys._getframe(1)):
+            for i in traceback.format_stack(sys._getframe(1), 1):
                 print i,
             if other:
                 print '---      [ %r ]' % (other(func,a,k))
             if trace: sys.settrace(tracer)
             ret = func(*a, **k)
             if trace: sys.settrace(None)
+            #~ a = list(a)
             print '--- %s.%s returned: %r' % (
                 getattr(func, '__module__', ''), 
                 func.__name__, 
+                #~ ret not in a and ret or "ARG%s"%a.index(ret)
                 ret
             )
             return ret

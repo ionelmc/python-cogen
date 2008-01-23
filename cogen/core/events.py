@@ -38,17 +38,30 @@ class Operation(object):
     .. sourcecode:: python
     
         yield Operation(prio=<int constant>)
+        
+    
+    If you need something that can't be done in a coroutine fashion you 
+    probabily need to subclass this and make a custom operation for your
+    issue.
     """
     __slots__ = ['prio']
     
     def __init__(self, prio=priority.DEFAULT):
+        "Set parameters here."
         self.prio = prio
     
     def process(self, sched, coro):
+        """This is called when the operation is to be processed by the 
+        scheduler. Code here works modifies the scheduler and it's usualy 
+        very crafty."""
+        
         if self.prio == priority.DEFAULT:
             self.prio = sched.default_priority
     
     def finalize(self):
+        """Called just before the Coroutine wrapper passes the operation back
+        in the generator. Return value is the value actualy sent in the 
+        generator."""
         return self
             
 
