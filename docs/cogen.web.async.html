@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+
+<!-- remove old header -->
+
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
+        - Module: async</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+    <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
+    <link rel="stylesheet" href="css/apydia.css" type="text/css" />
+    <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
+    <script src="js/apydia.js" type="text/javascript"></script>
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <div id="page">
+        <div id="browser">
+            <div class="browser-section">
+                <h2>Module Index</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.html">cogen</a>
+                    </li><li>
+                        <a href="cogen.common.html">cogen.common</a>
+                    </li><li>
+                        <a href="cogen.core.html">cogen.core</a>
+                    </li><li>
+                        <a href="cogen.web.html">cogen.web</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Classes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.web.async.COGENOperationCall.html">COGENOperationCall</a>
+                    </li><li>
+                        <a href="cogen.web.async.COGENOperationWrapper.html">COGENOperationWrapper</a>
+                    </li><li>
+                        <a href="cogen.web.async.COGENProxy.html">COGENProxy</a>
+                    </li><li>
+                        <a href="cogen.web.async.Read.html">Read</a>
+                    </li><li>
+                        <a href="cogen.web.async.SynchronousInputMiddleware.html">SynchronousInputMiddleware</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="content">
+    <h1>Module:
+        cogen.web.async
+    </h1>
+    <div class="docstring rst"><p>cogen.web.wsgi server is asynchronous by default. If you need to run a app that
+uses wsgi.input synchronously you need to wrapp it in
+<cite>SynchronousInputMiddleware</cite>.</p>
+<p>Wsgi asynchronous api only provides a read operation at the moment. Here's a
+example:</p>
+<div class="source"><pre><span class="n">buff</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+<span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
+    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen.input'</span><span class="p">]</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_length</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen.wsgi'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">import</span> <span class="nn">traceback</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="o">*</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen.wsgi'</span><span class="p">]</span><span class="o">.</span><span class="n">exception</span><span class="p">)</span>
+        <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">buff</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">buff</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span>
+<span class="c"># ...</span>
+<span class="c"># do something with the data</span>
+<span class="c"># ...</span>
+</pre></div>
+</div>
+    <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L1">View source</a>
+    </li>
+</ul>
+    <div>
+        <h2>Classes</h2>
+            <h3>
+                <a href="cogen.web.async.COGENOperationCall.html">COGENOperationCall</a>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.async.COGENOperationCall.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L47">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.async.COGENOperationWrapper.html">COGENOperationWrapper</a>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.async.COGENOperationWrapper.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L34">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.async.COGENProxy.html">COGENProxy</a>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.async.COGENProxy.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L54">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.async.Read.html">Read</a>
+            </h3>
+            <div class="docstring rst"><p>This is actually a hack that mixes ReadAll and ReadLine and
+patches their state attributes. Hopefully i'll evolve it to
+something more elegant at some point.</p></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.async.Read.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L85">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.async.SynchronousInputMiddleware.html">SynchronousInputMiddleware</a>
+            </h3>
+            <div class="docstring rst"><p>Middleware for providing wsgi.input to the app.</p></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.async.SynchronousInputMiddleware.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L58">View source</a>
+    </li>
+</ul>
+    </div>
+        </div>
+        <div id="footer">
+            Generated with <a href="http://apydia.ematia.de/" class="extern">
+            Apydia 0.0.2</a>
+        </div>
+    </div>
+</body>
+</html>

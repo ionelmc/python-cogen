@@ -39,15 +39,7 @@
                     </li><li>
                         <a href="cogen.core.queue.Queue.html#method-full">full</a>
                     </li><li>
-                        <a href="cogen.core.queue.Queue.html#method-get">get</a>
-                    </li><li>
-                        <a href="cogen.core.queue.Queue.html#method-get_nowait">get_nowait</a>
-                    </li><li>
                         <a href="cogen.core.queue.Queue.html#method-join">join</a>
-                    </li><li>
-                        <a href="cogen.core.queue.Queue.html#method-put">put</a>
-                    </li><li>
-                        <a href="cogen.core.queue.Queue.html#method-put_nowait">put_nowait</a>
                     </li><li>
                         <a href="cogen.core.queue.Queue.html#method-qsize">qsize</a>
                     </li><li>
@@ -88,7 +80,7 @@ python standard library Queue.Queue class, but with a coroutine context:</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L209">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L209">View source</a>
     </li>
 </ul>
             <h3 id="method-full">
@@ -100,40 +92,7 @@ python standard library Queue.Queue class, but with a coroutine context:</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L213">View source</a>
-    </li>
-</ul>
-            <h3 id="method-get">
-                get
-                <span class="args">(self, block=True, **kws)</span>
-            </h3>
-            <div class="docstring rst"><p>Remove and return an item from the queue.</p>
-<p>If optional args 'block' is true and 'timeout' is None (the default),
-block if necessary until an item is available. If 'timeout' is
-a positive number, it blocks at most 'timeout' seconds and raises
-the Empty exception if no item was available within that time.
-Otherwise ('block' is false), return an item if one is immediately
-available, else raise the Empty exception ('timeout' is ignored
-in that case).</p>
-</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L238">View source</a>
-    </li>
-</ul>
-            <h3 id="method-get_nowait">
-                get_nowait
-                <span class="args">(self)</span>
-            </h3>
-            <div class="docstring rst"><p>Remove and return an item from the queue without blocking.</p>
-<p>Only get an item if one is immediately available. Otherwise
-raise the Empty exception.</p>
-</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L251">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L213">View source</a>
     </li>
 </ul>
             <h3 id="method-join">
@@ -149,40 +108,7 @@ to indicate the item was retrieved and all work on it is complete.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L193">View source</a>
-    </li>
-</ul>
-            <h3 id="method-put">
-                put
-                <span class="args">(self, item, block=True, **kws)</span>
-            </h3>
-            <div class="docstring rst"><p>Put an item into the queue.</p>
-<p>If optional args 'block' is true and 'timeout' is None (the default),
-block if necessary until a free slot is available. If 'timeout' is
-a positive number, it blocks at most 'timeout' seconds and raises
-the Full exception if no free slot was available within that time.
-Otherwise ('block' is false), put an item on the queue if a free slot
-is immediately available, else raise the Full exception ('timeout'
-is ignored in that case).</p>
-</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L217">View source</a>
-    </li>
-</ul>
-            <h3 id="method-put_nowait">
-                put_nowait
-                <span class="args">(self, item)</span>
-            </h3>
-            <div class="docstring rst"><p>Put an item into the queue without blocking.</p>
-<p>Only enqueue the item if a free slot is immediately available.
-Otherwise raise the Full exception.</p>
-</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L230">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L193">View source</a>
     </li>
 </ul>
             <h3 id="method-qsize">
@@ -194,7 +120,7 @@ Otherwise raise the Full exception.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L205">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L205">View source</a>
     </li>
 </ul>
             <h3 id="method-task_done">
@@ -214,7 +140,7 @@ placed in the queue.</p>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L170">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L146">View source</a>
     </li>
 </ul>
     </div>

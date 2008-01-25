@@ -57,13 +57,13 @@ the performance of a server that processes requests sequentialy.</p>
 use of middleware in your application.</p>
 <p>Example app with coroutine extensions:</p>
 <div class="source"><pre><span class="k">def</span> <span class="nf">wait_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
-    <span class="n">start_response</span><span class="p">(</span><span class="s">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s">'Content-type'</span><span class="p">,</span><span class="s">'text/html'</span><span class="p">)])</span>
-    <span class="k">yield</span> <span class="s">"I'm waiting for some signal"</span>
-    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">"abc"</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
-        <span class="k">yield</span> <span class="s">"Your time is up !"</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">yield</span> <span class="s">"Someone signaled me: </span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+  <span class="n">start_response</span><span class="p">(</span><span class="s">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s">'Content-type'</span><span class="p">,</span><span class="s">'text/html'</span><span class="p">)])</span>
+  <span class="k">yield</span> <span class="s">"I'm waiting for some signal"</span>
+  <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">"abc"</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">yield</span> <span class="s">"Your time is up !"</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">yield</span> <span class="s">"Someone signaled me: </span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
 </pre></div>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">environ['cogen'].core</span></tt> is actualy a wrapper that sets
@@ -96,7 +96,7 @@ exception - if any: <tt class="docutils literal"><span class="pre">(exc_type,</s
         <a href="cogen.web.wsgi.WSGIConnection.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L157">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L141">View source</a>
     </li>
 </ul>
             <h3>
@@ -109,7 +109,7 @@ exception - if any: <tt class="docutils literal"><span class="pre">(exc_type,</s
         <a href="cogen.web.wsgi.WSGIFileWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L78">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L82">View source</a>
     </li>
 </ul>
             <h3>
@@ -130,7 +130,7 @@ are not allowed.</p></div>
         <a href="cogen.web.wsgi.WSGIServer.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L556">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L489">View source</a>
     </li>
 </ul>
     </div>
