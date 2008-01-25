@@ -55,6 +55,9 @@ setup(
         'paste.server_factory': [
             'wsgi=cogen.web.wsgi:server_factory',
         ],
+        'paste.filter_app_factory': [
+            'syncinput=cogen.web.async:SynchronousInputMiddleware'
+        ],
         'apydia.themes': [
             'cogen=cogen.docs.theme'
         ]
