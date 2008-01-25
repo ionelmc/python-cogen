@@ -3,7 +3,7 @@ import sys
 import traceback
 
                 
-def debug(trace=True, other=None):
+def debug(trace=True, backtrace=1, other=None):
     from pprint import pprint
     def debugdeco(func):
         """A decorator for debugging purposes. Shows the call arguments, result
@@ -23,7 +23,7 @@ def debug(trace=True, other=None):
             print '    | ',
             pprint(k)
             print '    From:'
-            for i in traceback.format_stack(sys._getframe(1), 1):
+            for i in traceback.format_stack(sys._getframe(1), backtrace):
                 print i,
             if other:
                 print '---      [ %r ]' % (other(func,a,k))

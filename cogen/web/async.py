@@ -1,5 +1,31 @@
 """
-Crafty and complicated.
+cogen.web.wsgi server is asynchronous by default. If you need to run a app that
+uses wsgi.input synchronously you need to wrapp it in 
+`SynchronousInputMiddleware`.
+
+Wsgi asynchronous api only provides a read operation at the moment. Here's a
+example:
+
+.. sourcecode:: python
+
+    buff = StringIO()
+    while 1:
+        yield environ['cogen.input'].Read(self.buffer_length)
+        result = environ['cogen.wsgi'].result
+        if isinstance(result, Exception):
+            import traceback
+            traceback.print_exception(*environ['cogen.wsgi'].exception)
+            break
+        else:
+            if not result:
+                break
+            buff.write(result)
+    buff.seek(0)
+    # ...
+    # do something with the data
+    # ...
+
+
 """
 
 from cogen.core import sockets
@@ -29,28 +55,35 @@ class COGENOperationCall(object):
 class COGENProxy:
     def __init__(self, **kws):
         self.__dict__.update(kws)
-#~ _filter_app_factory
+
 class SynchronousInputMiddleware:
-    def __init__(self, app, global_conf={}, buffer_length=333):
+    """Middleware for providing wsgi.input to the app."""
+    __doc_all__ = ['__init__', '__call__']
+    def __init__(self, app, global_conf={}, buffer_length=1024):
+        #~ print 'SynchronousInputMiddleware loaded.'
         self.app = app
-        self.buffer_length = buffer_length
+        self.buffer_length = int(buffer_length)
+    #~ @debug(0, 25)
     def __call__(self, environ, start_response):
         buff = StringIO()
+        length = 0
+        #~ print 'WRAPPINGAPP', self.app
         while 1:
-            yield environ['cogen.input'].Read(self.buffer_length, timeout=-1)
+            yield environ['cogen.input'].Read(self.buffer_length)
             result = environ['cogen.wsgi'].result
+            #~ print "RESULT:%.100r" % result
             if isinstance(result, Exception):
-                print 'EXCEPTION:', `result`
                 import traceback
                 traceback.print_exception(*environ['cogen.wsgi'].exception)
-                print "^TB"
                 break
             else:
                 if not result:
                     break
                 buff.write(result)
+                length += len(result)
         buff.seek(0)
         environ['wsgi.input'] = buff
+        environ['CONTENT_LENGTH'] = length
         for i in self.app(environ, start_response):
             yield i
             
@@ -88,22 +121,23 @@ class Read(sockets.ReadAll, sockets.ReadLine):
         self.x_ck_sz = 0
         self.req = req
     
-    @debug(0)        
+    #~ @debug(0)        
     def run(self):
-        print "RUN:"
-        print "     req.state:", `self.req.state`
-        print "     req.read_count:", `self.req.read_count`
-        print "     req.content_length:", `self.req.content_length`
-        print "     x_len:", `self.x_len`, 
-        print "     x_buff_sz:", `self.x_buff_sz`
+        #~ print "RUN:"
+        #~ print "     req.state:", `self.req.state`
+        #~ print "     req.read_count:", `self.req.read_count`
+        #~ print "     req.content_length:", `self.req.content_length`
+        #~ print "     x_len:", `self.x_len`, 
+        #~ print "     x_buff_sz:", `self.x_buff_sz`
         if self.req.read_chunked:
             again = 1
             while again:
                 again = 0
                 if self.req.state == self.NEED_SIZE:
-                    print 'sockets.ReadLine.process', sockets.ReadLine.process
+                    #~ print 'sockets.ReadLine.process', sockets.ReadLine.process
+                    self.len = self.x_len
                     ret = sockets.ReadLine.run(self)
-                    print 'NEED_SIZE', ret, ret and ret.buff
+                    #~ print 'NEED_SIZE', ret, ret and ret.buff
                     if ret:
                         self.req.state = self.NEED_CHUNK
                         chunk_len = int(self.buff.split(';',1)[0], 16)
@@ -138,8 +172,8 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                         self.x_buff_sz += len(self.buff)
                         self.req.chunk_remaining -= len(self.buff)
                         self.buff = None # patching for base classes
-                        print 'CHUNKY:', self.x_buff_sz, self.x_len, self.len, \
-                                         self.req.read_count
+                        #~ print 'CHUNKY:', self.x_buff_sz, self.x_len, self.len, \
+                                         #~ self.req.read_count
                         
                         # if what we have in x_buff is not enough we need to 
                         # read more chunks
@@ -152,6 +186,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                             self.x_buff_sz = 0
                             self.req.read_count += len(self.buff)
                             if not self.req.chunk_remaining:
+                                self.len = self.x_len
                                 self.req.state = self.NEED_TERM
                             return ret
                         else:
@@ -160,6 +195,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                             self.req.state = self.NEED_TERM
                             again = 1
                 elif self.req.state == self.NEED_TERM:
+                    self.len = self.x_len
                     ret = sockets.ReadLine.run(self)
                     if ret:
                         assert ret.buff == '\r\n', \
@@ -168,9 +204,10 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                         self.buff = None
                         again = 1
                 elif self.req.state == self.NEED_HEAD:
+                    self.len = self.x_len
                     ret = sockets.ReadLine.run(self)
                     if ret:
-                        print "NEED_HEAD", `ret.buff`
+                        #~ print "NEED_HEAD", `ret.buff`
                         if ret.buff == '\r\n':
                             # empty line - end of headers, END
                             self.req.state = self.NEED_NONE

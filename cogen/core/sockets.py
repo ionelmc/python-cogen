@@ -254,7 +254,7 @@ class ReadAll(ReadOperation):
         super(ReadAll, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-    @debug(0)
+    #~ @debug(0)
     def run(self):
         if self.sock._rl_pending:
             self.sock._rl_list.append(self.sock._rl_pending) 
@@ -325,19 +325,19 @@ class ReadLine(ReadOperation):
             #~ rl_list    = self.sock._rl_list   
             #~ rl_list_sz = self.sock._rl_list_sz
             #~ rl_pending = self.sock._rl_pending
-            print "OVERFLOW:",self
+            #~ print "OVERFLOW:",self
             self.sock._rl_list    = []
             self.sock._rl_list_sz = 0
             self.sock._rl_pending = ''
             raise exceptions.OverflowError(
                 "Recieved %s bytes and no linebreak" % self.len
             )
-    @debug(0)            
+    #~ @debug(0)            
     def run(self):
         #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
-            print "RL", nl
+            #~ print "RL", nl
             if nl >= 0:
                 nl += 1
                 self.buff = ''.join(self.sock._rl_list) + \

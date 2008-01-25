@@ -448,9 +448,9 @@ class WSGIConnection(object):
                     op = self.environ['cogen.wsgi'].operation
                     self.environ['cogen.wsgi'].operation = None
                     try:
-                      print 'WSGI OP:', op
+                      #~ print 'WSGI OP:', op
                       self.environ['cogen.wsgi'].result = yield op
-                      print 'WSGI OP RESULT:',self.environ['cogen.wsgi'].result
+                      #~ print 'WSGI OP RESULT:',self.environ['cogen.wsgi'].result
                     except:
                       #~ print 'exception:', sys.exc_info()
                       self.environ['cogen.wsgi'].exception = sys.exc_info()
@@ -495,28 +495,28 @@ An HTTP server for WSGI.
   Option              Description
   =================== ========================================================
   bind_addr           The interface on which to listen for connections.
-            For TCP sockets, a (host, port) tuple. Host values may 
-            be any IPv4 or IPv6 address, or any valid hostname. 
-            The string 'localhost' is a synonym for '127.0.0.1' (or
-            '::1', if your hosts file prefers IPv6).
-            The string '0.0.0.0' is a special IPv4 entry meaning 
-            "any active interface" (INADDR_ANY), and '::' is the 
-            similar IN6ADDR_ANY for IPv6. The empty string or None 
-            are not allowed.
-            
-            For UNIX sockets, supply the filename as a string.
-            
+                      For TCP sockets, a (host, port) tuple. Host values may 
+                      be any IPv4 or IPv6 address, or any valid hostname. 
+                      The string 'localhost' is a synonym for '127.0.0.1' (or
+                      '::1', if your hosts file prefers IPv6).
+                      The string '0.0.0.0' is a special IPv4 entry meaning 
+                      "any active interface" (INADDR_ANY), and '::' is the 
+                      similar IN6ADDR_ANY for IPv6. The empty string or None 
+                      are not allowed.
+                      
+                      For UNIX sockets, supply the filename as a string.
+                    
   wsgi_app            the WSGI 'application callable'; multiple WSGI 
-            applications may be passed as (path_prefix, app) pairs.
+                      applications may be passed as (path_prefix, app) pairs.
   server_name         the string to set for WSGI's SERVER_NAME environ entry.
-            Defaults to socket.gethostname().
+                      Defaults to socket.gethostname().
   request_queue_size  the 'backlog' argument to socket.listen();
-            specifies the maximum number of queued connections 
-            (default 5).
+                      specifies the maximum number of queued connections 
+                      (default 5).
   protocol            the version string to write in the Status-Line of all
-            HTTP responses. For example, "HTTP/1.1" (the default). 
-            This also limits the supported features used in the 
-            response.
+                      HTTP responses. For example, "HTTP/1.1" (the default). 
+                      This also limits the supported features used in the 
+                      response.
   =================== ========================================================
   """
   
@@ -710,8 +710,10 @@ def server_factory(global_conf, host, port, **options):
         cogen.core.pollers, 
         options.get('scheduler.poller', 'DefaultPoller')
       ), 
-      default_priority=options.get('scheduler.default_priority', priority.LAST), 
-      default_timeout=options.get('scheduler.default_timeout', 15)
+      default_priority = 
+        int(options.get('scheduler.default_priority', priority.LAST)), 
+      default_timeout = 
+        int(options.get('scheduler.default_timeout', 15))
     )
     server = WSGIServer( 
       (host, port), 
