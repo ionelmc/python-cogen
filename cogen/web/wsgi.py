@@ -11,24 +11,24 @@ use of middleware in your application.
 
 Example app with coroutine extensions:
 
-.. sourcecode:: python
+{{{
+def wait_app(environ, start_response):
+  start_response('200 OK', [('Content-type','text/html')])
+  yield "I'm waiting for some signal"
+  yield environ['cogen'].core.events.WaitForSignal("abc", timeout=1)
+  if isinstance(environ['cogen'].result, Exception):
+    yield "Your time is up !"
+  else:
+    yield "Someone signaled me: %s" % environ['cogen'].result
+}}}
 
-  def wait_app(environ, start_response):
-    start_response('200 OK', [('Content-type','text/html')])
-    yield "I'm waiting for some signal"
-    yield environ['cogen'].core.events.WaitForSignal("abc", timeout=1)
-    if isinstance(environ['cogen'].result, Exception):
-      yield "Your time is up !"
-    else:
-      yield "Someone signaled me: %s" % environ['cogen'].result
-
-- ``environ['cogen'].core`` is actualy a wrapper that sets 
+  - ``environ['cogen'].core`` is actualy a wrapper that sets 
   ``environ['cogen'].operation`` with the called object and returns a empty 
   string. This should penetrate most of the middleware - according to the wsgi 
   spec, middleware should pass a empty string if it doesn't have anything to 
   return on that specific iteration point, or, in other words, the length of the
   app iter returned by middleware should be at least that of the app.
-- the wsigi server will set ``environ['cogen'].result`` with the result of the 
+  - the wsigi server will set ``environ['cogen'].result`` with the result of the 
   operation and ``environ['cogen'].exception`` with the details of the 
   exception - if any: ``(exc_type, exc_value, traceback_object)``.
 
@@ -489,35 +489,13 @@ class WSGIConnection(object):
         self.environ = None
 class WSGIServer(object):
   """
-An HTTP server for WSGI.
-------------------------
-  =================== ========================================================
-  Option              Description
-  =================== ========================================================
-  bind_addr           The interface on which to listen for connections.
-                      For TCP sockets, a (host, port) tuple. Host values may 
-                      be any IPv4 or IPv6 address, or any valid hostname. 
-                      The string 'localhost' is a synonym for '127.0.0.1' (or
-                      '::1', if your hosts file prefers IPv6).
-                      The string '0.0.0.0' is a special IPv4 entry meaning 
-                      "any active interface" (INADDR_ANY), and '::' is the 
-                      similar IN6ADDR_ANY for IPv6. The empty string or None 
-                      are not allowed.
-                      
-                      For UNIX sockets, supply the filename as a string.
-                    
-  wsgi_app            the WSGI 'application callable'; multiple WSGI 
-                      applications may be passed as (path_prefix, app) pairs.
-  server_name         the string to set for WSGI's SERVER_NAME environ entry.
-                      Defaults to socket.gethostname().
-  request_queue_size  the 'backlog' argument to socket.listen();
-                      specifies the maximum number of queued connections 
-                      (default 5).
-  protocol            the version string to write in the Status-Line of all
-                      HTTP responses. For example, "HTTP/1.1" (the default). 
-                      This also limits the supported features used in the 
-                      response.
-  =================== ========================================================
+  An HTTP server for WSGI.
+  || Option || Description ||
+  || bind_addr || The interface on which to listen for connections. For TCP sockets, a (host, port) tuple. Host values may be any IPv4 or IPv6 address, or any valid hostname. The string 'localhost' is a synonym for '127.0.0.1' (or '::1', if your hosts file prefers IPv6). The string '0.0.0.0' is a special IPv4 entry meaning "any active interface" (INADDR_ANY), and '::' is the similar IN6ADDR_ANY for IPv6. The empty string or None are not allowed.  For UNIX sockets, supply the filename as a string. ||
+  || wsgi_app || the WSGI 'application callable'; multiple WSGI applications may be passed as (path_prefix, app) pairs. ||
+  || server_name || the string to set for WSGI's SERVER_NAME environ entry. Defaults to socket.gethostname(). ||
+  || request_queue_size || the 'backlog' argument to socket.listen() specifies the maximum number of queued connections (default 5). ||
+  || protocol || the version string to write in the Status-Line of all HTTP responses. For example, "HTTP/1.1" (the default). This also limits the supported features used in the response. ||
   """
   
   protocol = "HTTP/1.1"
@@ -686,11 +664,3 @@ def server_factory(global_conf, host, port, **options):
     sched.run()
   return serve
   
-  #~ import cProfile
-  #~ cProfile.run("main()", "cprofile.log")
-  #~ import pstats
-  #~ for i in ['calls','cumulative','file','module','pcalls','line','name','nfl','stdname','time']:
-    #~ stats = pstats.Stats("cprofile.log",stream = file('cprofile.%s.%s.txt' %(os.path.split(__file__)[1],i),'w'))
-    #~ stats.sort_stats(i)
-    #~ stats.print_stats()
-

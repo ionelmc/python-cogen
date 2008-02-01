@@ -26,10 +26,10 @@ __doc_all__ = [
 class Socket(socket.socket):
     __slots__ = ['_rl_list', '_rl_list_sz', '_rl_pending']
     """
-        We need some additional buffers and stuff:
-            rl_pending - for unchecked for linebreaks buffer
-            rl_list - for checked for linebreaks buffers
-            rl_list_sz - a cached size of the summed sizes of rl_list buffers
+    We need some additional buffers and stuff:
+      - rl_pending - for unchecked for linebreaks buffer
+      - rl_list - for checked for linebreaks buffers
+      - rl_list_sz - a cached size of the summed sizes of rl_list buffers
     """
     def __init__(self, *a, **k):
         super(Socket, self).__init__(*a, **k)
@@ -64,12 +64,12 @@ class SocketOperation(events.TimedOperation):
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
         
-        * timeout - the ammout of time in seconds or timedelta, or the datetime 
+          - timeout - the ammout of time in seconds or timedelta, or the datetime 
           value till the poller should wait for this operation.
-        * weak_timeout - if this is True the timeout handling code will take 
+          - weak_timeout - if this is True the timeout handling code will take 
           into account the time of last activity (that would be the time of last
           `try_run` call)
-        * prio - a flag for the scheduler
+          - prio - a flag for the scheduler
         """
         assert isinstance(sock, Socket)
         
@@ -124,20 +124,19 @@ class SendFile(WriteOperation):
         You can use this as a WriteAll if you specify the length.
         Usage:
             
-        .. sourcecode:: python
+        {{{
+        yield sockets.SendFile(<file handle>, <sock>, 0) 
+            # will send till send operations return 0
             
-            yield sockets.SendFile(<file handle>, <sock>, 0) 
-                # will send till send operations return 0
-                
-            yield sockets.SendFile(<file handle>, <sock>, 0, blocksize=0)
-                # there will be only one send operation (if successfull)
-                # that meas the whole file will be read in memory if there is 
-                #no sendfile
-                
-            yield sockets.SendFile(<file handle>, <sock>, 0, <file size>)
-                # this will hang if we can'self read <file size> bytes 
-                #from the file
-        
+        yield sockets.SendFile(<file handle>, <sock>, 0, blocksize=0)
+            # there will be only one send operation (if successfull)
+            # that meas the whole file will be read in memory if there is 
+            #no sendfile
+            
+        yield sockets.SendFile(<file handle>, <sock>, 0, <file size>)
+            # this will hang if we can'self read <file size> bytes 
+            #from the file
+        }}}
     """
     __slots__ = [
         'sent', 'file_handle', 'offset', 
@@ -201,8 +200,9 @@ class Read(ReadOperation):
         return them first.
         Example usage:
         
-        .. sourcecode:: python
-            yield sockets.Read(socket_object, buffer_length)
+        {{{
+        yield sockets.Read(socket_object, buffer_length)
+        }}}
     """
     __slots__ = []
     __doc_all__ = ['__init__', 'run']
@@ -494,8 +494,8 @@ class Connect(WriteOperation):
     def run(self):
         """ 
         We need to avoid some non-blocking socket connect quirks: 
-            if you attempt a connect in NB mode you will always 
-            get EWOULDBLOCK, presuming the addr is correct.
+          - if you attempt a connect in NB mode you will always 
+          get EWOULDBLOCK, presuming the addr is correct.
         """
         err = self.sock.connect_ex(self.addr)
         if err:

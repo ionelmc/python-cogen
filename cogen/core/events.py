@@ -35,10 +35,9 @@ class Operation(object):
     
     Eg:
     
-    .. sourcecode:: python
-    
-        yield Operation(prio=<int constant>)
-        
+    {{{
+    yield Operation(prio=<int constant>)
+    }}}        
     
     If you need something that can't be done in a coroutine fashion you 
     probabily need to subclass this and make a custom operation for your
@@ -70,13 +69,13 @@ class TimedOperation(Operation):
     
     Eg:
     
-    .. sourcecode:: python
-    
-        yield TimedOperation(
-            timeout=<secs or datetime or timedelta>, 
-            weak_timeout=<bool>,
-            prio=<int constant>
-        )
+    {{{
+    yield TimedOperation(
+        timeout=<secs or datetime or timedelta>, 
+        weak_timeout=<bool>,
+        prio=<int constant>
+    )
+    }}}
     """
     __slots__ = ['_timeout', '__weakref__', 'finalized', 'weak_timeout']
     timeout = TimeoutDesc('_timeout')
@@ -138,11 +137,11 @@ class Signal(Operation):
     
     Usage:
     
-    .. sourcecode:: python
+    {{{
+    nr = yield events.Signal(name, value)
+    }}}
     
-        nr = yield events.Signal(name, value)
-        
-    - nr - the number of coroutines woken up
+      - nr - the number of coroutines woken up
     """
     __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
     __doc_all__ = ['__init__']
@@ -187,12 +186,11 @@ class Call(Operation):
     resume the callee when it returns.
     
     Usage:
+    {{{
+    result = yield events.Call(mycoro, args=<a tuple>, kwargs=<a dict>, prio=<int>)
+    }}}
     
-    .. sourcecode:: python
-    
-        result = yield events.Call(mycoro, args=<a tuple>, kwargs=<a dict>, prio=<int>)
-        
-    - if `prio` is set the new coroutine will be added in the top of the 
+      - if `prio` is set the new coroutine will be added in the top of the 
       scheduler queue
     """
     __slots__ = ['coro', 'args', 'kwargs']
@@ -225,9 +223,9 @@ class AddCoro(Operation):
     A operator for adding a coroutine in the scheduler.
     Example:
     
-    .. sourcecode:: python
-        
-        yield events.AddCoro(some_coro, args=(), kwargs={})
+    {{{
+    yield events.AddCoro(some_coro, args=(), kwargs={})
+    }}}
     """
     __slots__ = ['coro', 'args', 'kwargs']
     __doc_all__ = ['__init__']
@@ -306,20 +304,20 @@ class Join(TimedOperation):
     A operator for waiting on a coroutine. 
     Example:
     
-    .. sourcecode:: python
-
-        @coroutine
-        def coro_a():
-            return_value = yield events.Join(ref)
-            
-            
-        @coroutine
-        def coro_b():
-            yield "bla"
-            raise StopIteration("some return value")
+    {{{
+    @coroutine
+    def coro_a():
+        return_value = yield events.Join(ref)
         
-        ref = scheduler.add(coro_b)
-        scheduler.add(coro_a)
+        
+    @coroutine
+    def coro_b():
+        yield "bla"
+        raise StopIteration("some return value")
+    
+    ref = scheduler.add(coro_b)
+    scheduler.add(coro_a)
+    }}}
     """
     __slots__ = ['coro']
     __doc_all__ = ['__init__']
@@ -341,17 +339,17 @@ class Sleep(Operation):
     """
     Usage:
     
-    .. sourcecode:: python
+    {{{
+    yield events.Sleep(time_object)
+    }}}
     
-        yield events.Sleep(time_object)
+      - timeoject - a datetime or timedelta object, or a number of seconds
         
-    - timeoject - a datetime or timedelta object, or a number of seconds
-        
-    .. sourcecode:: python
+    {{{
+    yield events.Sleep(timestamp=ts)
+    }}}
     
-        yield events.Sleep(timestamp=ts)
-        
-    - ts - a timestamp
+      - ts - a timestamp
     """
     __slots__ = ['wake_time', 'coro']
     __doc_all__ = ['__init__']

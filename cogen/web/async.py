@@ -6,25 +6,24 @@ uses wsgi.input synchronously you need to wrapp it in
 Wsgi asynchronous api only provides a read operation at the moment. Here's a
 example:
 
-.. sourcecode:: python
-
-    buff = StringIO()
-    while 1:
-        yield environ['cogen.input'].Read(self.buffer_length)
-        result = environ['cogen.wsgi'].result
-        if isinstance(result, Exception):
-            import traceback
-            traceback.print_exception(*environ['cogen.wsgi'].exception)
+{{{
+buff = StringIO()
+while 1:
+    yield environ['cogen.input'].Read(self.buffer_length)
+    result = environ['cogen.wsgi'].result
+    if isinstance(result, Exception):
+        import traceback
+        traceback.print_exception(*environ['cogen.wsgi'].exception)
+        break
+    else:
+        if not result:
             break
-        else:
-            if not result:
-                break
-            buff.write(result)
-    buff.seek(0)
-    # ...
-    # do something with the data
-    # ...
-
+        buff.write(result)
+buff.seek(0)
+# ...
+# do something with the data
+# ...
+}}}
 
 """
 

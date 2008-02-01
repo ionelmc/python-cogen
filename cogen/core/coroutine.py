@@ -9,13 +9,13 @@ def coroutine(func):
     A decorator function for generators.
     Example:
     
-    .. sourcecode:: python
-    
-        @coroutine
-        def plain_ol_generator():
-            yield bla
-            yield bla
-            ...
+    {{{
+    @coroutine
+    def plain_ol_generator():
+        yield bla
+        yield bla
+        ...
+    }}}
     """
     def make_new_coroutine(*args, **kws):
         return Coroutine(func, *args, **kws)
