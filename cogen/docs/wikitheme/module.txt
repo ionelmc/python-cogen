@@ -18,15 +18,13 @@ ${'#'}labels Documentation
 #end
 
 = Module: ${desc.name} =
-
 ${project.render_description(desc)}
 
 #if desc.modules
 == Modules ==
 
 #for module in desc.modules
-=== $module.name ===
-
+=== ${"[%s %s]" % (module.href, module.name)} ===
 ${project.render_short_desc(module)}
 
 
@@ -37,8 +35,7 @@ ${project.render_short_desc(module)}
 == Classes ==
 
 #for class_ in desc.classes
-=== $class_.name ===
-
+=== ${"[%s %s]" % (class_.href, class_.name)} ===
 ${project.render_short_desc(class_)}
 
 
@@ -50,8 +47,7 @@ ${project.render_short_desc(class_)}
 
 #for function in desc.functions
 === $function.name ===
-signature: ${function.name}${function.argspec}
-
+signature: {{{${function.name}${function.argspec}}}}
 ${project.render_description(function)}
 
 
@@ -63,7 +59,6 @@ ${project.render_description(function)}
 
 #for attribute in desc.attributes
 === $attribute.name ===
-
 ${project.render_description(attribute)}
 {{{${helpers.pformat(helpers.safe_get(attribute, 'value'))}}}}
 

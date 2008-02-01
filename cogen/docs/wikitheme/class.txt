@@ -26,7 +26,6 @@ ${project.render_description(desc)}
 
 #for class_ in desc.classes
 === $class_.name ===
-
 ${project.render_short_desc(class_)}
 
 #end
@@ -37,8 +36,7 @@ ${project.render_short_desc(class_)}
 
 #for method in desc.methods
 === $method.name ===
-signature: ${method.name}${method.argspec}
-
+signature: {{{${method.name}${method.argspec}}}}
 ${project.render_description(method)}
 
 #end
@@ -49,7 +47,6 @@ ${project.render_description(method)}
 
 #for attribute in desc.attributes
 === $attribute.name ===
-
 ${project.render_description(attribute)}
 {{{${helpers.pformat(helpers.safe_get(attribute, 'value'))}}}}
 
