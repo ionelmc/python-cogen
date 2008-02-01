@@ -1,0 +1,57 @@
+${'#'}sumary ${desc.pathname} Documentation
+${'#'}labels Documentation
+
+#if desc.parent
+==== Parent: ${"[%s %s]" % (desc.parent.href, desc.parent.pathname)} ====
+#end
+#if desc.modules
+==== Modules: ${" ".join("[%s %s]" % (m.href, m.name) for m in desc.modules)} ====
+#end
+#if desc.classes
+==== Classes: ${" ".join("[%s %s]" % (c.href, c.name) for c in desc.classes)} ====
+#end
+#if desc.methods
+==== Methods: ${" ".join("[%s %s]" % (m.href, m.name) for m in desc.methods)} ====
+#end
+#if desc.attributes
+==== Attributes: ${" ".join("[%s %s]" % (a.href, a.name) for a in desc.attributes)} ====
+#end
+
+= Class: ${desc.name} =
+
+${project.render_description(desc)}
+
+#if desc.classes
+== Classes ==
+
+#for class_ in desc.classes
+=== $class_.name ===
+
+${project.render_short_desc(class_)}
+
+#end
+
+#end
+#if desc.methods
+== Methods ==
+
+#for method in desc.methods
+=== $method.name ===
+signature: ${method.name}${method.argspec}
+
+${project.render_description(method)}
+
+#end
+
+#end
+#if desc.attributes
+== Attributes ==
+
+#for attribute in desc.attributes
+=== $attribute.name ===
+
+${project.render_description(attribute)}
+{{{${helpers.pformat(helpers.safe_get(attribute, 'value'))}}}}
+
+#end
+#end
