@@ -1,4 +1,4 @@
-${'#'}sumary ${desc.pathname} Documentation
+${'#'}summary ${desc.pathname} Documentation
 ${'#'}labels Documentation
 
 #if desc.parent
