@@ -59,8 +59,9 @@ setup(
             'syncinput=cogen.web.async:SynchronousInputMiddleware'
         ],
         'apydia.themes': [
-            'cogen=cogen.docs.theme'
-        ]
+            'cogen=cogen.docs.theme',
+            'cogenwiki=cogen.docs.wikitheme',
+        ],
     },
     install_requires = [],
     test_suite = "cogen.test"
