@@ -22,15 +22,16 @@ def wait_app(environ, start_response):
     yield "Someone signaled me: %s" % environ['cogen'].result
 }}}
 
-  - ``environ['cogen'].core`` is actualy a wrapper that sets 
-  ``environ['cogen'].operation`` with the called object and returns a empty 
+  - `environ['cogen'].core` is actualy a wrapper that sets 
+  `environ['cogen'].operation` with the called object and returns a empty 
   string. This should penetrate most of the middleware - according to the wsgi 
   spec, middleware should pass a empty string if it doesn't have anything to 
   return on that specific iteration point, or, in other words, the length of the
   app iter returned by middleware should be at least that of the app.
-  - the wsigi server will set ``environ['cogen'].result`` with the result of the 
-  operation and ``environ['cogen'].exception`` with the details of the 
-  exception - if any: ``(exc_type, exc_value, traceback_object)``.
+  
+  - the wsigi server will set `environ['cogen'].result` with the result of the 
+  operation and `environ['cogen'].exception` with the details of the 
+  exception - if any: `(exc_type, exc_value, traceback_object)`.
 
 HTTP handling code taken from the CherryPy WSGI server.
 """
