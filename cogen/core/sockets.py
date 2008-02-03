@@ -1,3 +1,6 @@
+"""
+Socket-only coroutine operations and `Socket` wrapper.
+"""
 import socket
 import errno
 import exceptions
@@ -24,13 +27,14 @@ __doc_all__ = [
 ]
 
 class Socket(socket.socket):
+    """
+    This class just inherits good old socket.socket, sets nonblocking mode and
+    add some attributes we need:
+      * rl_pending - for unchecked for linebreaks buffer
+      * rl_list - for checked for linebreaks buffers
+      * rl_list_sz - a cached size of the summed sizes of rl_list buffers
+    """
     __slots__ = ['_rl_list', '_rl_list_sz', '_rl_pending']
-    """
-    We need some additional buffers and stuff:
-      - rl_pending - for unchecked for linebreaks buffer
-      - rl_list - for checked for linebreaks buffers
-      - rl_list_sz - a cached size of the summed sizes of rl_list buffers
-    """
     def __init__(self, *a, **k):
         super(Socket, self).__init__(*a, **k)
         self._rl_list = []
@@ -46,6 +50,12 @@ class Socket(socket.socket):
     def __str__(self):
         return 'sock@0x%X' % id(self)
 class SocketOperation(events.TimedOperation):
+    """
+    This is a generic class for a operation that involves some socket call.
+        
+    A socket operation should subclass WriteOperation or ReadOperation, define a
+    `run` method and call the __init__ method of the superclass.
+    """
     __slots__ = [
         'sock', 'last_update', 'fileno',
         'len', 'buff', 'addr',
@@ -53,23 +63,17 @@ class SocketOperation(events.TimedOperation):
     ]
     __doc_all__ = ['__init__', 'try_run']
     trim = 2000
-    """
-    This is a generic class for a operation that involves some socket call.
-        
-    A socket operation should subclass WriteOperation or ReadOperation, define a
-    `run` method and call the __init__ method of the superclass.
-    """
     def __init__(self, sock, **kws):
         """
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
         
-          - timeout - the ammout of time in seconds or timedelta, or the datetime 
+          * timeout - the ammout of time in seconds or timedelta, or the datetime 
           value till the poller should wait for this operation.
-          - weak_timeout - if this is True the timeout handling code will take 
+          * weak_timeout - if this is True the timeout handling code will take 
           into account the time of last activity (that would be the time of last
           `try_run` call)
-          - prio - a flag for the scheduler
+          * prio - a flag for the scheduler
         """
         assert isinstance(sock, Socket)
         

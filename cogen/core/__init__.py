@@ -11,16 +11,16 @@ def mycoro(bla):
     yield <operation>
 }}}
     
-  - the `operation` instructs the scheduler what to do with the 
+  * the `operation` instructs the scheduler what to do with the 
   coroutine: suspend it till someting happens, add another coro in 
   the scheduler, raise a event and so on.
-  - the `operations` are split up in 2 modules: events and sockets
-    - the `operations` from sockets are related to network, like reading and 
+  * the `operations` are split up in 2 modules: events and sockets
+    * the `operations` from sockets are related to network, like reading and 
     writing, and these are done asynchronously but your code in the 
     coroutine will see them as a regular synchronous or blocking call.
-    - the `operations` from events are related to signals and 
+    * the `operations` from events are related to signals and 
     coroutine/scheduler management.
-  - if a `operation` has a result associated then the yield will return that 
+  * if a `operation` has a result associated then the yield will return that 
   result (eg. a string or a (connection, address) tuple) otherwise it will 
   return the operation instance.
 

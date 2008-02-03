@@ -1,3 +1,6 @@
+"""
+Mischelaneous or common.
+"""
 import datetime
 import sys
 import traceback

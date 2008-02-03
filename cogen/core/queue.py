@@ -1,3 +1,7 @@
+"""
+Port of Queue.Queue from the python standard library.
+"""
+
 import collections
 import events
 
@@ -145,13 +149,13 @@ class Queue:
     
     So, to use this you write someting like:
     
-    .. sourcecode:: python
-        
-        @coroutine
-        def foo():
-            q = cogen.core.queue.Queue(<size>)
-            yield q.put(123)
-            val = yield q.get()
+    {{{
+    @coroutine
+    def foo():
+        q = cogen.core.queue.Queue(<size>)
+        yield q.put(123)
+        val = yield q.get()
+    }}}
     """
     def __init__(self, maxsize=0):
         self._init(maxsize)

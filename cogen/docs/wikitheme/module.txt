@@ -46,8 +46,9 @@ ${project.render_short_desc(class_)}
 == Functions ==
 
 #for function in desc.functions
-=== $function.name ===
+=== {{{$function.name}}} ===
 signature: {{{${function.name}${function.argspec}}}}
+
 ${project.render_description(function)}
 
 
@@ -58,7 +59,7 @@ ${project.render_description(function)}
 == Attributes ==
 
 #for attribute in desc.attributes
-=== $attribute.name ===
+=== {{{$attribute.name}}} ===
 ${project.render_description(attribute)}
 {{{${helpers.pformat(helpers.safe_get(attribute, 'value'))}}}}
 

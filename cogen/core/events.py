@@ -1,3 +1,7 @@
+"""
+Base events (coroutine operations) and coroutine exceptions.
+"""
+
 import datetime
 import heapq
 
@@ -141,7 +145,7 @@ class Signal(Operation):
     nr = yield events.Signal(name, value)
     }}}
     
-      - nr - the number of coroutines woken up
+      * nr - the number of coroutines woken up
     """
     __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
     __doc_all__ = ['__init__']
@@ -190,7 +194,7 @@ class Call(Operation):
     result = yield events.Call(mycoro, args=<a tuple>, kwargs=<a dict>, prio=<int>)
     }}}
     
-      - if `prio` is set the new coroutine will be added in the top of the 
+      * if `prio` is set the new coroutine will be added in the top of the 
       scheduler queue
     """
     __slots__ = ['coro', 'args', 'kwargs']
@@ -343,13 +347,13 @@ class Sleep(Operation):
     yield events.Sleep(time_object)
     }}}
     
-      - timeoject - a datetime or timedelta object, or a number of seconds
+      * timeoject - a datetime or timedelta object, or a number of seconds
         
     {{{
     yield events.Sleep(timestamp=ts)
     }}}
     
-      - ts - a timestamp
+      * ts - a timestamp
     """
     __slots__ = ['wake_time', 'coro']
     __doc_all__ = ['__init__']

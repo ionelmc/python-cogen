@@ -1,3 +1,7 @@
+"""
+Scheduling framework.
+"""
+
 import collections
 import datetime
 import heapq

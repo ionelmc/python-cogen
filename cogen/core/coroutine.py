@@ -1,3 +1,7 @@
+""" 
+Coroutine related boilerplate and wrappers.
+"""
+
 import types
 import sys
 import gc
