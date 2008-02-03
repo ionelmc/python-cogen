@@ -2,7 +2,7 @@ ${'#'}summary ${desc.pathname} Documentation
 ${'#'}labels Documentation
 
 #if desc.parent
-==== Parent: ${"[%s %s]" % (desc.parent.href, desc.parent.pathname)} ====
+==== Parent module: ${"[%s %s]" % (desc.parent.href, desc.parent.pathname)} ====
 #end
 #if desc.modules
 ==== Modules: ${" ".join("[%s %s]" % (m.href, m.name) for m in desc.modules)} ====
