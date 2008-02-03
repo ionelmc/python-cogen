@@ -83,7 +83,7 @@ class SocketOperation(events.TimedOperation):
     def try_run(self):
         """
         This method will return a None value or raise a exception if the 
-        operation can'self complete at this time.
+        operation can't complete at this time.
         
         The socket poller will run this method if the socket is 
         readable/writeable.
@@ -138,7 +138,7 @@ class SendFile(WriteOperation):
             #no sendfile
             
         yield sockets.SendFile(<file handle>, <sock>, 0, <file size>)
-            # this will hang if we can'self read <file size> bytes 
+            # this will hang if we can't read <file size> bytes
             #from the file
         }}}
     """
@@ -291,7 +291,7 @@ class ReadAll(ReadOperation):
             self.sock._rl_list = []
             self.sock._rl_list_sz = 0
             return self
-        else: # damn ! we still didn'self recv enough
+        else: # damn ! we still didn't recv enough
             return
 
     def finalize(self):

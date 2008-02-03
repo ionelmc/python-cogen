@@ -3,7 +3,7 @@ This wsgi server is a single threaded, single process server that interleaves
 the iterations of the wsgi apps - I could add a threadpool for blocking apps in 
 the future.
 
-If you don'self return iterators from apps and return lists you'll get, at most,
+If you don't return iterators from apps and return lists you'll get, at most,
 the performance of a server that processes requests sequentialy.
 
 On the other hand this server has coroutine extensions that suppose to support 
@@ -93,7 +93,7 @@ class tryclosing(object):
   __doc_all__ = ['__init__', '__enter__', '__exit__']
   """
   This is the exact context manager as contextlib.closing but it 
-  doesn'self throw a exception if the managed object doesn'self have a 
+  doesn't throw a exception if the managed object doesn't have a
   close method.
   """
   def __init__(self, thing):
@@ -398,7 +398,7 @@ class WSGIConnection(object):
                 read_chunked = True
               else:
                 # Note that, even if we see "chunked", we must reject
-                # if there is an extension we don'self recognize.
+                # if there is an extension we don't recognize.
                 yield self.simple_response("501 Unimplemented")
                 self.close_connection = True
                 return
@@ -561,7 +561,7 @@ class WSGIServer(object):
   @coroutine
   def serve(self):
     """Run the server forever."""
-    # We don'self have to trap KeyboardInterrupt or SystemExit here,
+    # We don't have to trap KeyboardInterrupt or SystemExit here,
     
     # Select the appropriate socket
     if isinstance(self.bind_addr, basestring):
@@ -616,7 +616,7 @@ class WSGIServer(object):
         environ["SERVER_NAME"] = self.server_name
         
         if isinstance(self.bind_addr, basestring):
-          # AF_UNIX. This isn'self really allowed by WSGI, which doesn'self
+          # AF_UNIX. This isn't really allowed by WSGI, which doesn't
           # address unix domain sockets. But it's better than nothing.
           environ["SERVER_PORT"] = ""
         else:

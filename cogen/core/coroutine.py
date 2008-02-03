@@ -32,7 +32,7 @@ def coroutine(func):
 class Coroutine(object):
     ''' 
     We need a coroutine wrapper for generators and function alike because
-    we want to run functions that don'self return generators just like a 
+    we want to run functions that don't return generators just like a
     coroutine 
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
