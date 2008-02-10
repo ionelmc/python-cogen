@@ -161,3 +161,8 @@ class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
+
+if __name__ == "__main__":
+    sys.argv.insert(1, '-v')
+    unittest.main()
+    

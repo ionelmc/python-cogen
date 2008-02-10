@@ -177,3 +177,7 @@ class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
+
+if __name__ == "__main__":
+    sys.argv.insert(1, '-v')
+    unittest.main()

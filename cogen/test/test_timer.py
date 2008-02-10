@@ -101,3 +101,7 @@ class TimerTest_Prio(Timer_MixIn, PrioMixIn, unittest.TestCase):
     scheduler = Scheduler
 class TimerTest_NoPrio(Timer_MixIn, NoPrioMixIn, unittest.TestCase):
     scheduler = Scheduler
+
+if __name__ == "__main__":
+    sys.argv.insert(1, '-v')
+    unittest.main()
