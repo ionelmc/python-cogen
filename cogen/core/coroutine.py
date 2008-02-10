@@ -5,6 +5,8 @@ Coroutine related boilerplate and wrappers.
 import types
 import sys
 import gc
+import warnings
+
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
 
@@ -29,14 +31,15 @@ def coroutine(func):
     return make_new_coroutine
 
 
-class Coroutine(object):
+class Coroutine(events.Operation):
     ''' 
     We need a coroutine wrapper for generators and function alike because
     we want to run functions that don't return generators just like a
-    coroutine 
+    coroutine.
     '''
-    STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, STATE_FAILED = range(4)
-    _state_names = "notstarted", "running", "completed", "failed"
+    STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, \
+        STATE_FAILED, STATE_FINALIZED = range(5)
+    _state_names = "NOTSTARTED", "RUNNING", "COMPLETED", "FAILED", "FINALIZED"
     __slots__ = [ 
         'f_args', 'f_kws', 'name', 'state', 
         'exception', 'coro', 'caller', 'waiters', 'result',
@@ -60,6 +63,7 @@ class Coroutine(object):
         self.coro = coro
         self.caller = self.prio = None
         self.waiters = []
+        self.exception = None
     
     def add_waiter(self, coro):
         assert self.state < self.STATE_COMPLETED
@@ -79,25 +83,53 @@ class Coroutine(object):
              hasattr(coro, 'throw'):
             return True
     
-    def _run_completion(self):
-        coros = []
-        if self.caller:
-            coros.append((self, self.caller))
-        if self.waiters:
-            coros.extend(self.waiters)
-        self.waiters = None
-        self.caller = None
-        return events.Complete(*coros)
-    
     def finalize(self):
+        self.state = self.STATE_FINALIZED
         return self.result
-    
+        
+    def process(self, sched, coro):
+        assert self.state < self.STATE_FINALIZED, \
+            "%s called, expected state less than %s!" % (
+                self, 
+                self._state_names[self.STATE_FINALIZED]
+            )
+        if self.waiters:    
+            if sched.default_priority:
+                sched.active.extendleft(self.waiters)
+            else:
+                sched.active.extend(self.waiters)
+        self.waiters = []
+        if self.caller:
+            try:
+                if self.exception:
+                    return events.CoroutineException(self.exception), self.caller
+                else:                
+                    return self, self.caller
+            finally:
+                self.caller = None
+        
+        
     #~ @debug(0)
     def run_op(self, op): 
+        """
+        Handle the operation:
+          * if coro is in STATE_RUNNING, send or throw the given op
+          * if coro is in STATE_NEED_INIT, call the init function and if it 
+          doesn't return a generator, set STATE_COMPLETED and set the result
+          to whatever the function returned. 
+            * if StopIteration is raised, set STATE_COMPLETED and return self.
+            * if any other exception is raised, set STATE_FAILED, handle error
+            or send it to the caller, return self
+        
+        Return self is used as a optimization. Coroutine is also a Operation 
+        which handles it's own completion (resuming the caller and the waiters).
+        """
+        if op is self:
+            warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
-            "Coroutine at 0x%X called but it is %s state !" % (
-                id(self), 
-                self._state_names[self.state]
+            "%s called, expected state less than %s!" % (
+                self, 
+                self._state_names[self.STATE_COMPLETED]
             )
         try:
             if self.state == self.STATE_RUNNING:
@@ -117,7 +149,7 @@ class Coroutine(object):
                     self.state = self.STATE_COMPLETED
                     self.result = self.coro
                     self.coro = None
-                    rop = self._run_completion()
+                    rop = self
             else:
                 return None
                 
@@ -125,7 +157,7 @@ class Coroutine(object):
             self.state = self.STATE_COMPLETED
             self.result = e.message
             if hasattr(self.coro, 'close'): self.coro.close()
-            rop = self._run_completion()
+            rop = self
             
         except:
             #~ import traceback
@@ -134,20 +166,9 @@ class Coroutine(object):
             self.result = None
             self.exception = sys.exc_info()
             if hasattr(self.coro, 'close'): self.coro.close()
-            if self.caller:
-                if self.waiters:
-                    rop = self._run_completion()
-                else:
-                    rop = events.Pass(
-                        self.caller, 
-                        events.CoroutineException(self.exception), 
-                        prio=self.prio
-                    )
-                self.waiters = None
-                self.caller = None
-            else:
+            if not self.caller:
                 self.handle_error()
-                rop = self._run_completion()
+            rop = self
         return rop
 
     def handle_error(self):        
@@ -159,7 +180,7 @@ class Coroutine(object):
         print>>sys.stderr, '-'*40
         
     def __repr__(self):
-        return "<%s Coroutine instance at 0x%08X, state: '%s'>" % (
+        return "<%s Coroutine instance at 0x%08X, state: %s>" % (
             self.name, 
             id(self), 
             self._state_names[self.state]
