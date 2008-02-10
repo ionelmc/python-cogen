@@ -200,13 +200,13 @@ class SendFile(WriteOperation):
 
 class Read(ReadOperation):
     """
-        `len` is max read size, BUT, if if there are buffers from ReadLine 
-        return them first.
-        Example usage:
-        
-        {{{
-        yield sockets.Read(socket_object, buffer_length)
-        }}}
+    `len` is max read size, BUT, if if there are buffers from ReadLine 
+    return them first.
+    Example usage:
+    
+    {{{
+    yield sockets.Read(socket_object, buffer_length)
+    }}}
     """
     __slots__ = []
     __doc_all__ = ['__init__', 'run']
@@ -312,9 +312,9 @@ class ReadAll(ReadOperation):
         
 class ReadLine(ReadOperation):
     """
-        Run this operator till we read a newline (\\n) or we have a overflow.
-        
-        `len` is the max size for a line
+    Run this operator till we read a newline (\\n) or we have a overflow.
+    
+    `len` is the max size for a line
     """
     __slots__ = []
     __doc_all__ = ['__init__', 'run']
