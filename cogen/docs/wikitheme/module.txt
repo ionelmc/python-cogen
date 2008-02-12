@@ -1,4 +1,4 @@
-${'#'}summary ${desc.pathname} Documentation
+${'#'}summary ${desc.pathname} Documentation for trunk
 ${'#'}labels Documentation
 
 #if desc.parent
