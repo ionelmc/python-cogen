@@ -60,6 +60,7 @@ class Scheduler(object):
         self.poll = poller(self)
         self.default_priority = default_priority
         self.default_timeout = default_timeout
+        self.running = False
     def __repr__(self):
         return "<%s@0x%X active:%s sigwait:%s timewait:%s poller:%s default_priority:%s default_timeout:%s>" % (
             self.__class__.__name__, 
@@ -150,7 +151,8 @@ class Scheduler(object):
         return None, None
         
     def run(self):
-        while self.active or self.poll or self.timewait:
+        self.running = True
+        while self.running and (self.active or self.poll or self.timewait):
             if self.active:
                 #~ print 'ACTIVE:', self.active
                 op, coro = self.active.popleft()
@@ -166,4 +168,5 @@ class Scheduler(object):
             #~ print 'active:  ',len(self.active)
             #~ print 'poll:    ',len(self.poll)
             #~ print 'timeouts:',len(self.poll._timeouts)
-
+    def stop(self):
+        self.running = False
