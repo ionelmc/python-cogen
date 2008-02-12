@@ -326,13 +326,15 @@ class ReadLine(ReadOperation):
         
     def check_overflow(self):
         if self.sock._rl_list_sz >= self.len: 
-            #~ rl_list    = self.sock._rl_list   
-            #~ rl_list_sz = self.sock._rl_list_sz
-            #~ rl_pending = self.sock._rl_pending
-            #~ print "OVERFLOW:",self
+            #XXX: maybe we should keep the overflowing buffer? - in case
+            # the user might try to readline again with a bigger buffer size
+            
             self.sock._rl_list    = []
             self.sock._rl_list_sz = 0
             self.sock._rl_pending = ''
+            # but then, if the user tries again with the same buffer size, it 
+            # would error forever
+            
             raise exceptions.OverflowError(
                 "Recieved %s bytes and no linebreak" % self.len
             )
@@ -341,6 +343,13 @@ class ReadLine(ReadOperation):
         #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
+            if nl + self.sock._rl_list_sz >= self.len:
+                self.sock._rl_list    = []
+                self.sock._rl_list_sz = 0
+                self.sock._rl_pending = ''
+                raise exceptions.OverflowError(
+                    "Recieved %s bytes and no linebreak" % self.len
+                )
             #~ print "RL", nl
             if nl >= 0:
                 nl += 1
