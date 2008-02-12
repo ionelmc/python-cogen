@@ -10,9 +10,12 @@ import httplib
 from cStringIO import StringIO
 
 from cogen.common import *
+from cogen.core.util import debug
 from cogen.test.base import PrioMixIn, NoPrioMixIn
 from cogen.web import wsgi, async
 from cogen.test.base_web import WebTest_Base
+
+ 
 
 class SimpleAppTest_MixIn:
     def app(self, environ, start_response):
@@ -28,11 +31,154 @@ class SimpleAppTest_MixIn:
         self.assertEqual(resp.read(), 'test-resp-body')
         self.assertEqual(self.header, 'test-value')
         
+class InputTest_MixIn:
+    #~ @debug(0)
+    def app(self, environ, start_response):
+        start_response('200 OK', [('Content-type','text/html')])
+        return [environ['wsgi.input'].read()]
+        
+    def make_str(self, pieces, psize=1024*1024, chunked=True):
+        f = StringIO()
+        for i in xrange(pieces):
+            val = chr(i+35)*psize
+            
+            if chunked: f.write(hex(len(val))[2:]+"\r\n")
+            f.write(val)
+            if chunked: f.write("\r\n")
+        if chunked: f.write("0\r\n")            
+        return f.getvalue()
+        
+    def test_chunked(self):
+        for PSIZE in [1024, 10*1024, 10000, 5000, 12345]:
+            SIZE = 10
+            data = self.make_str(SIZE, PSIZE)
+            self.conn.request('GET', '/', data, {"Transfer-Encoding": "chunked"})
+
+            resp = self.conn.getresponse()
+            recvdata = resp.read()
+            expectdata = self.make_str(SIZE, PSIZE, chunked=False)
+            self.assert_(recvdata == expectdata)
+    def test_nonchunked(self):
+        for PSIZE in [1024, 10*1024, 10000, 5000, 12345]:
+            SIZE = 10
+            data = self.make_str(SIZE, PSIZE, chunked=False)
+            self.conn.request('GET', '/', data, {"Content-Length": str(len(data))})
+
+            resp = self.conn.getresponse()
+            recvdata = resp.read()
+            self.assert_(recvdata == data)
+            
+        
+        
+class AsyncInputTest_MixIn:
+    middleware = []
+    def read_app(self, environ, start_response):
+        buff = StringIO()
+        length = 0
+        while 1:
+            yield environ['cogen.input'].Read(self.buffer_length)
+            result = environ['cogen.wsgi'].result
+            #~ print len(result)
+            if isinstance(result, Exception):
+                import traceback
+                traceback.print_exception(*environ['cogen.wsgi'].exception)
+                break
+            else:
+                if not result:
+                    break
+                buff.write(result)
+                length += len(result)
+        self.result = buff.getvalue()
+        yield 'read'
+        
+    def readline_app(self, environ, start_response):
+        buff = StringIO()
+        length = 0
+        while 1:
+            yield environ['cogen.input'].ReadLine(self.buffer_length)
+            result = environ['cogen.wsgi'].result
+            #~ print 
+            #~ print len(result), `result`
+            if isinstance(result, Exception):
+                if isinstance(result, OverflowError):
+                    self.overflow = "overflow"
+                else:
+                    import traceback
+                    traceback.print_exception(*environ['cogen.wsgi'].exception)
+                
+                break
+            else:
+                if not result:
+                    break
+                buff.write(result)
+                length += len(result)
+        self.result = buff.getvalue()
+        yield 'readline'
+        
+    def app(self, environ, start_response):
+        start_response('200 OK', [('Content-type','text/html')])
+        if environ["PATH_INFO"] == '/read':
+            return self.read_app(environ, start_response)
+        elif environ["PATH_INFO"] == '/readline':
+            return self.readline_app(environ, start_response)
+        else:
+            raise Exception('Unknown path_info')
+    def make_str(self, pieces, psize=1024*1024, psep='', chunked=True):
+        f = StringIO()
+        for i in xrange(pieces):
+            val = chr(i+35)*psize + psep
+            
+            if chunked: f.write(hex(len(val))[2:]+"\r\n")
+            f.write(val)
+            if chunked: f.write("\r\n")
+        if chunked: f.write("0\r\n")            
+        return f.getvalue()
+    def test_read(self):
+        for buffer_length in [123, 1234, 10, 1024, 10*1024]:
+            self.buffer_length = buffer_length
+            self.result = None
+            data = self.make_str(10, 4000)
+            expectdata = self.make_str(10, 4000, chunked=False)
+            self.conn.request('GET', '/read', data, {"Transfer-Encoding": "chunked"})
+            resp = self.conn.getresponse()
+            recvdata = resp.read()
+            self.assert_(self.result == expectdata)
+            self.assert_(recvdata == 'read')
+    def test_readline_overflow(self):
+        self.buffer_length = 512
+        data = self.make_str(1, 512, psep="\n", chunked=False)
+        self.result = None
+        self.overflow = None
+        self.conn.request('GET', '/readline', data)
+        resp = self.conn.getresponse()
+        recvdata = resp.read()
+        self.assert_(self.overflow == 'overflow')
+        self.assert_(recvdata == 'readline')
+    def test_readline(self):
+        self.buffer_length = 512
+        data = self.make_str(1, 256, psep="\n", chunked=False)
+        self.result = None
+        self.overflow = None
+        self.conn.request('GET', '/readline', data)
+        resp = self.conn.getresponse()
+        recvdata = resp.read()
+        self.assert_(self.overflow == None)
+        self.assert_(self.result == data)
+        self.assert_(recvdata == 'readline')
+
 class SimpleAppTest_Prio(SimpleAppTest_MixIn, WebTest_Base, PrioMixIn, unittest.TestCase):
     pass
 class SimpleAppTest_NoPrio(SimpleAppTest_MixIn, WebTest_Base, NoPrioMixIn, unittest.TestCase):
     pass
-        
+class InputTest_Prio(InputTest_MixIn, WebTest_Base, PrioMixIn, unittest.TestCase):
+    pass
+class InputTest_NoPrio(InputTest_MixIn, WebTest_Base, NoPrioMixIn, unittest.TestCase):
+    pass
+class AsyncInputTest_Prio(AsyncInputTest_MixIn, WebTest_Base, PrioMixIn, unittest.TestCase):
+    pass
+class AsyncInputTest_NoPrio(AsyncInputTest_MixIn, WebTest_Base, NoPrioMixIn, unittest.TestCase):
+    pass
+
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
     unittest.main()
