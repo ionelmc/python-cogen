@@ -405,7 +405,7 @@ class WSGIConnection(object):
           
           self.environ['cogen.wsgi'] = async.COGENProxy(
             read_chunked = read_chunked,
-            content_length = self.environ.get('CONTENT_LENGTH', None) or None,
+            content_length = int(self.environ.get('CONTENT_LENGTH', None) or 0) or None,
             read_count = 0,
             state = async.Read.NEED_SIZE,
             chunk_remaining = 0,
@@ -419,8 +419,11 @@ class WSGIConnection(object):
           )
           self.environ['cogen.input'] = async.COGENOperationWrapper(
             self.environ['cogen.wsgi'], 
-            async.COGENProxy( Read = lambda len, **kws: \
-              async.Read(self.conn, self.environ['cogen.wsgi'], len, **kws)
+            async.COGENProxy( 
+              Read = lambda len, **kws: \
+                async.Read(self.conn, self.environ['cogen.wsgi'], len, **kws),
+              ReadLine = lambda len, **kws: \
+                async.ReadLine(self.conn, self.environ['cogen.wsgi'], len, **kws)
             )
           )
           response = self.wsgi_app(self.environ, self.start_response)
@@ -431,7 +434,10 @@ class WSGIConnection(object):
             del csr
             if isinstance(response, WSGIFileWrapper):
               yield sockets.SendFile( response.filelike, self.conn, 
-                                      blocksize=response.blocksize )                                      #, timeout=-1)
+                                      blocksize=response.blocksize )#, timeout=-1)
+              #XXX: use content-length 
+              #XXX: use chunking
+              
             else:
               for chunk in response:
                 csr = self.check_start_response()
@@ -464,6 +470,10 @@ class WSGIConnection(object):
         
           if self.close_connection:
             return
+          while (yield async.Read(self.conn, self.environ['cogen.wsgi'])):
+            # we need to consume any unread input data to read the next 
+            #pipelined request
+            pass
       except socket.error, e:
         errno = e.args[0]
         if errno not in useless_socket_errors:

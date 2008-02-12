@@ -82,16 +82,19 @@ class SynchronousInputMiddleware:
                 length += len(result)
         buff.seek(0)
         environ['wsgi.input'] = buff
-        environ['CONTENT_LENGTH'] = length
-        for i in self.app(environ, start_response):
+        environ['CONTENT_LENGTH'] = str(length)
+        iterator = self.app(environ, start_response)
+        for i in iterator:
             yield i
-            
+        iterator.close()
+def sync_input(app):
+    return SynchronousInputMiddleware(app)
 
 class Read(sockets.ReadAll, sockets.ReadLine):
     """This is actually a hack that mixes ReadAll and ReadLine and 
     patches their state attributes. Hopefully i'll evolve it to
     something more elegant at some point."""
-    __slots__ = ['state']
+    __slots__ = ['req', 'x_len', 'x_buff', 'x_buff_sz', 'x_ck_sz']
     NEED_SIZE = 0
     NEED_CHUNK = 1
     NEED_TERM = 2
@@ -113,7 +116,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                 req.read_count + len > req.content_length:
             len = req.content_length - req.read_count
         
-        super(Read, self).__init__(conn, len, **kws)
+        super(self.__class__, self).__init__(conn, len, **kws)
         self.x_len = len
         self.x_buff = []
         self.x_buff_sz = 0
@@ -122,21 +125,13 @@ class Read(sockets.ReadAll, sockets.ReadLine):
     
     #~ @debug(0)        
     def run(self):
-        #~ print "RUN:"
-        #~ print "     req.state:", `self.req.state`
-        #~ print "     req.read_count:", `self.req.read_count`
-        #~ print "     req.content_length:", `self.req.content_length`
-        #~ print "     x_len:", `self.x_len`, 
-        #~ print "     x_buff_sz:", `self.x_buff_sz`
         if self.req.read_chunked:
             again = 1
             while again:
                 again = 0
                 if self.req.state == self.NEED_SIZE:
-                    #~ print 'sockets.ReadLine.process', sockets.ReadLine.process
                     self.len = self.x_len
                     ret = sockets.ReadLine.run(self)
-                    #~ print 'NEED_SIZE', ret, ret and ret.buff
                     if ret:
                         self.req.state = self.NEED_CHUNK
                         chunk_len = int(self.buff.split(';',1)[0], 16)
@@ -171,9 +166,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                         self.x_buff_sz += len(self.buff)
                         self.req.chunk_remaining -= len(self.buff)
                         self.buff = None # patching for base classes
-                        #~ print 'CHUNKY:', self.x_buff_sz, self.x_len, self.len, \
-                                         #~ self.req.read_count
-                        
+                       
                         # if what we have in x_buff is not enough we need to 
                         # read more chunks
                         if self.x_buff_sz >= self.x_len:
@@ -206,7 +199,6 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                     self.len = self.x_len
                     ret = sockets.ReadLine.run(self)
                     if ret:
-                        #~ print "NEED_HEAD", `ret.buff`
                         if ret.buff == '\r\n':
                             # empty line - end of headers, END
                             self.req.state = self.NEED_NONE
@@ -216,22 +208,23 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                     self.buff = ''
                     return self
         else:
+            # and all this chunking madness could had beed avoided !
             if self.req.content_length:
                 if self.req.read_count >= self.req.content_length:
                     assert self.req.read_count == self.req.content_length, \
                             "read_count is greater than content_length !"
-                    return ''
-                # and all this madness could had beed avoided !
+                    self.buff = ''
+                    return self
                 ret = sockets.ReadAll.run(self)
                 if ret:
-                    self.state.read_count += len(ret.buff)
+                    self.req.read_count += len(ret.buff)
                 return ret
             else:
                 self.buff = ''
                 return self
                                 
     def __repr__(self):
-        return "<%s at 0x%X %s in STATE%s RQ.RD_CNT:%s RQ.CL:%s XBF:%s XLEN:%s XBF_SZ:%s RL_PND:%.100r RL_LIST:%r RL_LIST_SZ:%r BUFF:%r LEN:%s to:%s>" % (
+        return "<%s at 0x%X %s in STATE%s RQ.RD_CNT:%r RQ.CL:%r XBF:%s XLEN:%s XBF_SZ:%s RL_PND:%.100r RL_LIST:%r RL_LIST_SZ:%r BUFF:%r LEN:%s to:%s>" % (
             self.__class__.__name__, 
             id(self), 
             self.sock, 
@@ -249,4 +242,46 @@ class Read(sockets.ReadAll, sockets.ReadLine):
             self.len,
             self.timeout
         )
+class ReadLine(sockets.ReadAll, sockets.ReadLine):
+    """
+    Same a async.Read but doesn't work with chunked input (it would complicate
+    things too much at the moment).
+    """
+    __slots__ = ['req']
+    def __init__(self, conn, req, len = 4096, **kws):
+        """Initial `req` object holds the state of the operations involving
+        reading the input and it requires to have these attributes:
         
+        * read_chunked = <bool>
+        * content_length = <int>
+        * read_count = 0
+        * state = async.Read.NEED_SIZE
+        
+        These have to be initialized in the request.
+        """
+        #check if requested length doesn't excede content-length
+        if not req.read_chunked and req.content_length and \
+                req.read_count + len > req.content_length:
+            len = req.content_length - req.read_count
+        
+        super(self.__class__, self).__init__(conn, len, **kws)
+        self.req = req
+    
+    #~ @debug(0)        
+    def run(self):
+        if self.req.read_chunked:
+            raise NotImplementedError("No readline for chunked input.")
+        else:
+            if self.req.content_length:
+                if self.req.read_count >= self.req.content_length:
+                    assert self.req.read_count == self.req.content_length, \
+                            "read_count is greater than content_length !"
+                    self.buff = ''
+                    return self
+                ret = sockets.ReadLine.run(self)
+                if ret:
+                    self.req.read_count += len(ret.buff)
+                return ret
+            else:
+                self.buff = ''
+                return self
