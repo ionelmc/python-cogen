@@ -11,23 +11,7 @@ setup(
         Coroutines and asynchronous I/O using enhanced generators 
         from python 2.5, including a enhanced WSGI server.
     ''',
-    long_description="""
-        Coroutines in python using enhanced generators from python 2.5
-
-        This is a library for network oriented, coroutine based programming. 
-        The interfaces and events/operations aim to mimic thread features. 
-        Coroutines work as simple generators, the operations and events work as 
-        objects passed in and out of the generator, these objects are managed 
-        by the scheduler/network poller. 
-
-        Other features include a wsgi server with coroutine extensions, 
-        epoll/kqueue/sendfile enhancements, support for both win32 and linux.
-
-        Project page at: http://cogen.googlecode.com/
-
-        Development version at: 
-            http://cogen.googlecode.com/svn/trunk/cogen/#egg=cogen-dev
-    """,
+    long_description=file('README.txt').read(),
     author='Maries Ionel Cristian',
     author_email='ionel dot mc at gmail dot com',
     url='http://code.google.com/p/cogen/',
