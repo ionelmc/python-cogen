@@ -82,7 +82,7 @@ class TimedOperation(Operation):
     }}}
     """
     __slots__ = ['_timeout', '__weakref__', 'finalized', 'weak_timeout']
-    timeout = TimeoutDesc('_timeout')
+    timeout = TimeoutDesc()
     
     def __init__(self, timeout=None, weak_timeout=True, **kws):
         super(TimedOperation, self).__init__(**kws)

@@ -113,7 +113,7 @@ class SocketOperation(events.TimedOperation):
                 sched.active.appendleft((r, coro))
     def run(self):
         raise NotImplementedError()
-    timeout = TimeoutDesc('_timeout')
+    timeout = TimeoutDesc()
 
 class ReadOperation(SocketOperation): 
     pass

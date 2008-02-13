@@ -57,10 +57,8 @@ def debug(trace=True, backtrace=1, other=None):
 class TimeoutDesc(object):
     __doc_all__ = []
     __slots__ = ['field']
-    def __init__(self, field):
-        self.field = field
     def __get__(self, instance, owner):
-        return getattr(instance, self.field, None)
+        return instance._timeout
     def __set__(self, instance, val):
         if val and val != -1 and not isinstance(val, datetime.datetime):
             now = datetime.datetime.now()
@@ -68,7 +66,7 @@ class TimeoutDesc(object):
                 val = now+val
             else:
                 val = now+datetime.timedelta(seconds=val)
-        setattr(instance, self.field, val)
+        instance._timeout = val
 
 class priority(object):  
     """
