@@ -198,6 +198,8 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                 elif self.req.state == self.NEED_HEAD:
                     self.len = self.x_len
                     ret = sockets.ReadLine.run(self)
+                    # we throw away the trailer headers
+                    
                     if ret:
                         if ret.buff == '\r\n':
                             # empty line - end of headers, END
