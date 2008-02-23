@@ -26,25 +26,90 @@ __doc_all__ = [
     'Operation',
 ]
 
+_TIMEOUT = None
+
+def getdefaulttimeout():
+    return _TIMEOUT
+
+def setdefaulttimeout(timeout):
+    _TIMEOUT = timeout
+
+
 class Socket(socket.socket):
     """
-    This class just inherits good old socket.socket, sets nonblocking mode and
+    A wrapper for socket objects, sets nonblocking mode and
     add some attributes we need:
       * rl_pending - for unchecked for linebreaks buffer
       * rl_list - for checked for linebreaks buffers
       * rl_list_sz - a cached size of the summed sizes of rl_list buffers
+    
+    Regular calls to the usual socket methods return operations for use in a
+    coroutine.
     """
-    __slots__ = ['_rl_list', '_rl_list_sz', '_rl_pending']
+    __slots__ = ['_fd', '_rl_list', '_rl_list_sz', '_rl_pending', '_timeout']
     def __init__(self, *a, **k):
-        super(Socket, self).__init__(*a, **k)
+        self._fd = socket.socket(*a, **k)
         self._rl_list = []
         self._rl_list_sz = 0
         self._rl_pending = ''
-        self.setblocking(0)
-    #~ @debug(0)
-    #~ def close(self):
-        #~ print "> closing sock 0x%X" % id(self)
-        #~ super(self.__class__, self).close()
+        self._fd.setblocking(0)
+        self._timeout = _TIMEOUT
+        
+    def read(self, size):
+        return Read(self, size, timeout=self._timeout)
+        
+    def readall(self, size):
+        return ReadAll(self, size, timeout=self._timeout)
+        
+    def readline(self, size):
+        return ReadLine(self, size, timeout=self._timeout)
+        
+    def write(self, data):
+        return Write(self, data, timeout=self._timeout)
+        
+    def writeall(self, data):
+        return WriteAll(self, data, timeout=self._timeout)
+        
+    def accept(self):
+        return Accept(self)
+        
+    def close(self, *args):
+        self._fd.close()
+        
+    def bind(self, *args):
+        return self._fd.bind(*args)
+        
+    def connect(self, addr):
+        return Connect(self, addr)
+        
+    def fileno(self):
+        return self._fd.fileno()
+        
+    def listen(self, backlog):
+        return self._fd.listen(backlog)
+        
+    def getpeername(self):
+        return self._fd.getpeername()
+        
+    def getsockname(self, *args):
+        return self._fd.getsockname()
+        
+    def settimeout(self, to):
+        self._timeout = to
+        
+    def gettimeout(self, *args):
+        return self._timeout
+        
+    def shutdown(self, *args):
+        return self._fd.shutdown()
+        
+    def setblocking(self, val):
+        if val: 
+            raise RuntimeError("You can't.")
+            
+    def setsockopt(self, *args):
+        self._fd.setsockopt(*args)
+        
     def __repr__(self):
         return '<socket at 0x%X>' % id(self)
     def __str__(self):
@@ -75,7 +140,7 @@ class SocketOperation(events.TimedOperation):
           `try_run` call)
           * prio - a flag for the scheduler
         """
-        assert isinstance(sock, Socket)
+        assert isinstance(sock, socket.socket)
         
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
@@ -164,7 +229,7 @@ class SendFile(WriteOperation):
             )
         else:
             self.file_handle.seek(offset)
-            sent = self.sock.send(self.file_handle.read(length))
+            sent = self.sock._fd.send(self.file_handle.read(length))
         return sent
     def run(self):
         if self.length:
@@ -227,7 +292,7 @@ class Read(ReadOperation):
             self.sock._rl_pending = ''
             return self
         else:
-            self.buff, self.addr = self.sock.recvfrom(self.len)
+            self.buff, self.addr = self.sock._fd.recvfrom(self.len)
             if self.buff:
                 return self
             else:
@@ -280,7 +345,7 @@ class ReadAll(ReadOperation):
             self.sock._rl_pending = self.sock._rl_pending[self.len:]
             return self
         if self.sock._rl_list_sz < self.len:
-            buff, self.addr = self.sock.recvfrom(self.len-self.sock._rl_list_sz)
+            buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
             if buff:
                 self.sock._rl_list.append(buff)
                 self.sock._rl_list_sz += len(buff)
@@ -366,7 +431,7 @@ class ReadLine(ReadOperation):
                 self.sock._rl_pending = ''
         self.check_overflow()
                 
-        x_buff, self.addr = self.sock.recvfrom(self.len-self.sock._rl_list_sz)
+        x_buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
         nl = x_buff.find("\n")
         if x_buff:
             if nl >= 0:
@@ -414,7 +479,7 @@ class Write(WriteOperation):
         self.sent = 0
         
     def run(self):
-        self.sent = self.sock.send(self.buff)
+        self.sent = self.sock._fd.send(self.buff)
         return self
     
     def finalize(self):
@@ -444,7 +509,7 @@ class WriteAll(WriteOperation):
         self.sent = 0
         
     def run(self):
-        sent = self.sock.send(buffer(self.buff, self.sent))
+        sent = self.sock._fd.send(buffer(self.buff, self.sent))
         self.sent += sent
         if self.sent == len(self.buff):
             return self
@@ -475,7 +540,7 @@ class Accept(ReadOperation):
         self.conn = None
         
     def run(self):
-        self.conn, self.addr = self.sock.accept()
+        self.conn, self.addr = self.sock._fd.accept()
         self.conn = Socket(_sock=self.conn)
         self.conn.setblocking(0)
         return self
@@ -510,7 +575,7 @@ class Connect(WriteOperation):
           - if you attempt a connect in NB mode you will always 
           get EWOULDBLOCK, presuming the addr is correct.
         """
-        err = self.sock.connect_ex(self.addr)
+        err = self.sock._fd.connect_ex(self.addr)
         if err:
             if err in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
                 try:
