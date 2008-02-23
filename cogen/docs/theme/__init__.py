@@ -17,4 +17,3 @@ class ApydiaStyle(Style):
         Operator:       "#E85833",
         Error:          "bg:#FFFFFF border:#F04 #802"
     }
-

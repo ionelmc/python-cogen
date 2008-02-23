@@ -46,6 +46,9 @@ setup(
             'cogen=cogen.docs.theme',
             'cogenwiki=cogen.docs.wikitheme',
         ],
+        'apydia.docrenderers': [
+            'wiki=cogen.docs.wikirender:WikiTextRenderer'
+        ]
     },
     install_requires = [],
     test_suite = "cogen.test"
