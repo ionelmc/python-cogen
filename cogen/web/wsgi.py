@@ -658,7 +658,7 @@ def server_factory(global_conf, host, port, **options):
         options.get('scheduler.poller', 'DefaultPoller')
       ), 
       default_priority = 
-        int(options.get('scheduler.default_priority', priority.LAST)), 
+        int(options.get('scheduler.default_priority', priority.FIRST)), 
       default_timeout = 
         int(options.get('scheduler.default_timeout', 15))
     )

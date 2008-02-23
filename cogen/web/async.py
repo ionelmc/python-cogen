@@ -86,7 +86,8 @@ class SynchronousInputMiddleware:
         iterator = self.app(environ, start_response)
         for i in iterator:
             yield i
-        iterator.close()
+        if hasattr(iterator, 'close'): 
+            iterator.close()
 def sync_input(app):
     return SynchronousInputMiddleware(app)
 
