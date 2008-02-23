@@ -35,7 +35,7 @@ def setdefaulttimeout(timeout):
     _TIMEOUT = timeout
 
 
-class Socket(socket.socket):
+class Socket(object):
     """
     A wrapper for socket objects, sets nonblocking mode and
     add some attributes we need:
@@ -140,7 +140,7 @@ class SocketOperation(events.TimedOperation):
           `try_run` call)
           * prio - a flag for the scheduler
         """
-        assert isinstance(sock, socket.socket)
+        assert isinstance(sock, Socket)
         
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
