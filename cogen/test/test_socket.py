@@ -15,7 +15,7 @@ from cogen.test.base import PrioMixIn, NoPrioMixIn
 class SocketTest_MixIn:
     def setUp(self):
         self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = self.scheduler(default_priority=self.prio)
+        self.m = Scheduler(default_priority=self.prio)
         def run():
             try:
                 time.sleep(1)
@@ -174,9 +174,9 @@ class SocketTest_MixIn:
         self.failIf(self.m_run.isAlive())
 
 class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+    pass
 class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+    pass
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

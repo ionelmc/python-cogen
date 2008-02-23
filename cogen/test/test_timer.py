@@ -13,7 +13,7 @@ from cogen.test.base import PrioMixIn, NoPrioMixIn
 class Timer_MixIn:
     def setUp(self):
         self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = self.scheduler(default_priority=self.prio)
+        self.m = Scheduler(default_priority=self.prio)
         def run():
             try:
                 time.sleep(1)
@@ -98,9 +98,9 @@ class Timer_MixIn:
         self.assertAlmostEqual(self.msgs[4], 5.0, 1)
         
 class TimerTest_Prio(Timer_MixIn, PrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+    pass
 class TimerTest_NoPrio(Timer_MixIn, NoPrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+    pass
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

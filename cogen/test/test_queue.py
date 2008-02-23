@@ -11,7 +11,7 @@ from cogen.test.base import PrioMixIn, NoPrioMixIn
 
 class QueueTest_MixIn:
     def setUp(self):
-        self.m = self.scheduler(default_priority=self.prio)
+        self.m = Scheduler(default_priority=self.prio)
         self.msgs = []
         
     def tearDown(self):
@@ -140,9 +140,9 @@ class QueueTest_MixIn:
             self.assertEqual(-self.wlevel, self.blevel)
             
 class QueueTest_Prio(QueueTest_MixIn, PrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+    pass
 class QueueTest_NoPrio(QueueTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    scheduler = Scheduler
+    pass
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
