@@ -7,7 +7,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
-        - Class: SendFile</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+        - Class: ReadLine</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
     <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
     <link rel="stylesheet" href="css/apydia.css" type="text/css" />
     <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
@@ -36,13 +36,13 @@
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
-                    </li><li class="active">
+                    </li><li>
                         <a href="cogen.core.sockets.html">cogen.core.sockets</a>
                     </li><li>
                         <a href="cogen.core.util.html">cogen.core.util</a>
                     </li><li>
                         <a href="cogen.web.html">cogen.web</a>
-                    </li><li>
+                    </li><li class="active">
                         <a href="cogen.web.async.html">cogen.web.async</a>
                     </li><li>
                         <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
@@ -53,60 +53,50 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.sockets.SendFile.__init__.html">__init__</a>
+                        <a href="cogen.web.async.ReadLine.__init__.html">__init__</a>
                     </li><li>
-                        <a href="cogen.core.sockets.SendFile.run.html">run</a>
+                        <a href="cogen.web.async.ReadLine.run.html">run</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
-    <h1>Class: cogen.core.sockets.SendFile</h1>
-    <div class="docstring plain">Uses underling OS sendfile call or a regular memory copy operation if
-there is no sendfile.
-You can use this as a WriteAll if you specify the length.
-Usage:
-<blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python python python python python" name="code">
-yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0) 
-    # will send till send operations return 0
-    
-yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, blocksize=0)
-    # there will be only one send operation (if successfull)
-    # that meas the whole file will be read in memory if there is 
-    #no sendfile
-    
-yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, &lt;file size&gt;)
-    # this will hang if we can't read &lt;file size&gt; bytes
-    #from the file
-</pre></div>
+    <h1>Class: cogen.web.async.ReadLine</h1>
+    <div class="docstring plain">Same a async.Read but doesn't work with chunked input (it would complicate
+things too much at the moment).</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L188">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L247">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
             <h3 id="method-__init__">
                 __init__
-                <span class="args">(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws)</span>
+                <span class="args">(self, conn, req, len=4096, **kws)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring plain">Initial <code name="code" class="python">req</code> object holds the state of the operations involving
+reading the input and it requires to have these attributes:<br /><br /><b> read_chunked = &lt;bool&gt;
+</b> content_length = &lt;int&gt;
+<b> read_count = 0
+</b> state = async.Read.NEED_SIZE<br /><br />These have to be initialized in the request.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L214">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L253">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
                 run
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring plain">~ @debug(0)
+</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L233">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L273">View source</a>
     </li>
 </ul>
     </div>

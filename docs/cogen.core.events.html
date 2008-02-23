@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li class="active">
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -58,7 +76,7 @@
     <h1>Module:
         cogen.core.events
     </h1>
-    <div class="docstring rst"></div>
+    <div class="docstring plain">Base events (coroutine operations) and coroutine exceptions.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -70,116 +88,140 @@
             <h3>
                 <a href="cogen.core.events.AddCoro.html">AddCoro</a>
             </h3>
-            <div class="docstring rst"><p>A operator for adding a coroutine in the scheduler.
-Example:</p></div>
+            <div class="docstring plain">A operator for adding a coroutine in the scheduler.
+Example:<br /><br /><pre class="codeblock python python python python python python python python" name="code">
+yield events.AddCoro(some_coro, args=(), kwargs={})
+</pre></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.AddCoro.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L222">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L224">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.Call.html">Call</a>
             </h3>
-            <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
-resume the callee when it returns.</p></div>
+            <div class="docstring plain">This will pause the current coroutine, add a new coro in the scheduler and
+resume the callee when it returns.<br /><br />Usage:
+<pre class="codeblock python python python python python python python python python" name="code">
+result = yield events.Call(mycoro, args=&lt;a tuple&gt;, kwargs=&lt;a dict&gt;, prio=&lt;int&gt;)
+</pre><ul><li> if <code name="code" class="python">prio</code> is set the new coroutine will be added in the top of the </li></ul><blockquote>scheduler queue</blockquote></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.Call.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L183">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L186">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.ConnectionClosed.html">ConnectionClosed</a>
             </h3>
-            <div class="docstring rst"><p>Raised when the other peer has closed connection.</p></div>
+            <div class="docstring plain">Raised when the other peer has closed connection.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.ConnectionClosed.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L18">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L22">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.Join.html">Join</a>
             </h3>
-            <div class="docstring rst"><p>A operator for waiting on a coroutine.
-Example:</p></div>
+            <div class="docstring plain">A operator for waiting on a coroutine.
+Example:<br /><br /><pre class="codeblock python python python python python python python python python python" name="code">
+@coroutine
+def coro_a():
+    return_value = yield events.Join(ref)
+    
+    
+@coroutine
+def coro_b():
+    yield "bla"
+    raise StopIteration("some return value")
+
+ref = scheduler.add(coro_b)
+scheduler.add(coro_a)
+</pre></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.Join.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L303">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L305">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.OperationTimeout.html">OperationTimeout</a>
             </h3>
-            <div class="docstring rst"><p>Raised when the timeout for a operation expires. The exception
-message will be the operation</p></div>
+            <div class="docstring plain">Raised when the timeout for a operation expires. The exception
+message will be the operation</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.OperationTimeout.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L21">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L25">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.Signal.html">Signal</a>
             </h3>
-            <div class="docstring rst"><p>This will resume the coroutines that where paused with WaitForSignal.</p></div>
+            <div class="docstring plain">This will resume the coroutines that where paused with WaitForSignal.<br /><br />Usage:<br /><br /><pre class="codeblock python python python python python python python python python python python" name="code">
+nr = yield events.Signal(name, value)
+</pre><ul><li> nr - the number of coroutines woken up</li></ul></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.Signal.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L134">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L137">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.Sleep.html">Sleep</a>
             </h3>
-            <div class="docstring rst"><p>Usage:</p></div>
+            <div class="docstring plain">Usage:<br /><br /><pre class="codeblock python python python python python python python python python python python python" name="code">
+yield events.Sleep(time_object)
+</pre><ul><li> timeoject - a datetime or timedelta object, or a number of seconds</li></ul><blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python" name="code">
+yield events.Sleep(timestamp=ts)
+</pre><ul><li> ts - a timestamp</li></ul></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.Sleep.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L339">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L341">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.WaitForSignal.html">WaitForSignal</a>
             </h3>
-            <div class="docstring rst"><p>The coroutine will resume when the same object is Signaled.</p></div>
+            <div class="docstring plain">The coroutine will resume when the same object is Signaled.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.WaitForSignal.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L101">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L104">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

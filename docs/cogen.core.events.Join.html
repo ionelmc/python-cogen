@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li class="active">
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -35,33 +53,32 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.Join.html#method-__init__">__init__</a>
+                        <a href="cogen.core.events.Join.__init__.html">__init__</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Join</h1>
-    <div class="docstring rst"><p>A operator for waiting on a coroutine.
-Example:</p>
-<div class="source"><pre><span class="nd">@coroutine</span>
-<span class="k">def</span> <span class="nf">coro_a</span><span class="p">():</span>
-    <span class="n">return_value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Join</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+    <div class="docstring plain">A operator for waiting on a coroutine.
+Example:<br /><br /><pre class="codeblock python python python python" name="code">
+@coroutine
+def coro_a():
+    return_value = yield events.Join(ref)
+    
+    
+@coroutine
+def coro_b():
+    yield "bla"
+    raise StopIteration("some return value")
 
-
-<span class="nd">@coroutine</span>
-<span class="k">def</span> <span class="nf">coro_b</span><span class="p">():</span>
-    <span class="k">yield</span> <span class="s">"bla"</span>
-    <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">(</span><span class="s">"some return value"</span><span class="p">)</span>
-
-<span class="n">ref</span> <span class="o">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_b</span><span class="p">)</span>
-<span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_a</span><span class="p">)</span>
+ref = scheduler.add(coro_b)
+scheduler.add(coro_a)
 </pre></div>
-</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L303">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L305">View source</a>
     </li>
 </ul>
     <div>
@@ -70,18 +87,18 @@ Example:</p>
                 __init__
                 <span class="args">(self, coro, **kws)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L327">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

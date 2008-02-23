@@ -26,8 +26,26 @@
                         <a href="cogen.common.html">cogen.common</a>
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
+                    </li><li class="active">
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
                     </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -43,7 +61,7 @@
                 <h2>Functions</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.coroutine.html#function-coroutine">coroutine</a>
+                        <a href="cogen.core.coroutine.coroutine.html">coroutine</a>
                     </li>
                 </ul>
             </div>
@@ -52,7 +70,7 @@
     <h1>Module:
         cogen.core.coroutine
     </h1>
-    <div class="docstring rst"></div>
+    <div class="docstring plain">Coroutine related boilerplate and wrappers.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -64,16 +82,16 @@
             <h3>
                 <a href="cogen.core.coroutine.Coroutine.html">Coroutine</a>
             </h3>
-            <div class="docstring rst"><p>We need a coroutine wrapper for generators and function alike because
-we want to run functions that don'self return generators just like a
-coroutine</p></div>
+            <div class="docstring plain">We need a coroutine wrapper for generators and function alike because
+we want to run functions that don't return generators just like a
+coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.coroutine.Coroutine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutine.py#L27">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutine.py#L33">View source</a>
     </li>
 </ul>
     </div>
@@ -83,26 +101,25 @@ coroutine</p></div>
                 coroutine
                 <span class="args">(func)</span>
             </h3>
-            <div class="docstring rst"><p>A decorator function for generators.
-Example:</p>
-<div class="source"><pre><span class="nd">@coroutine</span>
-<span class="k">def</span> <span class="nf">plain_ol_generator</span><span class="p">():</span>
-    <span class="k">yield</span> <span class="n">bla</span>
-    <span class="k">yield</span> <span class="n">bla</span>
-    <span class="o">...</span>
+            <div class="docstring plain">A decorator function for generators.
+Example:<br /><br /><pre class="codeblock python" name="code">
+@coroutine
+def plain_ol_generator():
+    yield bla
+    yield bla
+    ...
 </pre></div>
-</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutine.py#L12">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

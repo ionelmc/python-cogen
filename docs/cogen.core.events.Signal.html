@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li class="active">
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -35,25 +53,20 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.Signal.html#method-__init__">__init__</a>
+                        <a href="cogen.core.events.Signal.__init__.html">__init__</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Signal</h1>
-    <div class="docstring rst"><p>This will resume the coroutines that where paused with WaitForSignal.</p>
-<p>Usage:</p>
-<div class="source"><pre><span class="n">nr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-</pre></div>
-<ul class="simple">
-<li>nr - the number of coroutines woken up</li>
-</ul>
-</div>
+    <div class="docstring plain">This will resume the coroutines that where paused with WaitForSignal.<br /><br />Usage:<br /><br /><pre class="codeblock python python python python python" name="code">
+nr = yield events.Signal(name, value)
+</pre><ul><li> nr - the number of coroutines woken up</li></ul></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L134">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L137">View source</a>
     </li>
 </ul>
     <div>
@@ -62,20 +75,19 @@
                 __init__
                 <span class="args">(self, name, value=None, recipients=0, **kws)</span>
             </h3>
-            <div class="docstring rst"><p>All the coroutines waiting for this object will be added back in the
-active coroutine queue.</p>
-</div>
+            <div class="docstring plain">All the coroutines waiting for this object will be added back in the
+active coroutine queue.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L152">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

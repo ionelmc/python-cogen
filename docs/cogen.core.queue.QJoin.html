@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li class="active">
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -35,9 +53,9 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.queue.QJoin.html#method-finalize">finalize</a>
+                        <a href="cogen.core.queue.QJoin.finalize.html">finalize</a>
                     </li><li>
-                        <a href="cogen.core.queue.QJoin.html#method-process">process</a>
+                        <a href="cogen.core.queue.QJoin.process.html">process</a>
                     </li>
                 </ul>
             </div>
@@ -45,21 +63,20 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.queue.QPut.html#attribute-prio">prio</a>
+                        <a href="cogen.core.queue.QPut.prio.html">prio</a>
                     </li><li>
-                        <a href="cogen.core.queue.QJoin.html#attribute-queue">queue</a>
+                        <a href="cogen.core.queue.QJoin.queue.html">queue</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.core.queue.QJoin</h1>
-    <div class="docstring rst"><p>A operation for the queue join call.</p>
-</div>
+    <div class="docstring plain">A operation for the queue join call.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L124">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L128">View source</a>
     </li>
 </ul>
     <div>
@@ -68,34 +85,33 @@
                 finalize
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring rst"><p>Called just before the Coroutine wrapper passes the operation back
+            <div class="docstring plain">Called just before the Coroutine wrapper passes the operation back
 in the generator. Return value is the value actualy sent in the
-generator.</p>
-</div>
+generator.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L63">View source</a>
     </li>
 </ul>
             <h3 id="method-process">
                 process
                 <span class="args">(self, sched, coro)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L104">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L136">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Attributes</h2>
             <h3 id="attribute-prio">prio</h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <h4>Value of prio</h4>
-            <pre class="code"><code>None</code></pre>
+            <pre class="code"><code>&lt;member 'prio' of 'Operation' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -103,9 +119,9 @@ generator.</p>
     </li>
 </ul>
             <h3 id="attribute-queue">queue</h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <h4>Value of queue</h4>
-            <pre class="code"><code>None</code></pre>
+            <pre class="code"><code>&lt;member 'queue' of 'QJoin' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -116,7 +132,7 @@ generator.</p>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

@@ -18,9 +18,9 @@
 
 html, body {
     height: 100%;
-	font: 10pt/150% "Myriad Web", "Myriad Pro", "Lucida Grande", "Trebuchet MS", Tahoma, Helvetica, Arial,  sans-serif;
-	background: #F8F8F8;
-	color: #333;
+    font: 10pt/150% "Myriad Web", "Myriad Pro", "Lucida Grande", "Trebuchet MS", Tahoma, Helvetica, Arial,  sans-serif;
+    background: #F8F8F8;
+    color: #333;
 }
 
 strong {
@@ -29,7 +29,7 @@ strong {
 }
 
 .docstring ul,
-.docstring ul li {
+.docstring ul li {xx
     list-style: none;
     display: block;
     padding: 0;
@@ -89,12 +89,16 @@ strong {
 }
 
 #page {
-    width: 780px;
-    padding: 0em 0 3em;
-    margin: 0 auto auto;
+width: 780px;
+    padding: 1em 0 3em;
+    margin: 40px auto auto;
     position: relative;
     overflow: visible;
-	background: #F8F8F8;
+}
+
+#header h1,
+#header cite {
+    display: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -176,15 +180,15 @@ ul.buttons {
     background: url("../images/bullet.gif") no-repeat 6px 7px;
 }
 
-#content table {
+#content .docstring table {
     margin-bottom: 1.5em;
 }
 
-#content td {
+#content .docstring td {
     border-color: #5E80E6;
 }
 
-#content th {
+#content .docstring th {
     background-color: #5E80E6;
     border-color: #F8F8F8;
 }
@@ -290,3 +294,59 @@ ul.buttons {
     color: #9FC932;
 }
 
+#content h3 {
+    font-size: 1.7em;
+    color: #E85833;
+    letter-spacing: -0.05em;
+}
+
+#content p,
+#content ul {
+    margin-bottom: 1em;
+}
+
+#content ul li {
+    padding-left: 1.5em;
+    background: url("../images/bullet.gif") no-repeat 6px 7px;
+}
+
+* html #content ul li {
+    zoom: 1;
+}
+
+#content pre {
+    border: 1px solid #EEE;
+    border-radius: 8px;
+    background: #FFF;
+    padding: 0 0.5em;
+    margin: 0.5em 0 1em 1em;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    overflow: auto;
+}
+
+pre.license {
+    font-size: 0.85em;
+    line-height: 120%;
+    padding: 0.5em;
+}
+
+th, td {
+    text-align: left;
+    vertical-align: top;
+    padding-right: 0.5em;
+}
+
+#content table,
+#content td,
+#content th {
+    border: inherit;
+    color: inherit;
+    background: inherit;
+}
+#content li {
+    list-style-type:none !important;
+}
+#content ul.link-bar li {
+    background:none !important;
+}

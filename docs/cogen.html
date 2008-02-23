@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -48,13 +66,11 @@
     <h1>Module:
         cogen
     </h1>
-    <div class="docstring rst"><p>This is a library for network oriented, coroutine based programming.
+    <div class="docstring plain">This is a library for network oriented, coroutine based programming.
 The interfaces and events/operations aim to mimic thread features. Coroutines
 work as simple generators, the operations and events work as objects passed in
 and out of the generator, these objects are managed by the scheduler/network
-poller.</p>
-<p>Check each modules for specific help.</p>
-</div>
+poller. <br /><br />Check each modules for specific help.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -66,8 +82,8 @@ poller.</p>
             <h3>
                 <a href="cogen.common.html">common</a>
             </h3>
-            <div class="docstring rst"><p>A module for quick importing the essential core stuff.
-(coroutine, Scheduler, events, sockets, priority)</p></div>
+            <div class="docstring plain">A module for quick importing the essential core stuff.
+(coroutine, Scheduler, events, sockets, priority)</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -80,7 +96,46 @@ poller.</p>
             <h3>
                 <a href="cogen.core.html">core</a>
             </h3>
-            <div class="docstring rst"><p>This module holds the essential stuff.</p></div>
+            <div class="docstring plain">This module holds the essential stuff.<br /><br />Programming with this library should be straghtforward. A coroutine is just
+a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+@coroutine
+def mycoro(bla):
+    yield &lt;operation&gt;
+    yield &lt;operation&gt;
+</pre>
+<blockquote></blockquote><ul><li> the <code name="code" class="python">operation</code> instructs the scheduler what to do with the </li></ul><blockquote>coroutine: suspend it till someting happens, add another coro in the scheduler, raise a event and so on.</blockquote><ul><li> the <code name="code" class="python">operations</code> are split up in 2 modules: events and sockets<ul><li> the <code name="code" class="python">operations</code> from sockets are related to network, like reading and </li></ul></li></ul><blockquote>writing, and these are done asynchronously but your code in the coroutine will see them as a regular synchronous or blocking call.</blockquote><ul><li> the <code name="code" class="python">operations</code> from events are related to signals and </li></ul><blockquote>coroutine/scheduler management.</blockquote><ul><li> if a <code name="code" class="python">operation</code> has a result associated then the yield will return that </li></ul><blockquote>result (eg. a string or a (connection, address) tuple) otherwise it will return the operation instance.</blockquote>
+Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+import sys, os
+from cogen.common import *
+
+@coroutine
+def server():
+    srv = sockets.Socket()
+    srv.setblocking(0)
+    srv.bind(('localhost',777))
+    srv.listen(10)
+    while 1:
+        print "Listening..."
+        conn, addr = yield sockets.Accept(srv)
+        print "Connection from %s:%s" % addr
+        m.add(handler, conn, addr)
+        
+@coroutine
+def handler(sock, addr):
+    yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
+    while 1:
+        line = yield sockets.ReadLine(sock, 8192)
+        if line.strip() == 'exit':
+            yield sockets.Write(sock, "GOOD BYE")
+            sock.close()
+            return
+            
+        yield sockets.Write(sock, line)
+        
+m = Scheduler()
+m.add(server)
+m.run()
+</pre></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -93,7 +148,7 @@ poller.</p>
             <h3>
                 <a href="cogen.web.html">web</a>
             </h3>
-            <div class="docstring rst"><p>This module holds a wsgi server and future web-related code.</p></div>
+            <div class="docstring plain">This module holds a wsgi server and future web-related code.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -107,7 +162,7 @@ poller.</p>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

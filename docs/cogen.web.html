@@ -26,8 +26,26 @@
                         <a href="cogen.common.html">cogen.common</a>
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
+                    </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
                     </li><li class="active">
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -46,8 +64,7 @@
     <h1>Module:
         cogen.web
     </h1>
-    <div class="docstring rst"><p>This module holds a wsgi server and future web-related code.</p>
-</div>
+    <div class="docstring plain">This module holds a wsgi server and future web-related code.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -59,9 +76,27 @@
             <h3>
                 <a href="cogen.web.async.html">async</a>
             </h3>
-            <div class="docstring rst"><p>cogen.web.wsgi server is asynchronous by default. If you need to run a app that
+            <div class="docstring plain">cogen.web.wsgi server is asynchronous by default. If you need to run a app that
 uses wsgi.input synchronously you need to wrapp it in
-<cite>SynchronousInputMiddleware</cite>.</p></div>
+<code name="code" class="python">SynchronousInputMiddleware</code>.<br /><br />Wsgi asynchronous api only provides a read operation at the moment. Here's a
+example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+buff = StringIO()
+while 1:
+    yield environ['cogen.input'].Read(self.buffer_length)
+    result = environ['cogen.wsgi'].result
+    if isinstance(result, Exception):
+        import traceback
+        traceback.print_exception(*environ['cogen.wsgi'].exception)
+        break
+    else:
+        if not result:
+            break
+        buff.write(result)
+buff.seek(0)
+# ...
+# do something with the data
+# ...
+</pre></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -74,9 +109,21 @@ uses wsgi.input synchronously you need to wrapp it in
             <h3>
                 <a href="cogen.web.wsgi.html">wsgi</a>
             </h3>
-            <div class="docstring rst"><p>This wsgi server is a single threaded, single process server that interleaves
+            <div class="docstring plain">This wsgi server is a single threaded, single process server that interleaves
 the iterations of the wsgi apps - I could add a threadpool for blocking apps in
-the future.</p></div>
+the future.<br /><br />If you don't return iterators from apps and return lists you'll get, at most,
+the performance of a server that processes requests sequentialy.<br /><br />On the other hand this server has coroutine extensions that suppose to support
+use of middleware in your application. <br /><br />Example app with coroutine extensions:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+def wait_app(environ, start_response):
+  start_response('200 OK', [('Content-type','text/html')])
+  yield "I'm waiting for some signal"
+  yield environ['cogen'].core.events.WaitForSignal("abc", timeout=1)
+  if isinstance(environ['cogen'].result, Exception):
+    yield "Your time is up !"
+  else:
+    yield "Someone signaled me: %s" % environ['cogen'].result
+</pre><ul><li> <code name="code" class="python">environ['cogen'].core</code> is actualy a wrapper that sets </li></ul><blockquote><code name="code" class="python">environ['cogen'].operation</code> with the called object and returns a empty string. This should penetrate most of the middleware - according to the wsgi spec, middleware should pass a empty string if it doesn't have anything to return on that specific iteration point, or, in other words, the length of theapp iter returned by middleware should be at least that of the app.</blockquote><ul><li> the wsigi server will set <code name="code" class="python">environ['cogen'].result</code> with the result of the </li></ul><blockquote>operation and <code name="code" class="python">environ['cogen'].exception</code> with the details of the exception - if any: <code name="code" class="python">(exc_type, exc_value, traceback_object)</code>.</blockquote>
+HTTP handling code taken from the CherryPy WSGI server.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -90,7 +137,7 @@ the future.</p></div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

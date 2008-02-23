@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li class="active">
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -35,21 +53,20 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.sockets.Connect.html#method-__init__">__init__</a>
+                        <a href="cogen.core.sockets.Connect.__init__.html">__init__</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Connect.html#method-run">run</a>
+                        <a href="cogen.core.sockets.Connect.run.html">run</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.core.sockets.Connect</h1>
-    <div class="docstring rst"><p>Connect to the given <cite>addr</cite> using <cite>sock</cite>.</p>
-</div>
+    <div class="docstring plain">Connect to the given <code name="code" class="python">addr</code> using <code name="code" class="python">sock</code>.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L482">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L560">View source</a>
     </li>
 </ul>
     <div>
@@ -58,34 +75,30 @@
                 __init__
                 <span class="args">(self, sock, addr, **kws)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L567">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
                 run
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring rst"><dl class="docutils">
-<dt>We need to avoid some non-blocking socket connect quirks:</dt>
-<dd>if you attempt a connect in NB mode you will always
-get EWOULDBLOCK, presuming the addr is correct.</dd>
-</dl>
-</div>
+            <div class="docstring plain">We need to avoid some non-blocking socket connect quirks:
+<blockquote>- if you attempt a connect in NB mode you will always get EWOULDBLOCK, presuming the addr is correct.</blockquote></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L571">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

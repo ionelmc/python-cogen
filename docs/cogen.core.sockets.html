@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li class="active">
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -60,7 +78,7 @@
     <h1>Module:
         cogen.core.sockets
     </h1>
-    <div class="docstring rst"></div>
+    <div class="docstring plain">Socket-only coroutine operations and <code name="code" class="python">Socket</code> wrapper.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -72,130 +90,149 @@
             <h3>
                 <a href="cogen.core.sockets.Accept.html">Accept</a>
             </h3>
-            <div class="docstring rst"><p>Returns a (conn, addr) tuple when the operation completes.</p></div>
+            <div class="docstring plain">Returns a (conn, addr) tuple when the operation completes.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.Accept.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L452">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L530">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.Connect.html">Connect</a>
             </h3>
-            <div class="docstring rst"><p>Connect to the given <cite>addr</cite> using <cite>sock</cite>.</p></div>
+            <div class="docstring plain">Connect to the given <code name="code" class="python">addr</code> using <code name="code" class="python">sock</code>.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.Connect.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L482">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L560">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.Read.html">Read</a>
             </h3>
-            <div class="docstring rst"><p><cite>len</cite> is max read size, BUT, if if there are buffers from ReadLine
+            <div class="docstring plain"><code name="code" class="python">len</code> is max read size, BUT, if if there are buffers from ReadLine
 return them first.
-Example usage:</p></div>
+Example usage:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python" name="code">
+yield sockets.Read(socket_object, buffer_length)
+</pre></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.Read.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L197">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L265">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.ReadAll.html">ReadAll</a>
             </h3>
-            <div class="docstring rst"><p>Run this operator till we've read <cite>len</cite> bytes.</p></div>
+            <div class="docstring plain">Run this operator till we've read <code name="code" class="python">len</code> bytes.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.ReadAll.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L245">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L314">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.ReadLine.html">ReadLine</a>
             </h3>
-            <div class="docstring rst"><p>Run this operator till we read a newline (n) or we have a overflow.</p></div>
+            <div class="docstring plain">Run this operator till we read a newline (\n) or we have a overflow.<br /><br /><code name="code" class="python">len</code> is the max size for a line</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.ReadLine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L308">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L377">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.SendFile.html">SendFile</a>
             </h3>
-            <div class="docstring rst"><p>Uses underling OS sendfile call or a regular memory copy operation if
+            <div class="docstring plain">Uses underling OS sendfile call or a regular memory copy operation if
 there is no sendfile.
 You can use this as a WriteAll if you specify the length.
-Usage:</p></div>
+Usage:
+<blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python python python python python python python" name="code">
+yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0) 
+    # will send till send operations return 0
+    
+yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, blocksize=0)
+    # there will be only one send operation (if successfull)
+    # that meas the whole file will be read in memory if there is 
+    #no sendfile
+    
+yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, &lt;file size&gt;)
+    # this will hang if we can't read &lt;file size&gt; bytes
+    #from the file
+</pre></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.SendFile.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L119">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L188">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.Socket.html">Socket</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain">A wrapper for socket objects, sets nonblocking mode and
+add some attributes we need:
+<ul><li> rl_pending - for unchecked for linebreaks buffer</li><li> rl_list - for checked for linebreaks buffers</li><li> rl_list_sz - a cached size of the summed sizes of rl_list buffers</li></ul>
+Regular calls to the usual socket methods return operations for use in a
+coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.Socket.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L25">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L37">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.Write.html">Write</a>
             </h3>
-            <div class="docstring rst"><p>Write the buffer to the socket and return the number of bytes written.</p></div>
+            <div class="docstring plain">Write the buffer to the socket and return the number of bytes written.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.Write.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L390">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L468">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.WriteAll.html">WriteAll</a>
             </h3>
-            <div class="docstring rst"><p>Run this operation till all the bytes have been written.</p></div>
+            <div class="docstring plain">Run this operation till all the bytes have been written.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.WriteAll.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L420">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L498">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

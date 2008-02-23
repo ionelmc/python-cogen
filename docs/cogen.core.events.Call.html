@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li class="active">
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -35,27 +53,22 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.Call.html#method-__init__">__init__</a>
+                        <a href="cogen.core.events.Call.__init__.html">__init__</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Call</h1>
-    <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
-resume the callee when it returns.</p>
-<p>Usage:</p>
-<div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=&lt;</span><span class="n">a</span> <span class="nb">tuple</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=&lt;</span><span class="n">a</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">prio</span><span class="o">=&lt;</span><span class="nb">int</span><span class="o">&gt;</span><span class="p">)</span>
-</pre></div>
-<ul class="simple">
-<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the
-scheduler queue</li>
-</ul>
-</div>
+    <div class="docstring plain">This will pause the current coroutine, add a new coro in the scheduler and
+resume the callee when it returns.<br /><br />Usage:
+<pre class="codeblock python python python" name="code">
+result = yield events.Call(mycoro, args=&lt;a tuple&gt;, kwargs=&lt;a dict&gt;, prio=&lt;int&gt;)
+</pre><ul><li> if <code name="code" class="python">prio</code> is set the new coroutine will be added in the top of the </li></ul><blockquote>scheduler queue</blockquote></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L183">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L186">View source</a>
     </li>
 </ul>
     <div>
@@ -64,18 +77,18 @@ scheduler queue</li>
                 __init__
                 <span class="args">(self, coro, args=None, kwargs=None, **kws)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L202">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

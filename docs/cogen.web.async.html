@@ -27,7 +27,25 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
+                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
+                    </li><li class="active">
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -43,7 +61,17 @@
                     </li><li>
                         <a href="cogen.web.async.Read.html">Read</a>
                     </li><li>
+                        <a href="cogen.web.async.ReadLine.html">ReadLine</a>
+                    </li><li>
                         <a href="cogen.web.async.SynchronousInputMiddleware.html">SynchronousInputMiddleware</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Functions</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.web.async.sync_input.html">sync_input</a>
                     </li>
                 </ul>
             </div>
@@ -52,29 +80,27 @@
     <h1>Module:
         cogen.web.async
     </h1>
-    <div class="docstring rst"><p>cogen.web.wsgi server is asynchronous by default. If you need to run a app that
+    <div class="docstring plain">cogen.web.wsgi server is asynchronous by default. If you need to run a app that
 uses wsgi.input synchronously you need to wrapp it in
-<cite>SynchronousInputMiddleware</cite>.</p>
-<p>Wsgi asynchronous api only provides a read operation at the moment. Here's a
-example:</p>
-<div class="source"><pre><span class="n">buff</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-<span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
-    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen.input'</span><span class="p">]</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_length</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen.wsgi'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
-        <span class="k">import</span> <span class="nn">traceback</span>
-        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="o">*</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen.wsgi'</span><span class="p">]</span><span class="o">.</span><span class="n">exception</span><span class="p">)</span>
-        <span class="k">break</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="n">buff</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="n">buff</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span>
-<span class="c"># ...</span>
-<span class="c"># do something with the data</span>
-<span class="c"># ...</span>
+<code name="code" class="python">SynchronousInputMiddleware</code>.<br /><br />Wsgi asynchronous api only provides a read operation at the moment. Here's a
+example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python" name="code">
+buff = StringIO()
+while 1:
+    yield environ['cogen.input'].Read(self.buffer_length)
+    result = environ['cogen.wsgi'].result
+    if isinstance(result, Exception):
+        import traceback
+        traceback.print_exception(*environ['cogen.wsgi'].exception)
+        break
+    else:
+        if not result:
+            break
+        buff.write(result)
+buff.seek(0)
+# ...
+# do something with the data
+# ...
 </pre></div>
-</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -86,75 +112,103 @@ example:</p>
             <h3>
                 <a href="cogen.web.async.COGENOperationCall.html">COGENOperationCall</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.async.COGENOperationCall.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L47">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L46">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.async.COGENOperationWrapper.html">COGENOperationWrapper</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.async.COGENOperationWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L34">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L33">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.async.COGENProxy.html">COGENProxy</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.async.COGENProxy.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L54">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L53">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.async.Read.html">Read</a>
             </h3>
-            <div class="docstring rst"><p>This is actually a hack that mixes ReadAll and ReadLine and
+            <div class="docstring plain">This is actually a hack that mixes ReadAll and ReadLine and
 patches their state attributes. Hopefully i'll evolve it to
-something more elegant at some point.</p></div>
+something more elegant at some point.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.async.Read.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L85">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L93">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.web.async.ReadLine.html">ReadLine</a>
+            </h3>
+            <div class="docstring plain">Same a async.Read but doesn't work with chunked input (it would complicate
+things too much at the moment).</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.web.async.ReadLine.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L247">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.async.SynchronousInputMiddleware.html">SynchronousInputMiddleware</a>
             </h3>
-            <div class="docstring rst"><p>Middleware for providing wsgi.input to the app.</p></div>
+            <div class="docstring plain">Middleware for providing wsgi.input to the app.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.async.SynchronousInputMiddleware.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L58">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L57">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Functions</h2>
+            <h3 id="function-sync_input">
+                sync_input
+                <span class="args">(app)</span>
+            </h3>
+            <div class="docstring plain"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L90">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.2</a>
+            Apydia 0.0.3</a>
         </div>
     </div>
 </body>

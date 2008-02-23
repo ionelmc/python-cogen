@@ -107,7 +107,6 @@ p :visited {
 ----------------------------------------------------------------------------*/
 
 #page {
-    position: relative;
     background: #FFF;
     margin: 0 5%;
     padding: 0;
@@ -118,12 +117,12 @@ p :visited {
 }
 
 #content {
-    margin-left: 256px;
     padding: 1em 1em 3em;
 }
 
 #header {
-    background: #0F2145;
+    position: relative;
+    background: #003;
 }
 
 #header h1 {
@@ -145,18 +144,46 @@ p :visited {
     background: #F8F8F8;
 }
 
+/* Menu
+----------------------------------------------------------------------------*/
+
+#menu {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+}
+
+#menu li {
+    display: inline;
+    margin-left: 1em;
+}
+
+#menu li a {
+    font-size: 0.8em;
+    color: #99B;
+    font-weight: normal;
+}
+
+#menu li a:hover {
+    color: #EEE;
+}
+
+#menu li.active a {
+    color: #FFF;
+    font-weight: bold;
+}
 
 /* Browser
 ----------------------------------------------------------------------------*/
 
 #browser {
-    position: static;
-    float: left;
+    float: right;
     width: 256px;
     background: #F8F8F8;
-    border-bottom-right-radius: 8px;
-    -webkit-border-bottom-right-radius: 8px;
-    -moz-border-radius-bottomright: 8px;        
+    margin-left: 1em;
+    border-bottom-left-radius: 8px;
+    -webkit-border-bottom-left-radius: 8px;
+    -moz-border-radius-bottomleft: 8px;        
 }
 
 #browser h2 {
@@ -183,8 +210,9 @@ p :visited {
 
 #browser li a {
     display: block;
-    padding: 0 0.5em;
+/*    padding: 0 0.5em;*/
     padding-left: 8px;
+    width: 98%;
 }
 
 #browser li.active a {
@@ -242,7 +270,7 @@ p :visited {
 }
 
 h3 .args {
-    color: #CCC;
+    color: #777;
     font-style: italic;
     font-weight: normal;
     font-size: 0.8em;
@@ -258,6 +286,7 @@ h3 .args {
     color: #CCC;
     margin-bottom: 1em;
     overflow: auto;
+    padding: 0;
 }
 
 #content ul.link-bar :link,
@@ -274,13 +303,18 @@ h3 .args {
     display: inline;
 }
 
-#content ul.link-bar li.top a {
-    float: right;
-    padding-right: 18px;
-}
-
 #content ul.link-bar a:hover {
     color: #F80;
+}
+
+#content ul {
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+}
+
+#content li {
+    display: list-item;
+    list-style: square;
 }
 
 
@@ -314,12 +348,3 @@ h3 .args {
     margin: 1em 0;
 }
 
-.docstring ul {
-    margin-bottom: 1em;
-    padding-left: 1.5em;
-}
-
-.docstring li {
-    display: list-item;
-    list-style: square;
-}
