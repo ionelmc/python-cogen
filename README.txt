@@ -3,14 +3,14 @@ Overview
 This is a library for network oriented, coroutine based programming. 
 
 *cogen*'s goal is to enable writing code in a synchronous and easy 
-manner in the form of generators that yield calls and recieve the result
+manner in the form of generators that yield calls and receive the result
 from that yield. These calls translate to asynchronous and fast os calls 
 in *cogen*'s internals.
 
 Notable features
 ================
 
-* a WSGI server, HTTP1.1 compilat, with asynchronous extensions
+* a WSGI server, HTTP1.1 compliant, with asynchronous extensions
 * use epoll, kqueue where supported, select based otherwise
 * a Queue with the same interface as the standard library Queue, but 
   for coroutines
