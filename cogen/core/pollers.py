@@ -173,7 +173,7 @@ class KQueuePoller(Poller):
         super(self.__class__, self).__init__(scheduler)
         self.default_size = default_size
         self.kq = kqueue.kqueue()
-        self.klist = []
+        self.klist = {}
     def __len__(self):
         return len(self.klist)
     def __repr__(self):
@@ -182,6 +182,10 @@ class KQueuePoller(Poller):
             id(self), 
             self.klist
         )
+    def waiting_op(self, testcoro):
+        "Returns the registered operation for some specified coroutine."
+        if testcoro in self.klist:
+            return self.klist[testcoro]
     #~ @debug(0)
     def remove(self, op, coro):
         fileno = getattr(op, 'fileno', None)
@@ -197,8 +201,8 @@ class KQueuePoller(Poller):
     #~ @debug(0)    
     def add(self, op, coro):
         fileno = op.fileno = op.sock.fileno()
-        if op.fileno not in self.klist:
-            self.klist.append(op.fileno)
+        if coro not in self.klist:
+            self.klist[coro] = op
 
         if isinstance(op, sockets.ReadOperation):
             ev = kqueue.EV_SET(
@@ -232,8 +236,8 @@ class KQueuePoller(Poller):
                 op, coro = ev.udata
                 if ev.flags & kqueue.EV_ERROR:
                     print ' kqueue.EV_ERROR:', ev
-                    if op.fileno in self.klist:
-                        self.klist.remove(op.fileno)
+                    if coro in self.klist:
+                        del self.klist[coro]
 
                     delev = kqueue.EV_SET(
                         op.fileno, 
@@ -254,8 +258,8 @@ class KQueuePoller(Poller):
                 fileno = op.fileno
                 op = self.run_operation(op)
                 if op:
-                    if fileno in self.klist:
-                        self.klist.remove(fileno)
+                    if coro in self.klist:
+                        del self.klist[coro]
                     delev = kqueue.EV_SET(fileno, ev.filter, kqueue.EV_DELETE)
                     delev.udata = ev.udata
                     self.kq.kevent(delev)
