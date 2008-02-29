@@ -29,9 +29,9 @@ class Poller(object):
         'handle_events'
     ]
     
-    RESOLUTION = 0.02
-    mRESOLUTION = RESOLUTION*1000
-    nRESOLUTION = RESOLUTION*1000000000
+    RESOLUTION = 0.02 # seconds
+    mRESOLUTION = RESOLUTION*1000 # miliseconds
+    nRESOLUTION = RESOLUTION*1000000000 #nanoseconds
     def __init__(self, scheduler):
         self.waiting_reads = {}
         self.waiting_writes = {}
@@ -44,10 +44,10 @@ class Poller(object):
         if op:
             del waiting_ops[fdesc]
             return op, coro
-    def run_operation(self, op):
+    def run_operation(self, op, reactor=True):
         " Run the socket op and return result or exception. "
         try:
-            r = op.try_run()
+            r = op.try_run(reactor)
         except:
             r = events.CoroutineException(sys.exc_info())
         return r
@@ -359,10 +359,84 @@ class EpollPoller(Poller):
                             self.scheduler.active.append( (op, coro) )    
         else:
             time.sleep(self.RESOLUTION)
+    
+class IOCPPoller(Poller):
+    def __init__(self, scheduler, default_size = 1024):
+        super(self.__class__, self).__init__(scheduler)
+        self.scheduler = scheduler
+        self.iocp = win32file.CreateIoCompletionPort(
+            win32file.INVALID_HANDLE_VALUE, None, 0, 0
+        ) 
+        self.fds = {}
+        self.registered_ops = {}
+    def __len__(self):
+        return len(self.registered_ops)
+    
+    def add(self, op, coro):
+        #~ print '>ADDING:',op
+        overlap = pywintypes.OVERLAPPED() 
+        overlap.object = (op, coro)
+        fileno = op.sock._fd.fileno()
+        op.iocp(overlap)
+        self.registered_ops[op] = overlap
+        
+        if fileno not in self.fds:
+            self.fds[fileno] = None
+            win32file.CreateIoCompletionPort(fileno, self.iocp, 0, 0) 
+
+    def waiting_op(self, testcoro):
+        for op in self.registered_ops:
+            if self.registered_ops[op].object[1] is testcoro:
+                return op
+
+    def run(self, timeout = 0):
+        # same resolution as epoll
+        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
+                if timeout else (self.mRESOLUTION if timeout is None else 0))
+        if self.registered_ops:
+            rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
+                self.iocp,
+                #win32event.INFINITE
+                ptimeout
+            )
+            
+            if overlap:
+                #~ print '---', rc, nbytes, key, overlap
+                
+                op, coro = overlap.object
+                #~ del ... self.op.sock._fd.fileno()
+                op.iocp_done(rc, nbytes, key, overlap)
+                if rc == 0:
+                    prev_op = op
+                    op = self.run_operation(op, False) #no reactor, but proactor
+                    if op:
+                        del self.registered_ops[prev_op]
+                        del overlap
+                        if op.prio & priority.OP:
+                            op, coro = self.scheduler.process_op(
+                                coro.run_op(op), 
+                                coro
+                            )
+                        if coro:
+                            if op.prio & priority.CORO:
+                                self.scheduler.active.appendleft( (op, coro) )
+                            else:
+                                self.scheduler.active.append( (op, coro) )   
+                    else:
+                        # operation hasn't completed yet (not enough data etc)
+                        # resched it
+                        prev_op.iocp(overlap)
+                        del overlap
+                else:
+                    warnings.warn("%s on %s/%s" % (ctypes.FormatError(rc), op, coro))
+        else:
+            time.sleep(self.RESOLUTION)    
+            
 try:
     import epoll
 except ImportError:
     epoll = None
+
 try:
     import kqueue
     if kqueue.PYKQ_VERSION.split('.')[0] != '2':
@@ -370,9 +444,22 @@ try:
 except ImportError:
     kqueue = None
 
+try:
+    import win32file
+    import win32event
+    import pywintypes
+    import socket
+    import ctypes
+    import struct
+except ImportError:
+    win32file = None
+    
 if kqueue:
     DefaultPoller = KQueuePoller
 elif epoll:
     DefaultPoller = EpollPoller
+elif win32file:
+    DefaultPoller = IOCPPoller
 else:
-    DefaultPoller = SelectPoller            
+    DefaultPoller = SelectPoller
+    

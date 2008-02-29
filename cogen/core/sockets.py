@@ -5,6 +5,15 @@ import socket
 import errno
 import exceptions
 import datetime
+import struct
+    
+try:
+    import ctypes
+    import win32file
+    import win32event
+    import pywintypes
+except:
+    pass
 
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
@@ -145,7 +154,7 @@ class SocketOperation(events.TimedOperation):
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
         
-    def try_run(self):
+    def try_run(self, reactor=True):
         """
         This method will return a None value or raise a exception if the 
         operation can't complete at this time.
@@ -157,7 +166,7 @@ class SocketOperation(events.TimedOperation):
         run this at a later time (when the socket is readable/writeable again).
         """
         try:
-            result = self.run()
+            result = self.run(reactor)
             self.last_update = datetime.datetime.now()
             return result
         except socket.error, exc:
@@ -176,15 +185,29 @@ class SocketOperation(events.TimedOperation):
                 return r, r and coro
             else:
                 sched.active.appendleft((r, coro))
-    def run(self):
+    def run(self, reactor):
         raise NotImplementedError()
     timeout = TimeoutDesc()
 
 class ReadOperation(SocketOperation): 
-    pass
-
+    __slots__ = ['iocp_buff', 'temp_buff']
+    
+    def iocp(self, overlap):
+        self.iocp_buff = win32file.AllocateReadBuffer(
+            self.len-self.sock._rl_list_sz
+        )
+        rc, sz = win32file.WSARecv(self.sock, self.iocp_buff, overlap, 0)
+        
+    def iocp_done(self, rc, nbytes, key, overlap):
+        self.temp_buff = self.iocp_buff[:nbytes]
+    
 class WriteOperation(SocketOperation): 
-    pass
+    __slots__ = ['sent']
+    def iocp(self, overlap):
+        rc, sz = win32file.WSASend(self.sock, self.buff, overlap, 0)
+        
+    def iocp_done(self, rc, nbytes, key, overlap):
+        self.sent += nbytes
     
 class SendFile(WriteOperation):
     """
@@ -231,7 +254,7 @@ class SendFile(WriteOperation):
             self.file_handle.seek(offset)
             sent = self.sock._fd.send(self.file_handle.read(length))
         return sent
-    def run(self):
+    def run(self, reactor=True):
         if self.length:
             if self.blocksize:
                 self.sent += self.send(
@@ -280,8 +303,8 @@ class Read(ReadOperation):
         super(Read, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-        
-    def run(self):
+    
+    def run(self, reactor=True):
         if self.sock._rl_list:
             self.sock._rl_pending = ''.join(self.sock._rl_list) + self.sock._rl_pending
             self.sock._rl_list = []
@@ -292,7 +315,12 @@ class Read(ReadOperation):
             self.sock._rl_pending = ''
             return self
         else:
-            self.buff, self.addr = self.sock._fd.recvfrom(self.len)
+            if reactor:
+                self.buff, self.addr = self.sock._fd.recvfrom(self.len)
+            else:
+                self.buff = self.temp_buff
+                del self.temp_buff
+                #TODO: self.addr
             if self.buff:
                 return self
             else:
@@ -323,8 +351,8 @@ class ReadAll(ReadOperation):
         super(ReadAll, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-    #~ @debug(0)
-    def run(self):
+    
+    def run(self, reactor=True):
         if self.sock._rl_pending:
             self.sock._rl_list.append(self.sock._rl_pending) 
                 # we push in the buff list the pending buffer (for the sake of 
@@ -345,7 +373,13 @@ class ReadAll(ReadOperation):
             self.sock._rl_pending = self.sock._rl_pending[self.len:]
             return self
         if self.sock._rl_list_sz < self.len:
-            buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
+            if reactor:
+                buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
+            else:
+                buff = self.temp_buff
+                del self.temp_buff
+                #TODO: self.addr
+                
             if buff:
                 self.sock._rl_list.append(buff)
                 self.sock._rl_list_sz += len(buff)
@@ -403,8 +437,7 @@ class ReadLine(ReadOperation):
             raise exceptions.OverflowError(
                 "Recieved %s bytes and no linebreak" % self.len
             )
-    #~ @debug(0)            
-    def run(self):
+    def run(self, reactor=True):
         #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
@@ -430,8 +463,14 @@ class ReadLine(ReadOperation):
                 self.sock._rl_list_sz += len(self.sock._rl_pending)
                 self.sock._rl_pending = ''
         self.check_overflow()
-                
-        x_buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
+        
+        if reactor:        
+            x_buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
+        else:
+            x_buff = self.temp_buff
+            del self.temp_buff
+            #TODO: self.addr
+            
         nl = x_buff.find("\n")
         if x_buff:
             if nl >= 0:
@@ -470,7 +509,7 @@ class Write(WriteOperation):
     """
     Write the buffer to the socket and return the number of bytes written.
     """    
-    __slots__ = ['sent']
+    __slots__ = []
     __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, buff, **kws):
@@ -478,8 +517,9 @@ class Write(WriteOperation):
         self.buff = buff
         self.sent = 0
         
-    def run(self):
-        self.sent = self.sock._fd.send(self.buff)
+    def run(self, reactor=True):
+        if reactor:
+            self.sent = self.sock._fd.send(self.buff)
         return self
     
     def finalize(self):
@@ -500,7 +540,7 @@ class WriteAll(WriteOperation):
     """
     Run this operation till all the bytes have been written.
     """
-    __slots__ = ['sent']
+    __slots__ = []
     __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, buff, **kws):
@@ -508,9 +548,11 @@ class WriteAll(WriteOperation):
         self.buff = buff
         self.sent = 0
         
-    def run(self):
-        sent = self.sock._fd.send(buffer(self.buff, self.sent))
-        self.sent += sent
+    def run(self, reactor=True):
+        if reactor:
+            sent = self.sock._fd.send(buffer(self.buff, self.sent))
+            self.sent += sent
+        assert self.sent <= len(self.buff)
         if self.sent == len(self.buff):
             return self
     
@@ -532,19 +574,40 @@ class Accept(ReadOperation):
     """
     Returns a (conn, addr) tuple when the operation completes.
     """
-    __slots__ = ['conn']
+    __slots__ = ['conn', 'conn_buff']
     __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, **kws):
         super(Accept, self).__init__(sock, **kws)
         self.conn = None
         
-    def run(self):
-        self.conn, self.addr = self.sock._fd.accept()
-        self.conn = Socket(_sock=self.conn)
-        self.conn.setblocking(0)
+    def run(self, reactor=True):
+        if reactor:
+            self.conn, self.addr = self.sock._fd.accept()
+            self.conn = Socket(_sock=self.conn)
+            self.conn.setblocking(0)
+        else:
+            self.conn.setsockopt(
+                socket.SOL_SOCKET, 
+                win32file.SO_UPDATE_ACCEPT_CONTEXT, 
+                struct.pack("I", self.sock.fileno())
+            )
+            self.conn = Socket(_sock=self.conn)
+            family, localaddr, self.addr = win32file.GetAcceptExSockaddrs(
+                self.conn, self.conn_buff
+            )
+            
         return self
-
+        
+    def iocp(self, overlap):
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.setblocking(0)
+        self.conn_buff = win32file.AllocateReadBuffer(64)
+        win32file.AcceptEx(self.sock._fd, self.conn, self.conn_buff, overlap) 
+        
+    def iocp_done(self, rc, nbytes, key, overlap):
+        pass
+        
     def finalize(self):
         super(Accept, self).finalize()
         return (self.conn, self.addr)
@@ -569,7 +632,15 @@ class Connect(WriteOperation):
         super(Connect, self).__init__(sock, **kws)
         self.addr = addr
         
-    def run(self):
+    def iocp(self, overlaped):
+        raise NotImplementedError(
+            "win32file doesn't have connect calls that work with overlapeds"
+        )
+        
+    def iocp_done(self, *args):
+        raise NotImplementedError()
+        
+    def run(self, reactor=True):
         """ 
         We need to avoid some non-blocking socket connect quirks: 
           - if you attempt a connect in NB mode you will always 
