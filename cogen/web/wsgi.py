@@ -615,7 +615,13 @@ class WSGIServer(object):
     self.socket.listen(self.request_queue_size)
     with closing(self.socket):
       while True:
-        s, addr = yield sockets.Accept(self.socket, timeout=-1)
+        try
+          s, addr = yield sockets.Accept(self.socket, timeout=-1)
+        except Exception, e: 
+          # make acceptor more robust in the face of weird 
+          # accept bugs, XXX: but we might get a infinite loop
+          warnings.warn(e, stacklevel=2)
+          continue
          
         environ = self.environ.copy()
         environ["SERVER_SOFTWARE"] = self.version
