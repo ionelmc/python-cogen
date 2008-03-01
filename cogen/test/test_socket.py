@@ -10,12 +10,13 @@ import datetime
 from cStringIO import StringIO
 
 from cogen.common import *
+from cogen.core import pollers
 from cogen.test.base import PrioMixIn, NoPrioMixIn
 
 class SocketTest_MixIn:
     def setUp(self):
         self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = Scheduler(default_priority=self.prio)
+        self.m = Scheduler(default_priority=self.prio, poller=self.poller)
         def run():
             try:
                 time.sleep(1)
@@ -63,6 +64,7 @@ class SocketTest_MixIn:
                 (yield sockets.ReadLine(conn, 1024, prio = self.prio))
             )
             srv.close()
+            self.m.stop()
         coro = self.m.add(reader)
         self.m_run.start()
         time.sleep(1.5)
@@ -85,7 +87,7 @@ class SocketTest_MixIn:
         time.sleep(0.5)
         a_line = "X"*64+"\n"
         sock.send(a_line*3)
-        time.sleep(1.5)
+        self.m_run.join()
         self.assertEqual(self.recvobj2, (a_line,a_line,a_line))
         self.assertEqual(len(self.m.poll), 0)
         self.assertEqual(len(self.m.active), 0)
@@ -106,6 +108,7 @@ class SocketTest_MixIn:
                 prio = self.prio
             )
             srv.close()
+            self.m.stop()
         coro = self.m.add(reader)
         self.m_run.start()
         time.sleep(1.5)
@@ -116,11 +119,9 @@ class SocketTest_MixIn:
         buff = "X"*length
         while sent<length:
             sent += sock.send(buff[sent:])
-            
-        time.sleep(0.5)
-        self.assert_(len(self.recvobj)<=1024*4)
-        time.sleep(1)
         
+        self.m_run.join()
+        self.assert_(len(self.recvobj)<=1024*4)
         self.assertEqual(len(self.recvobj_all)+len(self.recvobj),1024**2)
         self.assertEqual(len(self.m.poll), 0)
         self.assertEqual(len(self.m.active), 0)
@@ -173,11 +174,14 @@ class SocketTest_MixIn:
         self.assertEqual(len(self.m.active), 0)
         self.failIf(self.m_run.isAlive())
 
-class SocketTest_Prio(SocketTest_MixIn, PrioMixIn, unittest.TestCase):
-    pass
-class SocketTest_NoPrio(SocketTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    pass
-
+for poller_cls in pollers.available:
+    for prio_mixin in (NoPrioMixIn, PrioMixIn):
+        name = 'SocketTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
+    
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
     unittest.main()

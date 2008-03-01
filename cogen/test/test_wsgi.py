@@ -10,6 +10,7 @@ import httplib
 from cStringIO import StringIO
 
 from cogen.common import *
+from cogen.core import pollers
 from cogen.core.util import debug
 from cogen.test.base import PrioMixIn, NoPrioMixIn
 from cogen.web import wsgi, async
@@ -166,18 +167,28 @@ class AsyncInputTest_MixIn:
         self.assert_(self.result == data)
         self.assert_(recvdata == 'readline')
 
-class SimpleAppTest_Prio(SimpleAppTest_MixIn, WebTest_Base, PrioMixIn, unittest.TestCase):
-    pass
-class SimpleAppTest_NoPrio(SimpleAppTest_MixIn, WebTest_Base, NoPrioMixIn, unittest.TestCase):
-    pass
-class InputTest_Prio(InputTest_MixIn, WebTest_Base, PrioMixIn, unittest.TestCase):
-    pass
-class InputTest_NoPrio(InputTest_MixIn, WebTest_Base, NoPrioMixIn, unittest.TestCase):
-    pass
-class AsyncInputTest_Prio(AsyncInputTest_MixIn, WebTest_Base, PrioMixIn, unittest.TestCase):
-    pass
-class AsyncInputTest_NoPrio(AsyncInputTest_MixIn, WebTest_Base, NoPrioMixIn, unittest.TestCase):
-    pass
+for poller_cls in pollers.available:
+    for prio_mixin in (PrioMixIn, NoPrioMixIn):
+        name = 'SimpleAppTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, 
+            (SimpleAppTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
+        
+        name = 'InputTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, 
+            (InputTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
+        
+        name = 'AsyncInputTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, 
+            (AsyncInputTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
