@@ -416,23 +416,27 @@ class IOCPPoller(Poller):
         for op in self.registered_ops:
             if self.registered_ops[op].object[1] is testcoro:
                 return op
-
+                
+    def remove(self, op, coro):
+        #~ warnings.warn('Removing op',  stacklevel=3)
+        if op in self.registered_ops:
+            win32file.CloseHandle(self.registered_ops[op].hEvent)
+            del self.registered_ops[op]
+        
     def run(self, timeout = 0):
         # same resolution as epoll
         ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
                 if timeout else (self.mRESOLUTION if timeout is None else 0))
         if self.registered_ops:
-            rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
-                self.iocp,
-                #win32event.INFINITE
-                ptimeout
-            )
-            
+            try:
+                rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
+                    self.iocp,
+                    ptimeout
+                )
+            except Exception, e:
+                warnings.warn(e)
             if overlap:
-                #~ print '---', rc, nbytes, key, overlap
-                
                 op, coro = overlap.object
-                #~ del ... self.op.sock._fd.fileno()
                 op.iocp_done(rc, nbytes, key, overlap)
                 if rc == 0:
                     prev_op = op
@@ -456,7 +460,21 @@ class IOCPPoller(Poller):
                         prev_op.iocp(overlap)
                         del overlap
                 else:
+                    #~ if rc==64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
+                        #~ warnings.warn("ERROR_NETNAME_DELETED", stacklevel=3)
+                        #~ return
+                    del self.registered_ops[op]
+                    del overlap
+
                     warnings.warn("%s on %s/%s" % (ctypes.FormatError(rc), op, coro))
+                    self.scheduler.active.append((
+                        events.CoroutineException((
+                            events.ConnectionError, events.ConnectionError(
+                                "%s:%s on %s" % (rc, ctypes.FormatError(rc), op)
+                            )
+                        )), 
+                        coro
+                    ))
         else:
             time.sleep(self.RESOLUTION)    
             

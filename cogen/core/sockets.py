@@ -196,7 +196,7 @@ class ReadOperation(SocketOperation):
         self.iocp_buff = win32file.AllocateReadBuffer(
             self.len-self.sock._rl_list_sz
         )
-        rc, sz = win32file.WSARecv(self.sock, self.iocp_buff, overlap, 0)
+        rc, sz = win32file.WSARecv(self.sock._fd, self.iocp_buff, overlap, 0)
         
     def iocp_done(self, rc, nbytes, key, overlap):
         self.temp_buff = self.iocp_buff[:nbytes]
@@ -204,7 +204,7 @@ class ReadOperation(SocketOperation):
 class WriteOperation(SocketOperation): 
     __slots__ = ['sent']
     def iocp(self, overlap):
-        rc, sz = win32file.WSASend(self.sock, self.buff, overlap, 0)
+        rc, sz = win32file.WSASend(self.sock._fd, self.buff, overlap, 0)
         
     def iocp_done(self, rc, nbytes, key, overlap):
         self.sent += nbytes
@@ -254,15 +254,39 @@ class SendFile(WriteOperation):
             self.file_handle.seek(offset)
             sent = self.sock._fd.send(self.file_handle.read(length))
         return sent
+        
+    def iocp_send(self, offset, length, overlap):
+        self.file_handle.seek(offset)
+        win32file.WSASend(self.sock._fd, self.file_handle.read(length), overlap, 0)
+        
+    def iocp(self, overlap):
+        if self.length:
+            if self.blocksize:
+                self.iocp_send(
+                    self.offset + self.sent, 
+                    min(self.length-self.sent, self.blocksize)
+                )
+            else:
+                self.iocp_send(self.offset+self.sent, self.length-self.sent)
+        else:
+            self.iocp_send(self.offset+self.sent, self.blocksize)
+            
+    def iocp_done(self, rc, nbytes, key, overlap):
+        self.sent += nbytes
+
     def run(self, reactor=True):
+        assert self.sent <= self.length
+        if self.sent == self.length:
+            return self
+            
         if self.length:
             if self.blocksize:
                 self.sent += self.send(
                     self.offset + self.sent, 
-                    min(self.length, self.blocksize)
+                    min(self.length-self.sent, self.blocksize)
                 )
             else:
-                self.sent += self.send(self.offset+self.sent, self.length)
+                self.sent += self.send(self.offset+self.sent, self.length-self.sent)
             if self.sent == self.length:
                 return self
         else:
@@ -270,9 +294,12 @@ class SendFile(WriteOperation):
                 sent = self.send(self.offset+self.sent, self.blocksize)
             else:
                 sent = self.send(self.offset+self.sent, self.blocksize)
+                # we would use self.length but we don't have any,
+                #  and we don't know the file's length
             self.sent += sent
             if not sent:
                 return self
+                
     def __repr__(self):
         return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (
             self.__class__.__name__, 
