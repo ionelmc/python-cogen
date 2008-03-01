@@ -28,5 +28,8 @@ def send_app(environ, start_response):
     yield environ['cogen.core'].events.Signal("abc", environ["PATH_INFO"])
     yield "Done."
 
-cogen.web.wsgi.server_factory({}, '0.0.0.0', 9001)([('/', lorem_ipsum_app), ('/wait', wait_app), ('/send', send_app)])
+cogen.web.wsgi.server_factory({}, '0.0.0.0', 9001, **{
+    'wsgi_server.request_queue_size':2048,
+    'scheduler.default_timeout':-1
+})([('/', lorem_ipsum_app), ('/wait', wait_app), ('/send', send_app)])
 
