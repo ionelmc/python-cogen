@@ -516,7 +516,7 @@ class WSGIServer(object):
   ConnectionClass = WSGIConnection
   environ = {}
   
-  def __init__(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=5):
+  def __init__(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=64):
     self.request_queue_size = int(request_queue_size)
     self.scheduler = scheduler
     if callable(wsgi_app):
