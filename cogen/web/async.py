@@ -125,7 +125,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
         self.req = req
     
     #~ @debug(0)        
-    def run(self):
+    def run(self, reactor=True):
         if self.req.read_chunked:
             again = 1
             while again:
@@ -161,7 +161,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                 elif self.req.state == self.NEED_CHUNK:
                     self.len = min( self.x_len - self.x_buff_sz, 
                                     self.req.chunk_remaining)
-                    ret = sockets.ReadAll.run(self)
+                    ret = sockets.ReadAll.run(self, reactor)
                     if ret:
                         self.x_buff.append(self.buff)
                         self.x_buff_sz += len(self.buff)
@@ -189,7 +189,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                             again = 1
                 elif self.req.state == self.NEED_TERM:
                     self.len = self.x_len
-                    ret = sockets.ReadLine.run(self)
+                    ret = sockets.ReadLine.run(self, reactor)
                     if ret:
                         assert ret.buff == '\r\n', \
                             "Chunk didn't end with a empty line (%r)!" % ret.buff
@@ -198,7 +198,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                         again = 1
                 elif self.req.state == self.NEED_HEAD:
                     self.len = self.x_len
-                    ret = sockets.ReadLine.run(self)
+                    ret = sockets.ReadLine.run(self, reactor)
                     # we throw away the trailer headers
                     
                     if ret:
@@ -218,7 +218,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
                             "read_count is greater than content_length !"
                     self.buff = ''
                     return self
-                ret = sockets.ReadAll.run(self)
+                ret = sockets.ReadAll.run(self, reactor)
                 if ret:
                     self.req.read_count += len(ret.buff)
                 return ret
@@ -271,7 +271,7 @@ class ReadLine(sockets.ReadAll, sockets.ReadLine):
         self.req = req
     
     #~ @debug(0)        
-    def run(self):
+    def run(self, reactor=True):
         if self.req.read_chunked:
             raise NotImplementedError("No readline for chunked input.")
         else:
@@ -281,7 +281,7 @@ class ReadLine(sockets.ReadAll, sockets.ReadLine):
                             "read_count is greater than content_length !"
                     self.buff = ''
                     return self
-                ret = sockets.ReadLine.run(self)
+                ret = sockets.ReadLine.run(self, reactor)
                 if ret:
                     self.req.read_count += len(ret.buff)
                 return ret
