@@ -3,11 +3,39 @@ Network polling code.
 """
 
 from __future__ import division
-import select
 import collections
 import time
 import sys
 import warnings
+
+try:
+    import select
+except ImportError:
+    select = None
+
+try:
+    import epoll
+except ImportError:
+    epoll = None
+
+try:
+    import kqueue
+    if kqueue.PYKQ_VERSION.split('.')[0] != '2':
+        raise ImportError()
+except ImportError:
+    kqueue = None
+
+try:
+    import win32file
+    import win32event
+    import pywintypes
+    import socket
+    import ctypes
+    import struct
+except ImportError:
+    win32file = None
+
+
 
 from cogen.core import sockets
 from cogen.core import events
@@ -432,34 +460,22 @@ class IOCPPoller(Poller):
         else:
             time.sleep(self.RESOLUTION)    
             
-try:
-    import epoll
-except ImportError:
-    epoll = None
 
-try:
-    import kqueue
-    if kqueue.PYKQ_VERSION.split('.')[0] != '2':
-        raise ImportError()
-except ImportError:
-    kqueue = None
-
-try:
-    import win32file
-    import win32event
-    import pywintypes
-    import socket
-    import ctypes
-    import struct
-except ImportError:
-    win32file = None
+available = []
+if select:
+    DefaultPoller = SelectPoller
+    available.append(SelectPoller)
     
 if kqueue:
     DefaultPoller = KQueuePoller
-elif epoll:
+    available.append(KQueuePoller)
+    
+if epoll:
     DefaultPoller = EpollPoller
-elif win32file:
+    available.append(EpollPoller)
+    
+if win32file:
     DefaultPoller = IOCPPoller
-else:
-    DefaultPoller = SelectPoller
+    available.append(IOCPPoller)
+    
     
