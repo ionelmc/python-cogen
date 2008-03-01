@@ -615,7 +615,7 @@ class WSGIServer(object):
     self.socket.listen(self.request_queue_size)
     with closing(self.socket):
       while True:
-        try
+        try:
           s, addr = yield sockets.Accept(self.socket, timeout=-1)
         except Exception, e: 
           # make acceptor more robust in the face of weird 
