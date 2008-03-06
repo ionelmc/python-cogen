@@ -44,6 +44,7 @@ class Coroutine(events.Operation):
         'f_args', 'f_kws', 'name', 'state', 
         'exception', 'coro', 'caller', 'waiters', 'result',
         'prio', 'handle_error', '__weakref__',
+        'lastop'
     ]
     running = property(lambda self: self.state < self.STATE_COMPLETED)
     
@@ -126,11 +127,15 @@ class Coroutine(events.Operation):
         """
         if op is self:
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
+        import traceback
         assert self.state < self.STATE_COMPLETED, \
-            "%s called, expected state less than %s!" % (
+            "%s called with:%s, last one:%s, expected state less than %s!" % (
                 self, 
+                isinstance(op, events.CoroutineException) and '\n'.join(traceback.format_exception(*op.message)) or op,
+                isinstance(self.lastop, events.CoroutineException) and '\n'.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
                 self._state_names[self.STATE_COMPLETED]
             )
+        self.lastop = op
         try:
             if self.state == self.STATE_RUNNING:
                 if isinstance(op, events.CoroutineException):
@@ -158,7 +163,8 @@ class Coroutine(events.Operation):
             self.result = e.message
             if hasattr(self.coro, 'close'): self.coro.close()
             rop = self
-            
+        except KeyboardInterrupt, e:
+            raise
         except:
             #~ import traceback
             #~ traceback.print_exc()

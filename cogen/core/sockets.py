@@ -4,6 +4,7 @@ Socket-only coroutine operations and `Socket` wrapper.
 import socket
 import errno
 import exceptions
+import warnings
 import datetime
 import struct
     
@@ -16,7 +17,7 @@ except:
     pass
 
 from cogen.core import events
-from cogen.core.util import debug, TimeoutDesc, priority
+from cogen.core.util import debug, TimeoutDesc, priority, fmt_list
 try:
     import sendfile
 except ImportError:
@@ -177,6 +178,8 @@ class SocketOperation(events.TimedOperation):
             else:
                 raise
         return self
+
+    #~ @debug(0)
     def process(self, sched, coro):
         super(SocketOperation, self).process(sched, coro)
         r = sched.poll.run_or_add(self, coro)
@@ -196,16 +199,16 @@ class ReadOperation(SocketOperation):
         self.iocp_buff = win32file.AllocateReadBuffer(
             self.len-self.sock._rl_list_sz
         )
-        rc, sz = win32file.WSARecv(self.sock._fd, self.iocp_buff, overlap, 0)
-        
+        return win32file.WSARecv(self.sock._fd, self.iocp_buff, overlap, 0)
+            
     def iocp_done(self, rc, nbytes, key, overlap):
         self.temp_buff = self.iocp_buff[:nbytes]
     
 class WriteOperation(SocketOperation): 
     __slots__ = ['sent']
     def iocp(self, overlap):
-        rc, sz = win32file.WSASend(self.sock._fd, self.buff, overlap, 0)
-        
+        return win32file.WSASend(self.sock._fd, self.buff, overlap, 0)
+            
     def iocp_done(self, rc, nbytes, key, overlap):
         self.sent += nbytes
     
@@ -238,7 +241,7 @@ class SendFile(WriteOperation):
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
-        self.offset = self.position = offset or file_handle.tell()
+        self.offset = self.position = offset or file_handl.tell()
         self.length = length
         self.sent = 0
         self.blocksize = blocksize
@@ -257,19 +260,19 @@ class SendFile(WriteOperation):
         
     def iocp_send(self, offset, length, overlap):
         self.file_handle.seek(offset)
-        win32file.WSASend(self.sock._fd, self.file_handle.read(length), overlap, 0)
+        return win32file.WSASend(self.sock._fd, self.file_handle.read(length), overlap, 0)
         
     def iocp(self, overlap):
         if self.length:
             if self.blocksize:
-                self.iocp_send(
+                return self.iocp_send(
                     self.offset + self.sent, 
                     min(self.length-self.sent, self.blocksize)
                 )
             else:
-                self.iocp_send(self.offset+self.sent, self.length-self.sent)
+                return self.iocp_send(self.offset+self.sent, self.length-self.sent)
         else:
-            self.iocp_send(self.offset+self.sent, self.blocksize)
+            return self.iocp_send(self.offset+self.sent, self.blocksize)
             
     def iocp_done(self, rc, nbytes, key, overlap):
         self.sent += nbytes
@@ -362,7 +365,7 @@ class Read(ReadOperation):
             id(self), 
             self.sock, 
             self.sock._rl_pending, 
-            self.sock._rl_list, 
+            fmt_list(self.sock._rl_list), 
             self.buff and self.buff[:self.trim], 
             self.timeout
         )
@@ -430,7 +433,7 @@ class ReadAll(ReadOperation):
             id(self), 
             self.sock, 
             self.sock._rl_pending, 
-            self.sock._rl_list, 
+            fmt_list(self.sock._rl_list),
             self.sock._rl_list_sz, 
             self.buff and self.buff[:self.trim], 
             self.timeout
@@ -526,7 +529,7 @@ class ReadLine(ReadOperation):
             id(self), 
             self.sock, 
             self.sock._rl_pending, 
-            self.sock._rl_list, 
+            fmt_list(self.sock._rl_list), 
             self.sock._rl_list_sz, 
             self.buff and self.buff[:self.trim], 
             self.timeout
@@ -630,7 +633,7 @@ class Accept(ReadOperation):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.setblocking(0)
         self.conn_buff = win32file.AllocateReadBuffer(64)
-        win32file.AcceptEx(self.sock._fd, self.conn, self.conn_buff, overlap) 
+        return win32file.WSA_IO_PENDING, win32file.AcceptEx(self.sock._fd, self.conn, self.conn_buff, overlap)
         
     def iocp_done(self, rc, nbytes, key, overlap):
         pass

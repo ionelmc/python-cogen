@@ -4,6 +4,7 @@ import threading
 import socket
 import time
 import sys
+import errno
 import exceptions
 import datetime
 
@@ -89,6 +90,7 @@ class SocketTest_MixIn:
         sock.send(a_line*3)
         self.m_run.join()
         self.assertEqual(self.recvobj2, (a_line,a_line,a_line))
+        print '>', self.m.poll.registered_ops
         self.assertEqual(len(self.m.poll), 0)
         self.assertEqual(len(self.m.active), 0)
         self.failIf(self.m_run.isAlive())
@@ -118,6 +120,7 @@ class SocketTest_MixIn:
         length = 1024**2
         buff = "X"*length
         while sent<length:
+            print sent
             sent += sock.send(buff[sent:])
         
         self.m_run.join()
@@ -163,7 +166,7 @@ class SocketTest_MixIn:
             try:
                 buff = cli.recv(1024**2*10)
                 total += len(buff)
-            except error, exc:
+            except socket.error, exc:
                 if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
                     break
                 else:

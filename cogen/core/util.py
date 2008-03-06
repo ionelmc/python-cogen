@@ -84,3 +84,21 @@ class priority(object):
     CORO  = 1
     OP    = 2
     FIRST = PRIO = 3
+
+def fmt_list(lst, lim=100):
+    if sum(len(i) for i in lst) > lim:
+        ret = []
+        length = 0
+        for i in lst:
+            if length+len(i)>lim:
+                ret.append(i[:lim-length] + ' ...')
+                break
+            else:
+                ret.append(i)
+            length += len(i)
+        post = ''
+        if len(ret) < len(lst):
+            post = " .. %s more" % (len(lst)-len(ret))
+        return "[%s%s]"%(', '.join(repr(i) for i in ret), post)
+    else:
+        return repr(lst)
