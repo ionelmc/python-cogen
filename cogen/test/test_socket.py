@@ -4,6 +4,7 @@ import threading
 import socket
 import time
 import sys
+import errno
 import exceptions
 import datetime
 
@@ -27,7 +28,8 @@ class SocketTest_MixIn:
         self.m_run = threading.Thread(target=run)
         
     def tearDown(self):
-        pass
+        del self.m
+        import gc; gc.collect()
         
     def test_read_lines(self):
         self.waitobj = None
@@ -43,7 +45,7 @@ class SocketTest_MixIn:
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
             self.recvobj = yield self.waitobj
-            try: 
+            try:
                 # test for readline overflow'
                 self.waitobj2 = yield sockets.ReadLine(
                     conn, 
@@ -58,11 +60,13 @@ class SocketTest_MixIn:
                     prio = self.prio
                 ) 
                     # eat up the remaining data waiting on socket
-            self.recvobj2 = (
-                (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio = self.prio))
-            )
+            y1 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            y2 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            y3 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            a1 = yield y1 
+            a2 = yield y2
+            a3 = yield y3
+            self.recvobj2 = (a1,a2,a3)
             srv.close()
             self.m.stop()
         coro = self.m.add(reader)
@@ -82,7 +86,7 @@ class SocketTest_MixIn:
         time.sleep(0.5)
         sock.send("X"*1024)
 
-        time.sleep(0.5)
+        time.sleep(1.5)
         self.assertEqual(self.waitobj2, "OK")
         time.sleep(0.5)
         a_line = "X"*64+"\n"
@@ -118,6 +122,7 @@ class SocketTest_MixIn:
         length = 1024**2
         buff = "X"*length
         while sent<length:
+            time.sleep(0.1)
             sent += sock.send(buff[sent:])
         
         self.m_run.join()
@@ -163,7 +168,7 @@ class SocketTest_MixIn:
             try:
                 buff = cli.recv(1024**2*10)
                 total += len(buff)
-            except error, exc:
+            except socket.error, exc:
                 if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
                     break
                 else:
