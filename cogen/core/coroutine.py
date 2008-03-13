@@ -158,7 +158,8 @@ class Coroutine(events.Operation):
             self.result = e.message
             if hasattr(self.coro, 'close'): self.coro.close()
             rop = self
-            
+        except KeyboardInterrupt, e:
+            raise
         except:
             #~ import traceback
             #~ traceback.print_exc()
