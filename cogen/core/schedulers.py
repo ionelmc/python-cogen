@@ -72,6 +72,11 @@ class Scheduler(object):
             self.default_priority, 
             self.default_timeout
         )
+    def __del__(self):
+        if hasattr(self, 'poll'):
+            if hasattr(self.poll, 'scheduler'):
+                del self.poll.scheduler
+            del self.poll
     def add(self, coro, args=(), kwargs={}, first=True):
         assert callable(coro), "Coroutine not a callable object"
         coro = coro(*args, **kwargs)
