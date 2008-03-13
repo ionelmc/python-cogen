@@ -2,6 +2,7 @@ import wsgiref.validate
 import pprint
 import cgi
 import cogen
+
 def lorem_ipsum_app(environ, start_response):
     start_response('200 OK', [('Content-type','text/plain')])
     return ["""
@@ -28,8 +29,20 @@ def send_app(environ, start_response):
     yield environ['cogen.core'].events.Signal("abc", environ["PATH_INFO"])
     yield "Done."
 
-cogen.web.wsgi.server_factory({}, '0.0.0.0', 9001, **{
-    'wsgi_server.request_queue_size':2048,
-    'scheduler.default_timeout':-1
-})([('/', lorem_ipsum_app), ('/wait', wait_app), ('/send', send_app)])
+
+from cogen.common import *
+from cogen.web.wsgi import WSGIServer
+sched = Scheduler(default_timeout=-1)
+    
+server = WSGIServer( 
+  ('0.0.0.0', 9001), 
+  [('/', lorem_ipsum_app), ('/wait', wait_app), ('/send', send_app)], 
+  sched, 
+  server_name='localhost', 
+  request_queue_size=2048
+)
+sched.add(server.serve)
+sched.run()
+
+
 
