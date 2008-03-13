@@ -29,7 +29,7 @@ def coroutine(func):
     make_new_coroutine.__doc__ = func.__doc__
     make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
-
+#~ def coroutine_factory(trace=None)
 
 class Coroutine(events.Operation):
     ''' 

@@ -397,12 +397,12 @@ class IOCPPoller(Poller):
         ) 
         self.fds = {}
         self.registered_ops = {}
-        self.olaps = []
+        
     def __len__(self):
         return len(self.registered_ops)
     def __del__(self):
-        print '>closing'
         win32file.CloseHandle(self.iocp)
+        
     def __repr__(self):
         return "<%s@%s reg_ops:%r fds:%r>" % (
             self.__class__.__name__, 
@@ -411,67 +411,67 @@ class IOCPPoller(Poller):
             self.fds
         )
     def add(self, op, coro):
-        #~ print '>ADDING:',op
         fileno = op.sock._fd.fileno()
         self.registered_ops[op] = self.run_iocp(op, coro)
         
         if fileno not in self.fds:
+            # silly CreateIoCompletionPort raises a exception if the 
+            #fileno(handle) has already been registered with the iocp
             self.fds[fileno] = None
             win32file.CreateIoCompletionPort(fileno, self.iocp, 0, 0) 
         
 
     def run_iocp(self, op, coro):
         overlap = pywintypes.OVERLAPPED() 
-        self.olaps.append(overlap)
         overlap.object = (op, coro)
         rc, nbytes = op.iocp(overlap)
         
         if rc == 0:
-            #ah geez, it didn't got in the iocp, we have a result!
-            #~ if rc:
-                #~ warnings.warn("PostQueuedCompletionStatus %s: %s" % (rc, op))
-            #~ print '- PostQueuedCompletionStatus', overlap
-            #~ win32file.PostQueuedCompletionStatus(
-                #~ self.iocp, nbytes, 0, overlap
-            #~ )
-            self.process_op(rc, nbytes, op, coro, overlap)
+            # ah geez, it didn't got in the iocp, we have a result!
+            win32file.PostQueuedCompletionStatus(
+                self.iocp, nbytes, 0, overlap
+            )
+            # or we could just do it here, but this will get recursive, 
+            #(todo: config option for this)
+            #~ self.process_op(rc, nbytes, op, coro, overlap)
         return overlap
+    #~ @debug(0)
     def process_op(self, rc, nbytes, op, coro, overlap):
         if rc == 0:
             op.iocp_done(rc, nbytes)
             prev_op = op
             op = self.run_operation(op, False) #no reactor, but proactor
+            # result should be the same instance as prev_op or a coroutine excetion
             if op:
-                if op in self.registered_ops:
-                    print 'rm', `self.registered_ops[op]` 
-                    del self.registered_ops[op] 
-                else:
-                    print '---', `op`
-                    return
-                win32file.CancelIo(prev_op.sock._fd.fileno())
+                if prev_op in self.registered_ops:
+                    del self.registered_ops[prev_op] 
+                
+                win32file.CancelIo(prev_op.sock._fd.fileno()) 
+                
                 if op.prio & priority.OP:
+                    # imediately run the asociated coroutine step
                     op, coro = self.scheduler.process_op(
                         coro.run_op(op), 
                         coro
                     )
                 if coro:
+                    # or just postphone it
                     if op.prio & priority.CORO:
                         self.scheduler.active.appendleft( (op, coro) )
                     else:
                         self.scheduler.active.append( (op, coro) )   
             else:
                 # operation hasn't completed yet (not enough data etc)
-                # resched it
-                #~ assert prev_op in self.registered_ops
-                print "Rescheduling iocp: %r" % prev_op
+                # readd it in the iocp
                 self.registered_ops[prev_op] = self.run_iocp(prev_op, coro)
                 
         else:
+            #looks like we have a problem, forward it to the coroutine.
+            
+            #this needs some research:
             #~ if rc==64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
-                #~ warnings.warn("ERROR_NETNAME_DELETED", stacklevel=3)
-                #~ return
+                
             if op in self.registered_ops:                        
-                print 'rm-e', `self.registered_ops[op]` 
                 del self.registered_ops[op]
                 
             win32file.CancelIo(op.sock._fd.fileno())
@@ -495,9 +495,7 @@ class IOCPPoller(Poller):
                 return op
                 
     def remove(self, op, coro):
-        warnings.warn('Removing op', stacklevel=3)
         if op in self.registered_ops:
-            #~ win32file.CloseHandle(self.registered_ops[op].hEvent)
             del self.registered_ops[op]
         
     def run(self, timeout = 0):
@@ -506,30 +504,22 @@ class IOCPPoller(Poller):
                 if timeout else (self.mRESOLUTION if timeout is None else 0))
         if self.registered_ops:
             while 1:
-                print self.registered_ops
                 try:
                     rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
                         self.iocp,
                         ptimeout
                     )
-                    print 'rc: %s(%s)' % (rc, ctypes.FormatError(rc)), 'nbytes:', nbytes, overlap, ptimeout
                 except Exception, e:
+                    # this needs some reasearch
                     warnings.warn(e, stacklevel=2)
-                    return #self.run(timeout)
-                #~ if overlap in self.removed_ops:
-                    #~ print '+'
-                    #~ print '+'
-                    #~ print '+'
-                    #~ print '+', overlap
-                print '>>>>', overlap
-                print '>>>>', overlap and overlap.object
+                    return 
+                    
                 if overlap and overlap.object:
                     op, coro = overlap.object
                     overlap.object = None
-                    #~ del overlap
                     self.process_op(rc, nbytes, op, coro, overlap)
-                    
                 else:
+                    # we got a botched overlap object ?!
                     break
         else:
             time.sleep(self.RESOLUTION)    
