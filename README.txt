@@ -11,7 +11,7 @@ Notable features
 ================
 
 * a WSGI server, HTTP1.1 compliant, with asynchronous extensions
-* use epoll, kqueue where supported, select based otherwise
+* epoll, kqueue, select, i/o completion ports behind the scene
 * a Queue with the same interface as the standard library Queue, but 
   for coroutines
   
