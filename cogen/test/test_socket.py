@@ -28,7 +28,8 @@ class SocketTest_MixIn:
         self.m_run = threading.Thread(target=run)
         
     def tearDown(self):
-        pass
+        del self.m
+        import gc; gc.collect()
         
     def test_read_lines(self):
         self.waitobj = None
@@ -59,12 +60,16 @@ class SocketTest_MixIn:
                     prio = self.prio
                 ) 
                     # eat up the remaining data waiting on socket
-            self.recvobj2 = (
-                (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio = self.prio)),
-                (yield sockets.ReadLine(conn, 1024, prio = self.prio))
-            )
+            y1 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            y2 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            y3 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            print '!', y1,y2,y3
+            a1 = yield y1 
+            a2 = yield y2
+            a3 = yield y3
+            self.recvobj2 = (a1,a2,a3)
             srv.close()
+            print '--- YYY STOP'
             self.m.stop()
         coro = self.m.add(reader)
         self.m_run.start()
@@ -110,6 +115,7 @@ class SocketTest_MixIn:
                 prio = self.prio
             )
             srv.close()
+            print '--- XXX STOP'
             self.m.stop()
         coro = self.m.add(reader)
         self.m_run.start()
@@ -121,6 +127,7 @@ class SocketTest_MixIn:
         buff = "X"*length
         while sent<length:
             print sent
+            time.sleep(0.1)
             sent += sock.send(buff[sent:])
         
         self.m_run.join()

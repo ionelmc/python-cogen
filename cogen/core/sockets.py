@@ -201,7 +201,7 @@ class ReadOperation(SocketOperation):
         )
         return win32file.WSARecv(self.sock._fd, self.iocp_buff, overlap, 0)
             
-    def iocp_done(self, rc, nbytes, key, overlap):
+    def iocp_done(self, rc, nbytes):
         self.temp_buff = self.iocp_buff[:nbytes]
     
 class WriteOperation(SocketOperation): 
@@ -209,7 +209,7 @@ class WriteOperation(SocketOperation):
     def iocp(self, overlap):
         return win32file.WSASend(self.sock._fd, self.buff, overlap, 0)
             
-    def iocp_done(self, rc, nbytes, key, overlap):
+    def iocp_done(self, rc, nbytes):
         self.sent += nbytes
     
 class SendFile(WriteOperation):
@@ -274,7 +274,7 @@ class SendFile(WriteOperation):
         else:
             return self.iocp_send(self.offset+self.sent, self.blocksize)
             
-    def iocp_done(self, rc, nbytes, key, overlap):
+    def iocp_done(self, rc, nbytes):
         self.sent += nbytes
 
     def run(self, reactor=True):
@@ -359,7 +359,7 @@ class Read(ReadOperation):
         super(Read, self).finalize()
         return self.buff
                 
-    def __repr__(self):
+    def __str__(self):
         return "<%s at 0x%X %s P:%.100r L:%r B:%r to:%s>" % (
             self.__class__.__name__, 
             id(self), 
@@ -367,6 +367,16 @@ class Read(ReadOperation):
             self.sock._rl_pending, 
             fmt_list(self.sock._rl_list), 
             self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
+    def __repr__(self):
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            len(self.sock._rl_pending), 
+            self.sock._rl_list_sz, 
+            self.buff and len(self.buff[:self.trim]), 
             self.timeout
         )
         
@@ -427,7 +437,7 @@ class ReadAll(ReadOperation):
         super(ReadAll, self).finalize()
         return self.buff
             
-    def __repr__(self):
+    def __str__(self):
         return "<%s at 0x%X %s P:%.100r L:%r S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
             id(self), 
@@ -436,6 +446,16 @@ class ReadAll(ReadOperation):
             fmt_list(self.sock._rl_list),
             self.sock._rl_list_sz, 
             self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
+    def __repr__(self):
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            len(self.sock._rl_pending), 
+            self.sock._rl_list_sz, 
+            self.buff and len(self.buff[:self.trim]), 
             self.timeout
         )
         
@@ -523,7 +543,7 @@ class ReadLine(ReadOperation):
         super(ReadLine, self).finalize()
         return self.buff
             
-    def __repr__(self):
+    def __str__(self):
         return "<%s at 0x%X %s P:%.100r L:%r S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
             id(self), 
@@ -532,6 +552,16 @@ class ReadLine(ReadOperation):
             fmt_list(self.sock._rl_list), 
             self.sock._rl_list_sz, 
             self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
+    def __repr__(self):
+        return "<%s at 0x%X %s P:%r L:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            len(self.sock._rl_pending), 
+            self.sock._rl_list_sz, 
+            self.buff and len(self.buff[:self.trim]), 
             self.timeout
         )
 
@@ -556,13 +586,22 @@ class Write(WriteOperation):
         super(Write, self).finalize()
         return self.sent
         
-    def __repr__(self):
+    def __str__(self):
         return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
             id(self), 
             self.sock, 
             self.sent, 
             self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
+    def __repr__(self):
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sent, 
+            self.buff and len(self.buff[:self.trim]), 
             self.timeout
         )
         
@@ -590,13 +629,22 @@ class WriteAll(WriteOperation):
         super(WriteAll, self).finalize()
         return self.sent
     
-    def __repr__(self):
+    def __str__(self):
         return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
             self.__class__.__name__, 
             id(self), 
             self.sock, 
             self.sent, 
             self.buff and self.buff[:self.trim], 
+            self.timeout
+        )
+    def __repr__(self):
+        return "<%s at 0x%X %s S:%r B:%r to:%s>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.sock, 
+            self.sent, 
+            self.buff and len(self.buff[:self.trim]), 
             self.timeout
         )
  
@@ -635,7 +683,7 @@ class Accept(ReadOperation):
         self.conn_buff = win32file.AllocateReadBuffer(64)
         return win32file.WSA_IO_PENDING, win32file.AcceptEx(self.sock._fd, self.conn, self.conn_buff, overlap)
         
-    def iocp_done(self, rc, nbytes, key, overlap):
+    def iocp_done(self, rc, nbytes):
         pass
         
     def finalize(self):

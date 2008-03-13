@@ -115,7 +115,7 @@ class Poller(object):
         return len(self.waiting_reads) + len(self.waiting_writes)
     def __repr__(self):
         return "<%s@%s reads:%r writes:%r>" % (
-            self.__class__, 
+            self.__class__.__name__, 
             id(self), 
             self.waiting_reads, 
             self.waiting_writes
@@ -206,7 +206,7 @@ class KQueuePoller(Poller):
         return len(self.klist)
     def __repr__(self):
         return "<%s@%s klist:%r>" % (
-            self.__class__, 
+            self.__class__.__name__, 
             id(self), 
             self.klist
         )
@@ -397,10 +397,19 @@ class IOCPPoller(Poller):
         ) 
         self.fds = {}
         self.registered_ops = {}
-        self.removed_ops = []
+        self.olaps = []
     def __len__(self):
         return len(self.registered_ops)
-    
+    def __del__(self):
+        print '>closing'
+        win32file.CloseHandle(self.iocp)
+    def __repr__(self):
+        return "<%s@%s reg_ops:%r fds:%r>" % (
+            self.__class__.__name__, 
+            id(self), 
+            self.registered_ops, 
+            self.fds
+        )
     def add(self, op, coro):
         #~ print '>ADDING:',op
         fileno = op.sock._fd.fileno()
@@ -413,19 +422,73 @@ class IOCPPoller(Poller):
 
     def run_iocp(self, op, coro):
         overlap = pywintypes.OVERLAPPED() 
+        self.olaps.append(overlap)
         overlap.object = (op, coro)
         rc, nbytes = op.iocp(overlap)
         
         if rc == 0:
-            #~ pass
             #ah geez, it didn't got in the iocp, we have a result!
-            if rc:
-                warnings.warn("PostQueuedCompletionStatus %s: %s" % (rc, op))
-            print '- PostQueuedCompletionStatus', overlap
-            win32file.PostQueuedCompletionStatus(
-                self.iocp, nbytes, 0, overlap
-            )
+            #~ if rc:
+                #~ warnings.warn("PostQueuedCompletionStatus %s: %s" % (rc, op))
+            #~ print '- PostQueuedCompletionStatus', overlap
+            #~ win32file.PostQueuedCompletionStatus(
+                #~ self.iocp, nbytes, 0, overlap
+            #~ )
+            self.process_op(rc, nbytes, op, coro, overlap)
         return overlap
+    def process_op(self, rc, nbytes, op, coro, overlap):
+        if rc == 0:
+            op.iocp_done(rc, nbytes)
+            prev_op = op
+            op = self.run_operation(op, False) #no reactor, but proactor
+            if op:
+                if op in self.registered_ops:
+                    print 'rm', `self.registered_ops[op]` 
+                    del self.registered_ops[op] 
+                else:
+                    print '---', `op`
+                    return
+                win32file.CancelIo(prev_op.sock._fd.fileno())
+                if op.prio & priority.OP:
+                    op, coro = self.scheduler.process_op(
+                        coro.run_op(op), 
+                        coro
+                    )
+                if coro:
+                    if op.prio & priority.CORO:
+                        self.scheduler.active.appendleft( (op, coro) )
+                    else:
+                        self.scheduler.active.append( (op, coro) )   
+            else:
+                # operation hasn't completed yet (not enough data etc)
+                # resched it
+                #~ assert prev_op in self.registered_ops
+                print "Rescheduling iocp: %r" % prev_op
+                self.registered_ops[prev_op] = self.run_iocp(prev_op, coro)
+                
+        else:
+            #~ if rc==64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
+                #~ warnings.warn("ERROR_NETNAME_DELETED", stacklevel=3)
+                #~ return
+            if op in self.registered_ops:                        
+                print 'rm-e', `self.registered_ops[op]` 
+                del self.registered_ops[op]
+                
+            win32file.CancelIo(op.sock._fd.fileno())
+            
+            
+            warnings.warn("%s on %r/%r" % (ctypes.FormatError(rc), op, coro), stacklevel=1)
+            self.scheduler.active.append((
+                events.CoroutineException((
+                    events.ConnectionError, events.ConnectionError(
+                        "%s:%s on %r" % (rc, ctypes.FormatError(rc), op)
+                    )
+                )), 
+                coro
+            ))
+        
+        
+        
     def waiting_op(self, testcoro):
         for op in self.registered_ops:
             if self.registered_ops[op].object[1] is testcoro:
@@ -449,70 +512,23 @@ class IOCPPoller(Poller):
                         self.iocp,
                         ptimeout
                     )
-                    print 'rc:', rc, 'nbytes:', nbytes, overlap, ptimeout
-                    print 'rc:',ctypes.FormatError(rc)
+                    print 'rc: %s(%s)' % (rc, ctypes.FormatError(rc)), 'nbytes:', nbytes, overlap, ptimeout
                 except Exception, e:
                     warnings.warn(e, stacklevel=2)
                     return #self.run(timeout)
-                if overlap in self.removed_ops:
-                    print '+'
-                    print '+'
-                    print '+'
-                    print '+', overlap
+                #~ if overlap in self.removed_ops:
+                    #~ print '+'
+                    #~ print '+'
+                    #~ print '+'
+                    #~ print '+', overlap
+                print '>>>>', overlap
+                print '>>>>', overlap and overlap.object
                 if overlap and overlap.object:
                     op, coro = overlap.object
-                    if rc == 0:
-                        op.iocp_done(rc, nbytes, key, overlap)
-                        prev_op = op
-                        op = self.run_operation(op, False) #no reactor, but proactor
-                        if op:
-                            if op in self.registered_ops:
-                                print 'rm', self.registered_ops[op] 
-                                del self.registered_ops[op] 
-                                self.removed_ops.append(overlap)
-                            else:
-                                print '---', op
-                            overlap.object = None
-                            
-                            del overlap
-                            win32file.CancelIo(prev_op.sock._fd.fileno())
-                            if op.prio & priority.OP:
-                                op, coro = self.scheduler.process_op(
-                                    coro.run_op(op), 
-                                    coro
-                                )
-                            if coro:
-                                if op.prio & priority.CORO:
-                                    self.scheduler.active.appendleft( (op, coro) )
-                                else:
-                                    self.scheduler.active.append( (op, coro) )   
-                        else:
-                            # operation hasn't completed yet (not enough data etc)
-                            # resched it
-                            assert prev_op in self.registered_ops
-                            print "Rescheduling iocp: %s" % prev_op
-                            self.registered_ops[prev_op] = self.run_iocp(prev_op, coro)
-                            del overlap
-                    else:
-                        #~ if rc==64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
-                            #~ warnings.warn("ERROR_NETNAME_DELETED", stacklevel=3)
-                            #~ return
-                        if op in self.registered_ops:                        
-                            print 'rm-e', self.registered_ops[op] 
-                            del self.registered_ops[op]
-                        overlap.object = None
-                        del overlap
-                        win32file.CancelIo(op.sock._fd.fileno())
-                        
-                        warnings.warn("%s on %s/%s" % (ctypes.FormatError(rc), op, coro), stacklevel=1)
-                        self.scheduler.active.append((
-                            events.CoroutineException((
-                                events.ConnectionError, events.ConnectionError(
-                                    "%s:%s on %s" % (rc, ctypes.FormatError(rc), op)
-                                )
-                            )), 
-                            coro
-                        ))
+                    overlap.object = None
+                    #~ del overlap
+                    self.process_op(rc, nbytes, op, coro, overlap)
+                    
                 else:
                     break
         else:

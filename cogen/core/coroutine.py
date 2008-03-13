@@ -131,8 +131,8 @@ class Coroutine(events.Operation):
         assert self.state < self.STATE_COMPLETED, \
             "%s called with:%s, last one:%s, expected state less than %s!" % (
                 self, 
-                isinstance(op, events.CoroutineException) and '\n'.join(traceback.format_exception(*op.message)) or op,
-                isinstance(self.lastop, events.CoroutineException) and '\n'.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
+                isinstance(op, events.CoroutineException) and ''.join(traceback.format_exception(*op.message)) or op,
+                isinstance(self.lastop, events.CoroutineException) and ''.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
                 self._state_names[self.STATE_COMPLETED]
             )
         self.lastop = op
