@@ -49,6 +49,7 @@ import re
 import rfc822
 import socket
 import errno
+
 try:                
   import cStringIO as StringIO
 except ImportError: 
@@ -56,6 +57,7 @@ except ImportError:
 import sys
 import time
 import traceback
+import warnings
 from urllib import unquote
 from urlparse import urlparse
 from traceback import format_exc
@@ -620,7 +622,7 @@ class WSGIServer(object):
         except Exception, e: 
           # make acceptor more robust in the face of weird 
           # accept bugs, XXX: but we might get a infinite loop
-          warnings.warn(e, stacklevel=2)
+          warnings.warn(e)
           continue
          
         environ = self.environ.copy()
