@@ -51,6 +51,18 @@ class Timeout(object):
         )
 
 class Scheduler(object):
+    """Basic deque-based scheduler with timeout support and primitive 
+    prioritisaiton parameters.
+    
+    Usage:
+    {{{Scheduler(poller=DefaultPoller, default_priority=priority.LAST, default_timeout=None)}}}
+    
+      * poller: a poller class to use
+      * default_priority: a default priority option for operations that do not 
+      set it. check [Docs_CogenCoreUtilPriority priority].
+      * default_timeout: a default timedelta or number of seconds to wait for 
+      the operation
+    """
     def __init__(self, poller=DefaultPoller, default_priority=priority.LAST, default_timeout=None):
         self.timeouts = []
         self.active = collections.deque()
