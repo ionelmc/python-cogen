@@ -1,3 +1,5 @@
+__doc_all__ = []
+
 import unittest
 import sys
 import exceptions
