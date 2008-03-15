@@ -41,14 +41,14 @@ from cogen.core import sockets
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
 __doc_all__ = [
-    "Poller",
-    "SelectPoller",
-    "KQueuePoller",
-    "EpollPoller",
+    "ReactorBase",
+    "SelectReactor",
+    "KQueueReactor",
+    "EpollReactor",
 ]
-class Poller(object):
+class ReactorBase(object):
     """
-    A poller just checks if there are ready-sockets for the operations.
+    A reactor just checks if there are ready-sockets for the operations.
     The operations are not done here, they are done in the socket ops instances.
     """
     __doc_all__ = [
@@ -57,7 +57,7 @@ class Poller(object):
         'handle_events'
     ]
     
-    RESOLUTION = 0.02 # seconds
+    RESOLUTION = 0.05 # seconds
     mRESOLUTION = RESOLUTION*1000 # miliseconds
     nRESOLUTION = RESOLUTION*1000000000 #nanoseconds
     def __init__(self, scheduler):
@@ -65,8 +65,8 @@ class Poller(object):
         self.waiting_writes = {}
         self.scheduler = scheduler
     def run_once(self, fdesc, waiting_ops):           
-        """ Run a operation, remove it from the poller and return the result. 
-        Called from the main poller loop. """
+        """ Run a operation, remove it from the reactor and return the result. 
+        Called from the main reactor loop. """
         op, coro = waiting_ops[fdesc]
         op = self.run_operation()
         if op:
@@ -80,7 +80,7 @@ class Poller(object):
             r = events.CoroutineException(sys.exc_info())
         return r
     def run_or_add(self, op, coro):
-        """ Perform operation or add the operation in the poller if socket isn't
+        """ Perform operation or add the operation in the reactor if socket isn't
         ready. Called from the scheduller. """
         r = self.run_operation(op)
         if r: 
@@ -111,7 +111,7 @@ class Poller(object):
                 if testcoro is coro:
                     return op
     def __len__(self):
-        "Returns number of waiting operations registered in the poller."
+        "Returns number of waiting operations registered in the reactor."
         return len(self.waiting_reads) + len(self.waiting_writes)
     def __repr__(self):
         return "<%s@%s reads:%r writes:%r>" % (
@@ -138,7 +138,7 @@ class Poller(object):
             coro
         ))
         
-class SelectPoller(Poller):
+class SelectReactor(ReactorBase):
     def remove(self, op, coro):
         #~ print '> remove', op
         if isinstance(op, sockets.ReadOperation):
@@ -175,7 +175,7 @@ class SelectPoller(Poller):
         
     def run(self, timeout = 0):
         """ 
-        Run a poller loop and return new socket events. Timeout is a timedelta 
+        Run a reactor loop and return new socket events. Timeout is a timedelta 
         object, 0 if active coros or None. 
         
         select timeout param is a float number of seconds.
@@ -196,7 +196,7 @@ class SelectPoller(Poller):
                 self.handle_errored(i)
         else:
             time.sleep(self.RESOLUTION)
-class KQueuePoller(Poller):
+class KQueueReactor(ReactorBase):
     def __init__(self, scheduler, default_size = 1024):
         super(self.__class__, self).__init__(scheduler)
         self.default_size = default_size
@@ -250,7 +250,7 @@ class KQueuePoller(Poller):
             self.kq.kevent(ev)
     def run(self, timeout = 0):
         """ 
-        Run a poller loop and return new socket events. Timeout is a timedelta 
+        Run a reactor loop and return new socket events. Timeout is a timedelta 
         object, 0 if active coros or None. 
         
         kqueue timeout param is a integer number of nanoseconds (seconds/10**9).
@@ -302,9 +302,83 @@ class KQueuePoller(Poller):
                             self.scheduler.active.appendleft( (op, coro) )
                         else:
                             self.scheduler.active.append( (op, coro) )    
-        
-                    
-class EpollPoller(Poller):
+
+class PollReactor(ReactorBase):
+    POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
+    POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
+    POLL_OUT = select.POLLOUT | POLL_ERR
+    def __init__(self, scheduler):
+        super(self.__class__, self).__init__(scheduler)
+        self.scheduler = scheduler
+        self.poller = select.poll()
+    def remove(self, op, coro):
+        fileno = getattr(op, 'fileno', None)
+        if fileno:
+            if isinstance(op, sockets.ReadOperation):
+                if fileno in self.waiting_reads:
+                    try:
+                        self.poller.unregister(fileno)
+                    except OSError, e:
+                        warnings.warn("FD Remove error: %r" % e)
+                    del self.waiting_reads[fileno]
+            if isinstance(op, sockets.WriteOperation):
+                if fileno in self.waiting_writes:
+                    try:
+                        self.poller.unregister(fileno)
+                    except OSError:
+                        warnings.warn("FD Remove error: %r" % e)
+                    del self.waiting_writes[fileno]
+    def add(self, op, coro):
+        fileno = op.fileno = op.sock.fileno()
+        if isinstance(op, sockets.ReadOperation):
+            assert fileno not in self.waiting_reads
+            self.waiting_reads[fileno] = op, coro
+            self.poller.register(fileno, self.POLL_IN)
+        if isinstance(op, sockets.WriteOperation):
+            assert fileno not in self.waiting_writes
+            self.waiting_writes[fileno] = op, coro
+            self.poller.register(fileno, self.POLL_OUT)
+
+    def run(self, timeout = 0):
+        """ 
+        Run a reactor loop and return new socket events. Timeout is a timedelta 
+        object, 0 if active coros or None. 
+        """
+        # poll timeout param is a integer number of miliseconds (seconds/1000).
+        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
+                if timeout else (self.mRESOLUTION if timeout is None else 0))
+        #~ print self.waiting_reads
+        if self.waiting_reads or self.waiting_writes:
+            events = self.poller.poll(ptimeout)
+            for fd, ev in events:
+                if ev & self.POLL_IN:
+                    waiting_ops = self.waiting_reads
+                elif ev & self.POLL_OUT:
+                    waiting_ops = self.waiting_writes
+                else:
+                    self.handle_errored(fd)
+                    continue
+                
+                op, coro = waiting_ops[fd]
+                op = self.run_operation(op)
+                if op:
+                    del waiting_ops[fd]
+                    self.poller.unregister(fd)
+                    if op.prio & priority.OP:
+                        op, coro = self.scheduler.process_op(
+                            coro.run_op(op), 
+                            coro
+                        )
+                    if coro:
+                        if op.prio & priority.CORO:
+                            self.scheduler.active.appendleft( (op, coro) )
+                        else:
+                            self.scheduler.active.append( (op, coro) )    
+        else:
+            time.sleep(self.RESOLUTION)
+
+
+class EpollReactor(ReactorBase):
     def __init__(self, scheduler, default_size = 1024):
         super(self.__class__, self).__init__(scheduler)
         self.scheduler = scheduler
@@ -351,7 +425,7 @@ class EpollPoller(Poller):
 
     def run(self, timeout = 0):
         """ 
-        Run a poller loop and return new socket events. Timeout is a timedelta 
+        Run a reactor loop and return new socket events. Timeout is a timedelta 
         object, 0 if active coros or None. 
         
         epoll timeout param is a integer number of miliseconds (seconds/1000).
@@ -360,7 +434,7 @@ class EpollPoller(Poller):
                 if timeout else (self.mRESOLUTION if timeout is None else 0))
         #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
-            events = epoll.epoll_wait(self.epoll_fd, 10, ptimeout)
+            events = epoll.epoll_wait(self.epoll_fd, 1024, ptimeout)
             for ev, fd in events:
                 if ev == epoll.EPOLLIN:
                     waiting_ops = self.waiting_reads
@@ -388,7 +462,7 @@ class EpollPoller(Poller):
         else:
             time.sleep(self.RESOLUTION)
     
-class IOCPPoller(Poller):
+class IOCPProactor(ReactorBase):
     def __init__(self, scheduler, default_size = 1024):
         super(self.__class__, self).__init__(scheduler)
         self.scheduler = scheduler
@@ -527,19 +601,23 @@ class IOCPPoller(Poller):
 
 available = []
 if select:
-    DefaultPoller = SelectPoller
-    available.append(SelectPoller)
+    DefaultReactor = SelectReactor
+    available.append(SelectReactor)
+
+if select and hasattr(select, 'poll'):
+    DefaultReactor = PollReactor
+    available.append(PollReactor)
     
 if kqueue:
-    DefaultPoller = KQueuePoller
-    available.append(KQueuePoller)
+    DefaultReactor = KQueueReactor
+    available.append(KQueueReactor)
     
 if epoll:
-    DefaultPoller = EpollPoller
-    available.append(EpollPoller)
+    DefaultReactor = EpollReactor
+    available.append(EpollReactor)
     
 if win32file:
-    DefaultPoller = IOCPPoller
-    available.append(IOCPPoller)
+    DefaultReactor = IOCPProactor
+    available.append(IOCPProactor)
     
     
