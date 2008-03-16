@@ -54,7 +54,8 @@ class COGENOperationCall(object):
 class COGENProxy:
     def __init__(self, **kws):
         self.__dict__.update(kws)
-
+    def __str__(self):
+        return repr(self.__dict__)
 class SynchronousInputMiddleware:
     """Middleware for providing wsgi.input to the app."""
     __doc_all__ = ['__init__', '__call__']
@@ -81,13 +82,16 @@ class SynchronousInputMiddleware:
                 buff.write(result)
                 length += len(result)
         buff.seek(0)
+        #~ print '>>>>DONE', `buff.getvalue()`
         environ['wsgi.input'] = buff
         environ['CONTENT_LENGTH'] = str(length)
         iterator = self.app(environ, start_response)
         for i in iterator:
+            #~ print '--- iter', i
             yield i
         if hasattr(iterator, 'close'): 
             iterator.close()
+        #~ print '>>>>CLOSE'
 def sync_input(app):
     return SynchronousInputMiddleware(app)
 
@@ -125,14 +129,14 @@ class Read(sockets.ReadAll, sockets.ReadLine):
         self.req = req
     
     #~ @debug(0)        
-    def run(self, reactor=True):
+    def run(self, reactor):
         if self.req.read_chunked:
             again = 1
             while again:
                 again = 0
                 if self.req.state == self.NEED_SIZE:
                     self.len = self.x_len
-                    ret = sockets.ReadLine.run(self)
+                    ret = sockets.ReadLine.run(self, reactor)
                     if ret:
                         self.req.state = self.NEED_CHUNK
                         chunk_len = int(self.buff.split(';',1)[0], 16)
@@ -245,6 +249,9 @@ class Read(sockets.ReadAll, sockets.ReadLine):
             self.len,
             self.timeout
         )
+    def __str__(self):
+        return repr(self)
+        
 class ReadLine(sockets.ReadAll, sockets.ReadLine):
     """
     Same a async.Read but doesn't work with chunked input (it would complicate
