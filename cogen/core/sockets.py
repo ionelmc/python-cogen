@@ -155,7 +155,7 @@ class SocketOperation(events.TimedOperation):
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
         
-    def try_run(self, reactor=True):
+    def try_run(self, reactor):
         """
         This method will return a None value or raise a exception if the 
         operation can't complete at this time.
@@ -181,9 +181,11 @@ class SocketOperation(events.TimedOperation):
 
     #~ @debug(0)
     def process(self, sched, coro):
+        #~ print '>process:', self
         super(SocketOperation, self).process(sched, coro)
         r = sched.poll.run_or_add(self, coro)
         if r:
+            #~ print '>we have result!'
             if self.prio:
                 return r, r and coro
             else:
@@ -277,7 +279,7 @@ class SendFile(WriteOperation):
     def iocp_done(self, rc, nbytes):
         self.sent += nbytes
 
-    def run(self, reactor=True):
+    def run(self, reactor):
         assert self.sent <= self.length
         if self.sent == self.length:
             return self
@@ -334,7 +336,7 @@ class Read(ReadOperation):
         self.len = len
         self.buff = None
     
-    def run(self, reactor=True):
+    def run(self, reactor):
         if self.sock._rl_list:
             self.sock._rl_pending = ''.join(self.sock._rl_list) + self.sock._rl_pending
             self.sock._rl_list = []
@@ -376,7 +378,7 @@ class Read(ReadOperation):
             self.sock, 
             len(self.sock._rl_pending), 
             self.sock._rl_list_sz, 
-            self.buff and len(self.buff[:self.trim]), 
+            self.buff and len(self.buff), 
             self.timeout
         )
         
@@ -392,7 +394,7 @@ class ReadAll(ReadOperation):
         self.len = len
         self.buff = None
     
-    def run(self, reactor=True):
+    def run(self, reactor):
         if self.sock._rl_pending:
             self.sock._rl_list.append(self.sock._rl_pending) 
                 # we push in the buff list the pending buffer (for the sake of 
@@ -455,7 +457,7 @@ class ReadAll(ReadOperation):
             self.sock, 
             len(self.sock._rl_pending), 
             self.sock._rl_list_sz, 
-            self.buff and len(self.buff[:self.trim]), 
+            self.buff and len(self.buff), 
             self.timeout
         )
         
@@ -487,7 +489,7 @@ class ReadLine(ReadOperation):
             raise exceptions.OverflowError(
                 "Recieved %s bytes and no linebreak" % self.len
             )
-    def run(self, reactor=True):
+    def run(self, reactor):
         #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
@@ -561,7 +563,7 @@ class ReadLine(ReadOperation):
             self.sock, 
             len(self.sock._rl_pending), 
             self.sock._rl_list_sz, 
-            self.buff and len(self.buff[:self.trim]), 
+            self.buff and len(self.buff), 
             self.timeout
         )
 
@@ -577,7 +579,7 @@ class Write(WriteOperation):
         self.buff = buff
         self.sent = 0
         
-    def run(self, reactor=True):
+    def run(self, reactor):
         if reactor:
             self.sent = self.sock._fd.send(self.buff)
         return self
@@ -601,7 +603,7 @@ class Write(WriteOperation):
             id(self), 
             self.sock, 
             self.sent, 
-            self.buff and len(self.buff[:self.trim]), 
+            self.buff and len(self.buff), 
             self.timeout
         )
         
@@ -617,7 +619,7 @@ class WriteAll(WriteOperation):
         self.buff = buff
         self.sent = 0
         
-    def run(self, reactor=True):
+    def run(self, reactor):
         if reactor:
             sent = self.sock._fd.send(buffer(self.buff, self.sent))
             self.sent += sent
@@ -644,7 +646,7 @@ class WriteAll(WriteOperation):
             id(self), 
             self.sock, 
             self.sent, 
-            self.buff and len(self.buff[:self.trim]), 
+            self.buff and len(self.buff), 
             self.timeout
         )
  
@@ -659,7 +661,7 @@ class Accept(ReadOperation):
         super(Accept, self).__init__(sock, **kws)
         self.conn = None
         
-    def run(self, reactor=True):
+    def run(self, reactor):
         if reactor:
             self.conn, self.addr = self.sock._fd.accept()
             self.conn = Socket(_sock=self.conn)
@@ -718,7 +720,7 @@ class Connect(WriteOperation):
     def iocp_done(self, *args):
         raise NotImplementedError()
         
-    def run(self, reactor=True):
+    def run(self, reactor):
         """ 
         We need to avoid some non-blocking socket connect quirks: 
           - if you attempt a connect in NB mode you will always 
