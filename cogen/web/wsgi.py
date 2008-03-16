@@ -64,6 +64,7 @@ from traceback import format_exc
 import cogen
 
 from cogen.common import *
+from cogen.core.util import debug
 #~ from cogen.wsgi \
 import async
 
@@ -162,7 +163,7 @@ class WSGIConnection(object):
     self.conn = sock
     self.wsgi_app = wsgi_app
     self.server_environ = environ
-    
+  
   def start_response(self, status, headers, exc_info = None):
     """WSGI callable to begin the HTTP response."""
     if self.started_response:
@@ -249,9 +250,7 @@ class WSGIConnection(object):
     if self.started_response:
       if not self.sent_headers:
         self.sent_headers = True
-        return sockets.WriteAll(self.conn, 
-                self.render_headers()+self.write_buffer.getvalue()
-              )
+        return self.render_headers()+self.write_buffer.getvalue()
   
   @coroutine
   def run(self):
@@ -267,7 +266,7 @@ class WSGIConnection(object):
           self.chunked_write = False
           self.write_buffer = StringIO.StringIO()
           # Copy the class environ into self.
-          self.environ = self.connection_environ.copy()
+          ENVIRON = self.environ = self.connection_environ.copy()
           self.environ.update(self.server_environ)
               
           request_line = yield sockets.ReadLine(self.conn)
@@ -280,8 +279,8 @@ class WSGIConnection(object):
             if not tolerance:
               return
           method, path, req_protocol = request_line.strip().split(" ", 2)
-          self.environ["REQUEST_METHOD"] = method
-          self.environ["CONTENT_LENGTH"] = ''
+          ENVIRON["REQUEST_METHOD"] = method
+          ENVIRON["CONTENT_LENGTH"] = ''
           
           scheme, location, path, params, qs, frag = urlparse(path)
           
@@ -291,11 +290,11 @@ class WSGIConnection(object):
             return
           
           if scheme:
-            self.environ["wsgi.url_scheme"] = scheme
+            ENVIRON["wsgi.url_scheme"] = scheme
           if params:
             path = path + ";" + params
           
-          self.environ["SCRIPT_NAME"] = ""
+          ENVIRON["SCRIPT_NAME"] = ""
           
           # Unquote the path+params (e.g. "/this%20path" -> "this path").
           # http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
@@ -305,11 +304,11 @@ class WSGIConnection(object):
           # safely decoded." http://www.ietf.org/rfc/rfc2396.txt, sec 2.4.2
           atoms = [unquote(x) for x in quoted_slash.split(path)]
           path = "%2F".join(atoms)
-          self.environ["PATH_INFO"] = path
+          ENVIRON["PATH_INFO"] = path
           
           # Note that, like wsgiref and most other WSGI servers,
           # we unquote the path but not the query string.
-          self.environ["QUERY_STRING"] = qs
+          ENVIRON["QUERY_STRING"] = qs
           
           # Compare request and server HTTP protocol versions, in case our
           # server does not support the requested protocol. Limit our output
@@ -324,18 +323,18 @@ class WSGIConnection(object):
           # the client only understands 1.0. RFC 2616 10.5.6 says we should
           # only return 505 if the _major_ version is different.
           rp = int(req_protocol[5]), int(req_protocol[7])
-          server_protocol = self.environ["ACTUAL_SERVER_PROTOCOL"]
+          server_protocol = ENVIRON["ACTUAL_SERVER_PROTOCOL"]
           sp = int(server_protocol[5]), int(server_protocol[7])
           if sp[0] != rp[0]:
             yield self.simple_response("505 HTTP Version Not Supported")
             return
           # Bah. "SERVER_PROTOCOL" is actually the REQUEST protocol.
-          self.environ["SERVER_PROTOCOL"] = req_protocol
+          ENVIRON["SERVER_PROTOCOL"] = req_protocol
           self.response_protocol = "HTTP/%s.%s" % min(rp, sp)
           
           # If the Request-URI was an absoluteURI, use its location atom.
           if location:
-            self.environ["SERVER_NAME"] = location
+            ENVIRON["SERVER_NAME"] = location
           
           # then all the http headers
           try:
@@ -355,40 +354,40 @@ class WSGIConnection(object):
                 envname = "HTTP_" + k.replace("-", "_")
               
               if k in comma_separated_headers:
-                existing = self.environ.get(envname)
+                existing = ENVIRON.get(envname)
                 if existing:
                   v = ", ".join((existing, v))
-              self.environ[envname] = v
+              ENVIRON[envname] = v
             
-            ct = self.environ.pop("HTTP_CONTENT_TYPE", None)
+            ct = ENVIRON.pop("HTTP_CONTENT_TYPE", None)
             if ct:
-              self.environ["CONTENT_TYPE"] = ct
-            cl = self.environ.pop("HTTP_CONTENT_LENGTH", None)
+              ENVIRON["CONTENT_TYPE"] = ct
+            cl = ENVIRON.pop("HTTP_CONTENT_LENGTH", None)
             if cl:
-              self.environ["CONTENT_LENGTH"] = cl
+              ENVIRON["CONTENT_LENGTH"] = cl
           except ValueError, ex:
             yield self.simple_response("400 Bad Request", repr(ex.args))
             return
           
-          creds = self.environ.get("HTTP_AUTHORIZATION", "").split(" ", 1)
-          self.environ["AUTH_TYPE"] = creds[0]
+          creds = ENVIRON.get("HTTP_AUTHORIZATION", "").split(" ", 1)
+          ENVIRON["AUTH_TYPE"] = creds[0]
           if creds[0].lower() == 'basic':
             user, pw = base64.decodestring(creds[1]).split(":", 1)
-            self.environ["REMOTE_USER"] = user
+            ENVIRON["REMOTE_USER"] = user
           
           # Persistent connection support
           if self.response_protocol == "HTTP/1.1":
-            if self.environ.get("HTTP_CONNECTION", "") == "close":
+            if ENVIRON.get("HTTP_CONNECTION", "") == "close":
               self.close_connection = True
           else:
             # HTTP/1.0
-            if self.environ.get("HTTP_CONNECTION", "") != "Keep-Alive":
+            if ENVIRON.get("HTTP_CONNECTION", "") != "Keep-Alive":
               self.close_connection = True
           
           # Transfer-Encoding support
           te = None
           if self.response_protocol == "HTTP/1.1":
-            te = self.environ.get("HTTP_TRANSFER_ENCODING")
+            te = ENVIRON.get("HTTP_TRANSFER_ENCODING")
             if te:
               te = [x.strip().lower() for x in te.split(",") if x.strip()]
           
@@ -405,9 +404,9 @@ class WSGIConnection(object):
                 self.close_connection = True
                 return
           
-          self.environ['cogen.wsgi'] = async.COGENProxy(
+          ENVIRON['cogen.wsgi'] = async.COGENProxy(
             read_chunked = read_chunked,
-            content_length = int(self.environ.get('CONTENT_LENGTH', None) or 0) or None,
+            content_length = int(ENVIRON.get('CONTENT_LENGTH', None) or 0) or None,
             read_count = 0,
             state = async.Read.NEED_SIZE,
             chunk_remaining = 0,
@@ -415,64 +414,70 @@ class WSGIConnection(object):
             result = None,
             exception = None
           )
-          self.environ['cogen.core'] = async.COGENOperationWrapper(
-            self.environ['cogen.wsgi'], 
+          ENVIRON['cogen.core'] = async.COGENOperationWrapper(
+            ENVIRON['cogen.wsgi'], 
             cogen.core
           )
-          self.environ['cogen.input'] = async.COGENOperationWrapper(
-            self.environ['cogen.wsgi'], 
+          ENVIRON['cogen.input'] = async.COGENOperationWrapper(
+            ENVIRON['cogen.wsgi'], 
             async.COGENProxy( 
               Read = lambda len, **kws: \
-                async.Read(self.conn, self.environ['cogen.wsgi'], len, **kws),
+                async.Read(self.conn, ENVIRON['cogen.wsgi'], len, **kws),
               ReadLine = lambda len, **kws: \
-                async.ReadLine(self.conn, self.environ['cogen.wsgi'], len, **kws)
+                async.ReadLine(self.conn, ENVIRON['cogen.wsgi'], len, **kws)
             )
           )
-          response = self.wsgi_app(self.environ, self.start_response)
+          response = self.wsgi_app(ENVIRON, self.start_response)
           with tryclosing(response):
-            csr = self.check_start_response()
-            if csr: 
-              yield csr
-            del csr
             if isinstance(response, WSGIFileWrapper):
+              #XXX: need tcp_cork
+              headers = self.check_start_response()
+              if headers:
+                yield sockets.WriteAll(self.conn, headers)
               yield sockets.SendFile( response.filelike, self.conn, 
                                       blocksize=response.blocksize )#, timeout=-1)
               #XXX: use content-length 
               #XXX: use chunking
-              
             else:
               for chunk in response:
-                csr = self.check_start_response()
-                if csr: 
-                  yield csr
-                del csr
+                headers = self.check_start_response()
                 if chunk:
+                  assert headers or self.sent_headers, "App sended a value but hasn't called start_response."
                   if self.chunked_write:
                     buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-                    yield sockets.WriteAll(self.conn, "".join(buf))
+                    if headers:
+                      headers = [headers]
+                      headers.extend(buf)
+                      yield sockets.WriteAll(self.conn, "".join(headers))
+                    else:
+                      yield sockets.WriteAll(self.conn, "".join(buf))
                   else:
-                    yield sockets.WriteAll(self.conn, chunk)
+                    if headers:
+                      yield sockets.WriteAll(self.conn, headers+chunk)
+                    else:
+                      yield sockets.WriteAll(self.conn, chunk)
                 else:
-                  if self.environ['cogen.wsgi'].operation:
-                    op = self.environ['cogen.wsgi'].operation
-                    self.environ['cogen.wsgi'].operation = None
+                  if headers: 
+                    yield sockets.WriteAll(self.conn, headers)
+                  if ENVIRON['cogen.wsgi'].operation:
+                    op = ENVIRON['cogen.wsgi'].operation
+                    ENVIRON['cogen.wsgi'].operation = None
                     try:
                       #~ print 'WSGI OP:', op
-                      self.environ['cogen.wsgi'].result = yield op
-                      #~ print 'WSGI OP RESULT:',self.environ['cogen.wsgi'].result
+                      ENVIRON['cogen.wsgi'].result = yield op
+                      #~ print 'WSGI OP RESULT:',ENVIRON['cogen.wsgi'].result
                     except:
                       #~ print 'exception:', sys.exc_info()
-                      self.environ['cogen.wsgi'].exception = sys.exc_info()
-                      self.environ['cogen.wsgi'].result = \
-                        self.environ['cogen.wsgi'].exception[1]
+                      ENVIRON['cogen.wsgi'].exception = sys.exc_info()
+                      ENVIRON['cogen.wsgi'].result = \
+                        ENVIRON['cogen.wsgi'].exception[1]
                     del op
-          
           if self.chunked_write:
             yield sockets.WriteAll(self.conn, "0\r\n\r\n")
         
           if self.close_connection:
             return
-          while (yield async.Read(self.conn, self.environ['cogen.wsgi'])):
+          while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'])):
             # we need to consume any unread input data to read the next 
             #pipelined request
             pass
@@ -486,7 +491,7 @@ class WSGIConnection(object):
           events.ConnectionClosed, 
           events.ConnectionError):
         return
-      except (KeyboardInterrupt, SystemExit):
+      except (KeyboardInterrupt, SystemExit, GeneratorExit):
         raise
       except:
         if not self.started_response:
@@ -497,9 +502,11 @@ class WSGIConnection(object):
         else:
           print "*" * 60
           traceback.print_exc()
+          print "*" * 30
+          print traceback.print_stack(sys._getframe())
           print "*" * 60
       finally:
-        self.environ = None
+        ENVIRON = self.environ = None
 class WSGIServer(object):
   """
   An HTTP server for WSGI.
@@ -513,7 +520,6 @@ class WSGIServer(object):
   
   protocol = "HTTP/1.1"
   _bind_addr = "localhost"
-  version = "cogen.web.wsgi/%s Python/%s" % (cogen.__version__, sys.version.split()[0])
   ready = False
   ConnectionClass = WSGIConnection
   environ = {}
@@ -521,6 +527,11 @@ class WSGIServer(object):
   def __init__(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=64):
     self.request_queue_size = int(request_queue_size)
     self.scheduler = scheduler
+    self.version = "%s.%s/%s.%s/%s Python/%s" % (
+      self.__class__.__module__, self.__class__.__name__, 
+      scheduler.poll.__class__.__module__, scheduler.poll.__class__.__name__, 
+      cogen.__version__, sys.version.split()[0]
+    )
     if callable(wsgi_app):
       # We've been handed a single wsgi_app, in CP-2.1 style.
       # Assume it's mounted at "".
@@ -619,10 +630,10 @@ class WSGIServer(object):
       while True:
         try:
           s, addr = yield sockets.Accept(self.socket, timeout=-1)
-        except Exception, e: 
+        except: 
           # make acceptor more robust in the face of weird 
           # accept bugs, XXX: but we might get a infinite loop
-          warnings.warn(e)
+          warnings.warn("Accept thrown an exception: %s" % traceback.format_exc())
           continue
          
         environ = self.environ.copy()
