@@ -13,13 +13,13 @@ import datetime
 from cStringIO import StringIO
 
 from cogen.common import *
-from cogen.core import pollers
+from cogen.core import reactors
 from cogen.test.base import PrioMixIn, NoPrioMixIn
 
 class SocketTest_MixIn:
     def setUp(self):
         self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = Scheduler(default_priority=self.prio, poller=self.poller)
+        self.m = Scheduler(default_priority=self.prio, reactor=self.poller)
         def run():
             try:
                 time.sleep(1)
@@ -181,7 +181,7 @@ class SocketTest_MixIn:
         self.assertEqual(len(self.m.active), 0)
         self.failIf(self.m_run.isAlive())
 
-for poller_cls in pollers.available:
+for poller_cls in reactors.available:
     for prio_mixin in (NoPrioMixIn, PrioMixIn):
         name = 'SocketTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(

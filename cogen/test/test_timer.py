@@ -10,12 +10,13 @@ import exceptions
 import datetime
 
 from cogen.common import *
+from cogen.core import reactors
 from cogen.test.base import PrioMixIn, NoPrioMixIn
 
 class Timer_MixIn:
     def setUp(self):
         self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = Scheduler(default_priority=self.prio)
+        self.m = Scheduler(default_priority=self.prio, reactor=self.poller)
         def run():
             try:
                 time.sleep(1)
@@ -99,10 +100,13 @@ class Timer_MixIn:
         self.assertAlmostEqual(self.msgs[3], 4.0, 1)
         self.assertAlmostEqual(self.msgs[4], 5.0, 1)
         
-class TimerTest_Prio(Timer_MixIn, PrioMixIn, unittest.TestCase):
-    pass
-class TimerTest_NoPrio(Timer_MixIn, NoPrioMixIn, unittest.TestCase):
-    pass
+for poller_cls in reactors.available:
+    for prio_mixin in (NoPrioMixIn, PrioMixIn):
+        name = 'TimerTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, (Timer_MixIn, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

@@ -16,20 +16,20 @@ from cogen.common import *
 from cogen.web import wsgi, async
 
 sys.setcheckinterval(0)
-
+#~ httplib.HTTPConnection.debuglevel = 10
 
 class WebTest_Base:
     middleware = [wsgiref.validate.validator, async.sync_input]
     def setUp(self):
         self.local_addr = ('localhost', random.randint(10000,20000))
-        #~ print "http://localhost:%s/"%self.local_port
+        #~ print "http://%s:%s/"%self.local_addr
         def run():
             try:
                 app = self.app
                 for wrapper in self.middleware:
                     app = wrapper(app)
                 self.sched = Scheduler(default_priority=self.prio, 
-                                        poller=self.poller) 
+                                        reactor=self.poller) 
                 server = wsgi.WSGIServer(self.local_addr, app, self.sched) 
                 self.sched.add(server.serve)
                 self.sched.run()
@@ -42,6 +42,7 @@ class WebTest_Base:
         time.sleep(0.1)
         self.conn = httplib.HTTPConnection(*self.local_addr)
         self.conn.connect()
+        
         #~ self.conn.set_debuglevel(10)
     def tearDown(self):
         self.conn.close()

@@ -12,7 +12,7 @@ import httplib
 from cStringIO import StringIO
 
 from cogen.common import *
-from cogen.core import pollers
+from cogen.core import reactors
 from cogen.core.util import debug
 from cogen.test.base import PrioMixIn, NoPrioMixIn
 from cogen.web import wsgi, async
@@ -120,6 +120,7 @@ class AsyncInputTest_MixIn:
         
     def app(self, environ, start_response):
         start_response('200 OK', [('Content-type','text/html')])
+        
         if environ["PATH_INFO"] == '/read':
             return self.read_app(environ, start_response)
         elif environ["PATH_INFO"] == '/readline':
@@ -169,7 +170,7 @@ class AsyncInputTest_MixIn:
         self.assert_(self.result == data)
         self.assert_(recvdata == 'readline')
 
-for poller_cls in pollers.available:
+for poller_cls in reactors.available:
     for prio_mixin in (PrioMixIn, NoPrioMixIn):
         name = 'SimpleAppTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(
