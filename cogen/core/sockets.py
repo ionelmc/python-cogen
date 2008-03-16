@@ -667,6 +667,7 @@ class Accept(ReadOperation):
             self.conn = Socket(_sock=self.conn)
             self.conn.setblocking(0)
         else:
+            self.conn.setblocking(0)
             self.conn.setsockopt(
                 socket.SOL_SOCKET, 
                 win32file.SO_UPDATE_ACCEPT_CONTEXT, 
@@ -678,15 +679,17 @@ class Accept(ReadOperation):
             )
             
         return self
-        
+    @debug(0)    
     def iocp(self, overlap):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.conn.setblocking(0)
         self.conn_buff = win32file.AllocateReadBuffer(64)
-        return win32file.WSA_IO_PENDING, win32file.AcceptEx(self.sock._fd, self.conn, self.conn_buff, overlap)
+        return win32file.WSA_IO_PENDING, win32file.AcceptEx(
+            self.sock._fd.fileno(), self.conn.fileno(), self.conn_buff, overlap
+        )
         
     def iocp_done(self, rc, nbytes):
         pass
+        
         
     def finalize(self):
         super(Accept, self).finalize()
@@ -713,14 +716,16 @@ class Connect(WriteOperation):
         self.addr = addr
         
     def iocp(self, overlaped):
-        raise NotImplementedError(
-            "win32file doesn't have connect calls that work with overlapeds"
-        )
+        raise NotImplementedError()
         
     def iocp_done(self, *args):
         raise NotImplementedError()
         
     def run(self, reactor):
+        if not reactor:
+            raise NotImplementedError(
+                "win32file doesn't have connect calls that work with overlappeds"
+            )    
         """ 
         We need to avoid some non-blocking socket connect quirks: 
           - if you attempt a connect in NB mode you will always 

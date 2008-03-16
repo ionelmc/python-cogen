@@ -7,6 +7,7 @@ import collections
 import time
 import sys
 import warnings
+import traceback
 
 try:
     import select
@@ -57,7 +58,9 @@ class ReactorBase(object):
         'handle_events'
     ]
     
-    RESOLUTION = 0.05 # seconds
+    RESOLUTION = .05 # seconds
+    
+    
     mRESOLUTION = RESOLUTION*1000 # miliseconds
     nRESOLUTION = RESOLUTION*1000000000 #nanoseconds
     def __init__(self, scheduler):
@@ -80,8 +83,9 @@ class ReactorBase(object):
             r = events.CoroutineException(sys.exc_info())
         return r
     def run_or_add(self, op, coro):
-        """ Perform operation or add the operation in the reactor if socket isn't
-        ready. Called from the scheduller. """
+        """ Perform operation and return result or add the operation in 
+        the reactor if socket isn't ready and return none. 
+        Called from the scheduller via SocketOperation.process. """
         r = self.run_operation(op)
         if r: 
             return r
@@ -259,7 +263,8 @@ class KQueueReactor(ReactorBase):
                 if timeout else (self.nRESOLUTION if timeout is None else 0))
         if self.klist:
             events = self.kq.kevent(None, self.default_size, ptimeout)
-            for ev in events:
+            nr_events = len(events)-1
+            for nr, ev in enumerate(events):
                 fd = ev.ident
                 op, coro = ev.udata
                 if ev.flags & kqueue.EV_ERROR:
@@ -292,6 +297,9 @@ class KQueueReactor(ReactorBase):
                     delev.udata = ev.udata
                     self.kq.kevent(delev)
                     del delev
+                    if nr == nr_events:
+                        return op, coro
+                        
                     if op.prio & priority.OP:
                         op, coro = self.scheduler.process_op(
                             coro.run_op(op), 
@@ -304,9 +312,10 @@ class KQueueReactor(ReactorBase):
                             self.scheduler.active.append( (op, coro) )    
 
 class PollReactor(ReactorBase):
-    POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
-    POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
-    POLL_OUT = select.POLLOUT | POLL_ERR
+    if select and hasattr(select, 'poll'):
+        POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
+        POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
+        POLL_OUT = select.POLLOUT | POLL_ERR
     def __init__(self, scheduler):
         super(self.__class__, self).__init__(scheduler)
         self.scheduler = scheduler
@@ -350,7 +359,8 @@ class PollReactor(ReactorBase):
         #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
             events = self.poller.poll(ptimeout)
-            for fd, ev in events:
+            nr_events = len(events)-1
+            for nr, (fd, ev) in enumerate(events):
                 if ev & self.POLL_IN:
                     waiting_ops = self.waiting_reads
                 elif ev & self.POLL_OUT:
@@ -364,6 +374,9 @@ class PollReactor(ReactorBase):
                 if op:
                     del waiting_ops[fd]
                     self.poller.unregister(fd)
+                    if nr == nr_events:
+                        return op, coro
+                        
                     if op.prio & priority.OP:
                         op, coro = self.scheduler.process_op(
                             coro.run_op(op), 
@@ -435,7 +448,9 @@ class EpollReactor(ReactorBase):
         #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
             events = epoll.epoll_wait(self.epoll_fd, 1024, ptimeout)
-            for ev, fd in events:
+            nr_events = len(events)-1
+                
+            for nr, (ev, fd) in enumerate(events):
                 if ev == epoll.EPOLLIN:
                     waiting_ops = self.waiting_reads
                 elif ev == epoll.EPOLLOUT:
@@ -449,6 +464,9 @@ class EpollReactor(ReactorBase):
                 if op:
                     del waiting_ops[fd]
                     epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
+                    if nr == nr_events:
+                        return op, coro
+                        
                     if op.prio & priority.OP:
                         op, coro = self.scheduler.process_op(
                             coro.run_op(op), 
@@ -487,6 +505,7 @@ class IOCPProactor(ReactorBase):
     def add(self, op, coro):
         fileno = op.sock._fd.fileno()
         self.registered_ops[op] = self.run_iocp(op, coro)
+        #~ print '> adding', op, coro, self.registered_ops[op]
         
         if fileno not in self.fds:
             # silly CreateIoCompletionPort raises a exception if the 
@@ -497,6 +516,7 @@ class IOCPProactor(ReactorBase):
 
     def run_iocp(self, op, coro):
         overlap = pywintypes.OVERLAPPED() 
+        #~ print '- new overlap: %s (%s, %s)' % (overlap, op, coro)
         overlap.object = (op, coro)
         rc, nbytes = op.iocp(overlap)
         
@@ -515,25 +535,13 @@ class IOCPProactor(ReactorBase):
             op.iocp_done(rc, nbytes)
             prev_op = op
             op = self.run_operation(op, False) #no reactor, but proactor
-            # result should be the same instance as prev_op or a coroutine excetion
+            # result should be the same instance as prev_op or a coroutine exception
             if op:
                 if prev_op in self.registered_ops:
                     del self.registered_ops[prev_op] 
                 
                 win32file.CancelIo(prev_op.sock._fd.fileno()) 
-                
-                if op.prio & priority.OP:
-                    # imediately run the asociated coroutine step
-                    op, coro = self.scheduler.process_op(
-                        coro.run_op(op), 
-                        coro
-                    )
-                if coro:
-                    # or just postphone it
-                    if op.prio & priority.CORO:
-                        self.scheduler.active.appendleft( (op, coro) )
-                    else:
-                        self.scheduler.active.append( (op, coro) )   
+                return op, coro
             else:
                 # operation hasn't completed yet (not enough data etc)
                 # readd it in the iocp
@@ -543,23 +551,27 @@ class IOCPProactor(ReactorBase):
             #looks like we have a problem, forward it to the coroutine.
             
             #this needs some research:
-            #~ if rc==64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
+            if rc == 64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
+                warnings.warn("ERROR_NETNAME_DELETED: %r. Re-registering operation." % op)
+                    
+                #we'll treat it as a uncompleted (or a new one, whatev) op, so:
+                self.registered_ops[op] = self.run_iocp(op, coro)
+            else:
+                    
+                if op in self.registered_ops:                        
+                    del self.registered_ops[op]
+                    
+                win32file.CancelIo(op.sock._fd.fileno())
                 
-            if op in self.registered_ops:                        
-                del self.registered_ops[op]
-                
-            win32file.CancelIo(op.sock._fd.fileno())
+                warnings.warn("%s on %r/%r" % (
+                    ctypes.FormatError(rc), op, coro), stacklevel=1
+                )
+                return events.CoroutineException((
+                        events.ConnectionError, events.ConnectionError(
+                            "%s:%s on %r" % (rc, ctypes.FormatError(rc), op)
+                        )
+                    )), coro
             
-            
-            warnings.warn("%s on %r/%r" % (ctypes.FormatError(rc), op, coro), stacklevel=1)
-            self.scheduler.active.append((
-                events.CoroutineException((
-                    events.ConnectionError, events.ConnectionError(
-                        "%s:%s on %r" % (rc, ctypes.FormatError(rc), op)
-                    )
-                )), 
-                coro
-            ))
         
         
         
@@ -571,13 +583,19 @@ class IOCPProactor(ReactorBase):
     def remove(self, op, coro):
         if op in self.registered_ops:
             del self.registered_ops[op]
-        
+    #~ @debug(0)
     def run(self, timeout = 0):
         # same resolution as epoll
         ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
                 if timeout else (self.mRESOLUTION if timeout is None else 0))
         if self.registered_ops:
+            urgent = None
+            # we use urgent as a optimisation: the last operation is returned 
+            #directly to the scheduler (the sched might just run it till it 
+            #goes to sleep) and not added in the sched.active queue
             while 1:
+  
+                    
                 try:
                     rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
                         self.iocp,
@@ -585,16 +603,31 @@ class IOCPProactor(ReactorBase):
                     )
                 except Exception, e:
                     # this needs some reasearch
-                    warnings.warn(e, stacklevel=2)
-                    return 
+                    warnings.warn(traceback.format_exc())
+                    break 
                     
-                if overlap and overlap.object:
-                    op, coro = overlap.object
-                    overlap.object = None
-                    self.process_op(rc, nbytes, op, coro, overlap)
+                if overlap:
+                    if urgent:
+                        op, coro = urgent
+                        urgent = None
+                        if op.prio & priority.OP:
+                            # imediately run the asociated coroutine step
+                            op, coro = self.scheduler.process_op(
+                                coro.run_op(op), 
+                                coro
+                            )
+                        if coro:
+                            if op.prio & priority.CORO:
+                                self.scheduler.active.appendleft( (op, coro) )
+                            else:
+                                self.scheduler.active.append( (op, coro) )                     
+                    if overlap.object:
+                        op, coro = overlap.object
+                        overlap.object = None
+                        urgent = self.process_op(rc, nbytes, op, coro, overlap)
                 else:
-                    # we got a botched overlap object ?!
                     break
+            return urgent
         else:
             time.sleep(self.RESOLUTION)    
             

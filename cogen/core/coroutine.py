@@ -161,12 +161,11 @@ class Coroutine(events.Operation):
         except KeyboardInterrupt, e:
             raise
         except:
-            #~ import traceback
-            #~ traceback.print_exc()
             self.state = self.STATE_FAILED
             self.result = None
             self.exception = sys.exc_info()
-            if hasattr(self.coro, 'close'): self.coro.close()
+            if hasattr(self.coro, 'close'): 
+                self.coro.close()
             if not self.caller:
                 self.handle_error()
             rop = self
@@ -181,9 +180,10 @@ class Coroutine(events.Operation):
         print>>sys.stderr, '-'*40
         
     def __repr__(self):
-        return "<%s Coroutine instance at 0x%08X, state: %s>" % (
+        return "<%s Coroutine instance at 0x%08X wrapping %r, state: %s>" % (
             self.name, 
             id(self), 
+            self.coro,
             self._state_names[self.state]
         )
         
