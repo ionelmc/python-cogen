@@ -45,7 +45,7 @@ class Timer_MixIn:
             yield events.Sleep(1)
             self.msgs.append(time.time() - self.now)
             cli = sockets.Socket()
-            yield sockets.Connect(cli, self.local_addr, prio = self.prio)
+            yield sockets.Connect(cli, self.local_addr, prio = self.prio, timeout=5)
             try:
                 self.now = time.time()
                 yield sockets.ReadAll(cli, 4096, timeout=2, prio = self.prio)
@@ -60,7 +60,7 @@ class Timer_MixIn:
             srv.listen(10)
             
             self.ev.set()
-            yield sockets.Accept(srv, prio = self.prio)
+            yield sockets.Accept(srv, prio = self.prio, timeout=5)
             try:
                 self.now = time.time()
                 yield sockets.Accept(srv, timeout = 3, prio = self.prio)
