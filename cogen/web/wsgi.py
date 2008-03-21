@@ -502,9 +502,8 @@ class WSGIConnection(object):
         else:
           print "*" * 60
           traceback.print_exc()
-          print "*" * 30
-          print traceback.print_stack(sys._getframe())
           print "*" * 60
+        sys.exc_clear()
       finally:
         ENVIRON = self.environ = None
 class WSGIServer(object):
