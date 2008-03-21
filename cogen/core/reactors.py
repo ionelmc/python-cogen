@@ -29,10 +29,11 @@ except ImportError:
 try:
     import win32file
     import win32event
+    import win32api
     import pywintypes
     import socket
     import ctypes
-    import struct
+    import struct       
 except ImportError:
     win32file = None
 
@@ -81,6 +82,8 @@ class ReactorBase(object):
             r = op.try_run(reactor)
         except:
             r = events.CoroutineException(sys.exc_info())
+            sys.exc_clear()
+        del op
         return r
     def run_or_add(self, op, coro):
         """ Perform operation and return result or add the operation in 
@@ -531,14 +534,14 @@ class IOCPProactor(ReactorBase):
         return overlap
     #~ @debug(0)
     def process_op(self, rc, nbytes, op, coro, overlap):
+        overlap.object = None
         if rc == 0:
             op.iocp_done(rc, nbytes)
             prev_op = op
             op = self.run_operation(op, False) #no reactor, but proactor
             # result should be the same instance as prev_op or a coroutine exception
             if op:
-                if prev_op in self.registered_ops:
-                    del self.registered_ops[prev_op] 
+                del self.registered_ops[prev_op] 
                 
                 win32file.CancelIo(prev_op.sock._fd.fileno()) 
                 return op, coro
@@ -558,19 +561,19 @@ class IOCPProactor(ReactorBase):
                 self.registered_ops[op] = self.run_iocp(op, coro)
             else:
                     
-                if op in self.registered_ops:                        
-                    del self.registered_ops[op]
+                del self.registered_ops[op]
                     
                 win32file.CancelIo(op.sock._fd.fileno())
                 
                 warnings.warn("%s on %r/%r" % (
                     ctypes.FormatError(rc), op, coro), stacklevel=1
                 )
+                
                 return events.CoroutineException((
-                        events.ConnectionError, events.ConnectionError(
-                            "%s:%s on %r" % (rc, ctypes.FormatError(rc), op)
-                        )
-                    )), coro
+                    events.ConnectionError, events.ConnectionError(
+                        (rc, "%s on %r" % (ctypes.FormatError(rc), op))
+                    )
+                )), coro
             
         
         
@@ -579,9 +582,14 @@ class IOCPProactor(ReactorBase):
         for op in self.registered_ops:
             if self.registered_ops[op].object[1] is testcoro:
                 return op
-                
+    #~ @debug(0)
     def remove(self, op, coro):
+        #~ print 'remove', op, self.registered_ops.get(op, None)
         if op in self.registered_ops:
+            self.registered_ops[op].object = None
+            win32file.CancelIo(op.sock._fd.fileno())
+            #~ e = win32api.GetLastError()
+            #~ print e, ctypes.FormatError(e)
             del self.registered_ops[op]
     #~ @debug(0)
     def run(self, timeout = 0):
@@ -601,12 +609,18 @@ class IOCPProactor(ReactorBase):
                         self.iocp,
                         ptimeout
                     )
+                    #~ print (rc, nbytes, key, overlap, overlap and overlap.object)
                 except Exception, e:
                     # this needs some reasearch
                     warnings.warn(traceback.format_exc())
                     break 
                     
-                if overlap:
+                #~ print rc    
+                # well, this is a bit weird, if we get a aborted rc (via CancelIo
+                #i suppose) evaluating the overlap crashes the interpeter 
+                #with a memory read error
+                if rc != win32file.WSA_OPERATION_ABORTED and overlap:
+                    
                     if urgent:
                         op, coro = urgent
                         urgent = None
@@ -623,7 +637,6 @@ class IOCPProactor(ReactorBase):
                                 self.scheduler.active.append( (op, coro) )                     
                     if overlap.object:
                         op, coro = overlap.object
-                        overlap.object = None
                         urgent = self.process_op(rc, nbytes, op, coro, overlap)
                 else:
                     break

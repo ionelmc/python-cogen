@@ -6,6 +6,7 @@ import types
 import sys
 import gc
 import warnings
+import traceback
 
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
@@ -158,23 +159,22 @@ class Coroutine(events.Operation):
             self.result = e.message
             if hasattr(self.coro, 'close'): self.coro.close()
             rop = self
-        except KeyboardInterrupt, e:
+        except (KeyboardInterrupt, GeneratorExit, SystemExit):
             raise
         except:
             self.state = self.STATE_FAILED
             self.result = None
             self.exception = sys.exc_info()
+            sys.exc_clear()
             if hasattr(self.coro, 'close'): 
                 self.coro.close()
             if not self.caller:
                 self.handle_error()
             rop = self
         return rop
-
     def handle_error(self):        
         print>>sys.stderr, '-'*40
         print>>sys.stderr, 'Exception happened during processing of coroutine.'
-        import traceback
         traceback.print_exc()
         print>>sys.stderr, "Coroutine %s killed. " % self
         print>>sys.stderr, '-'*40
