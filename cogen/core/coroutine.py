@@ -165,12 +165,12 @@ class Coroutine(events.Operation):
             self.state = self.STATE_FAILED
             self.result = None
             self.exception = sys.exc_info()
-            sys.exc_clear()
             if hasattr(self.coro, 'close'): 
                 self.coro.close()
             if not self.caller:
                 self.handle_error()
             rop = self
+            sys.exc_clear()
         return rop
     def handle_error(self):        
         print>>sys.stderr, '-'*40

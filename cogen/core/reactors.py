@@ -490,7 +490,7 @@ class IOCPProactor(ReactorBase):
         self.iocp = win32file.CreateIoCompletionPort(
             win32file.INVALID_HANDLE_VALUE, None, 0, 0
         ) 
-        self.fds = {}
+        self.fds = set()
         self.registered_ops = {}
         
     def __len__(self):
@@ -508,18 +508,15 @@ class IOCPProactor(ReactorBase):
     def add(self, op, coro):
         fileno = op.sock._fd.fileno()
         self.registered_ops[op] = self.run_iocp(op, coro)
-        #~ print '> adding', op, coro, self.registered_ops[op]
         
         if fileno not in self.fds:
             # silly CreateIoCompletionPort raises a exception if the 
             #fileno(handle) has already been registered with the iocp
-            self.fds[fileno] = None
+            self.fds.add(fileno)
             win32file.CreateIoCompletionPort(fileno, self.iocp, 0, 0) 
-        
 
     def run_iocp(self, op, coro):
         overlap = pywintypes.OVERLAPPED() 
-        #~ print '- new overlap: %s (%s, %s)' % (overlap, op, coro)
         overlap.object = (op, coro)
         rc, nbytes = op.iocp(overlap)
         
@@ -532,7 +529,7 @@ class IOCPProactor(ReactorBase):
             #(todo: config option for this)
             #~ self.process_op(rc, nbytes, op, coro, overlap)
         return overlap
-    #~ @debug(0)
+
     def process_op(self, rc, nbytes, op, coro, overlap):
         overlap.object = None
         if rc == 0:
@@ -553,45 +550,32 @@ class IOCPProactor(ReactorBase):
         else:
             #looks like we have a problem, forward it to the coroutine.
             
-            #this needs some research:
-            if rc == 64: # ERROR_NETNAME_DELETED, need to reopen the accept sock ?!
-                warnings.warn("ERROR_NETNAME_DELETED: %r. Re-registering operation." % op)
-                    
-                #we'll treat it as a uncompleted (or a new one, whatev) op, so:
-                self.registered_ops[op] = self.run_iocp(op, coro)
-            else:
-                    
-                del self.registered_ops[op]
-                    
-                win32file.CancelIo(op.sock._fd.fileno())
-                
-                warnings.warn("%s on %r/%r" % (
-                    ctypes.FormatError(rc), op, coro), stacklevel=1
+            # this needs some research: ERROR_NETNAME_DELETED, need to reopen 
+            #the accept sock ?! something like:
+            #    warnings.warn("ERROR_NETNAME_DELETED: %r. Re-registering operation." % op)
+            #    self.registered_ops[op] = self.run_iocp(op, coro)
+            del self.registered_ops[op]
+            win32file.CancelIo(op.sock._fd.fileno())
+            warnings.warn("%s on %r/%r" % (
+                ctypes.FormatError(rc), op, coro), stacklevel=1
+            )
+            return events.CoroutineException((
+                events.ConnectionError, events.ConnectionError(
+                    (rc, "%s on %r" % (ctypes.FormatError(rc), op))
                 )
-                
-                return events.CoroutineException((
-                    events.ConnectionError, events.ConnectionError(
-                        (rc, "%s on %r" % (ctypes.FormatError(rc), op))
-                    )
-                )), coro
-            
-        
-        
-        
+            )), coro
+
     def waiting_op(self, testcoro):
         for op in self.registered_ops:
             if self.registered_ops[op].object[1] is testcoro:
                 return op
-    #~ @debug(0)
+
     def remove(self, op, coro):
-        #~ print 'remove', op, self.registered_ops.get(op, None)
         if op in self.registered_ops:
             self.registered_ops[op].object = None
             win32file.CancelIo(op.sock._fd.fileno())
-            #~ e = win32api.GetLastError()
-            #~ print e, ctypes.FormatError(e)
             del self.registered_ops[op]
-    #~ @debug(0)
+
     def run(self, timeout = 0):
         # same resolution as epoll
         ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
@@ -602,20 +586,16 @@ class IOCPProactor(ReactorBase):
             #directly to the scheduler (the sched might just run it till it 
             #goes to sleep) and not added in the sched.active queue
             while 1:
-  
-                    
                 try:
                     rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
                         self.iocp,
                         ptimeout
                     )
-                    #~ print (rc, nbytes, key, overlap, overlap and overlap.object)
                 except Exception, e:
                     # this needs some reasearch
                     warnings.warn(traceback.format_exc())
                     break 
                     
-                #~ print rc    
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo
                 #i suppose) evaluating the overlap crashes the interpeter 
                 #with a memory read error
@@ -649,21 +629,15 @@ available = []
 if select:
     DefaultReactor = SelectReactor
     available.append(SelectReactor)
-
 if select and hasattr(select, 'poll'):
     DefaultReactor = PollReactor
     available.append(PollReactor)
-    
 if kqueue:
     DefaultReactor = KQueueReactor
     available.append(KQueueReactor)
-    
 if epoll:
     DefaultReactor = EpollReactor
     available.append(EpollReactor)
-    
 if win32file:
     DefaultReactor = IOCPProactor
     available.append(IOCPProactor)
-    
-    

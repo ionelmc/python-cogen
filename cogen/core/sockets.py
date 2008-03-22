@@ -48,20 +48,15 @@ def setdefaulttimeout(timeout):
 class Socket(object):
     """
     A wrapper for socket objects, sets nonblocking mode and
-    add some attributes we need:
-      * rl_pending - for unchecked for linebreaks buffer
-      * rl_list - for checked for linebreaks buffers
-      * rl_list_sz - a cached size of the summed sizes of rl_list buffers
-    
-    Regular calls to the usual socket methods return operations for use in a
-    coroutine.
+    adds some internal bufers and wrappers. Regular calls to the usual 
+    socket methods return operations for use in a coroutine.
     """
     __slots__ = ['_fd', '_rl_list', '_rl_list_sz', '_rl_pending', '_timeout']
     def __init__(self, *a, **k):
         self._fd = socket.socket(*a, **k)
-        self._rl_list = []
-        self._rl_list_sz = 0
-        self._rl_pending = ''
+        self._rl_list = [] # for linebreaks checked buffers
+        self._rl_list_sz = 0 # a cached size of the summed sizes of rl_list buffers
+        self._rl_pending = '' # for linebreaks unchecked buffer
         self._fd.setblocking(0)
         self._timeout = _TIMEOUT
         
@@ -490,7 +485,6 @@ class ReadLine(ReadOperation):
                 "Recieved %s bytes and no linebreak" % self.len
             )
     def run(self, reactor):
-        #~ print '>',self.sock._rl_list_sz
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
             if nl + self.sock._rl_list_sz >= self.len:
@@ -500,7 +494,6 @@ class ReadLine(ReadOperation):
                 raise exceptions.OverflowError(
                     "Recieved %s bytes and no linebreak" % self.len
                 )
-            #~ print "RL", nl
             if nl >= 0:
                 nl += 1
                 self.buff = ''.join(self.sock._rl_list) + \
@@ -508,7 +501,6 @@ class ReadLine(ReadOperation):
                 self.sock._rl_list = []
                 self.sock._rl_list_sz = 0
                 self.sock._rl_pending = self.sock._rl_pending[nl:]
-                #~ print 'return self(p)', repr((self.buff, x_buff, self.sock._rl_pending))
                 return self
             else:
                 self.sock._rl_list.append(self.sock._rl_pending)
@@ -679,7 +671,7 @@ class Accept(ReadOperation):
             )
             
         return self
-    @debug(0)    
+
     def iocp(self, overlap):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn_buff = win32file.AllocateReadBuffer(64)
@@ -750,7 +742,3 @@ class Connect(WriteOperation):
             self.sock, 
             self.timeout
         )
-
-#~ ops = (Read, ReadAll, ReadLine, Connect, Write, WriteAll, Accept)
-#~ read_ops = (Read, ReadAll, ReadLine, Accept)
-#~ write_ops = (Connect, Write, WriteAll)
