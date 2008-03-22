@@ -27,25 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
-                    </li><li>
-                        <a href="cogen.core.events.html">cogen.core.events</a>
-                    </li><li>
-                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
-                    </li><li>
-                        <a href="cogen.core.queue.html">cogen.core.queue</a>
-                    </li><li class="active">
-                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
-                    </li><li>
-                        <a href="cogen.core.util.html">cogen.core.util</a>
-                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
-                    </li><li>
-                        <a href="cogen.web.async.html">cogen.web.async</a>
-                    </li><li>
-                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -53,30 +35,30 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.schedulers.Scheduler.add.html">add</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-add">add</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.add_timeout.html">add_timeout</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-add_timeout">add_timeout</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.handle_timeouts.html">handle_timeouts</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-handle_timeouts">handle_timeouts</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.next_timer_delta.html">next_timer_delta</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-next_timer_delta">next_timer_delta</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.process_op.html">process_op</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-process_op">process_op</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.run.html">run</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-run">run</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.run_poller.html">run_poller</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-run_timer">run_timer</a>
                     </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.run_timer.html">run_timer</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.stop.html">stop</a>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-stop">stop</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.core.schedulers.Scheduler</h1>
-    <div class="docstring plain"></div>
+    <div class="docstring plain">Basic deque-based scheduler with timeout support and primitive
+prioritisaiton parameters.<br /><br />Usage:
+<code class="codeblock python python python python python python python python python python python python python python python python" name="code">Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</code><ul><li> reactor: a reactor class to use</li><li> default_priority: a default priority option for operations that do not </li></ul><blockquote>set it. check <a href="Docs_CogenCoreUtilPriority.html">priority</a>.</blockquote><ul><li> default_timeout: a default timedelta or number of seconds to wait for </li></ul><blockquote>the operation</blockquote></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -93,7 +75,7 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L74">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L91">View source</a>
     </li>
 </ul>
             <h3 id="method-add_timeout">
@@ -104,7 +86,7 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L102">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L114">View source</a>
     </li>
 </ul>
             <h3 id="method-handle_timeouts">
@@ -115,7 +97,7 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L104">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L116">View source</a>
     </li>
 </ul>
             <h3 id="method-next_timer_delta">
@@ -126,7 +108,7 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L90">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L106">View source</a>
     </li>
 </ul>
             <h3 id="method-process_op">
@@ -138,29 +120,19 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L138">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L149">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
                 run
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring plain">~ @debug()
+</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L152">View source</a>
-    </li>
-</ul>
-            <h3 id="method-run_poller">
-                run_poller
-                <span class="args">(self)</span>
-            </h3>
-            <div class="docstring plain"></div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L98">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L163">View source</a>
     </li>
 </ul>
             <h3 id="method-run_timer">
@@ -171,7 +143,7 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L83">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L100">View source</a>
     </li>
 </ul>
             <h3 id="method-stop">
@@ -182,14 +154,14 @@
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L170">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L186">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.3</a>
+            Apydia 0.0.2</a>
         </div>
     </div>
 </body>

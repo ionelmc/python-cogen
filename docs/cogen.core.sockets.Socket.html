@@ -27,25 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
-                    </li><li>
-                        <a href="cogen.core.events.html">cogen.core.events</a>
-                    </li><li>
-                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
-                    </li><li>
-                        <a href="cogen.core.queue.html">cogen.core.queue</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
-                    </li><li class="active">
-                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
-                    </li><li>
-                        <a href="cogen.core.util.html">cogen.core.util</a>
-                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
-                    </li><li>
-                        <a href="cogen.web.async.html">cogen.web.async</a>
-                    </li><li>
-                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -53,41 +35,41 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.sockets.Socket.accept.html">accept</a>
+                        <a href="cogen.core.sockets.Socket.html#method-accept">accept</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.bind.html">bind</a>
+                        <a href="cogen.core.sockets.Socket.html#method-bind">bind</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.close.html">close</a>
+                        <a href="cogen.core.sockets.Socket.html#method-close">close</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.connect.html">connect</a>
+                        <a href="cogen.core.sockets.Socket.html#method-connect">connect</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.fileno.html">fileno</a>
+                        <a href="cogen.core.sockets.Socket.html#method-fileno">fileno</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.getpeername.html">getpeername</a>
+                        <a href="cogen.core.sockets.Socket.html#method-getpeername">getpeername</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.getsockname.html">getsockname</a>
+                        <a href="cogen.core.sockets.Socket.html#method-getsockname">getsockname</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.gettimeout.html">gettimeout</a>
+                        <a href="cogen.core.sockets.Socket.html#method-gettimeout">gettimeout</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.listen.html">listen</a>
+                        <a href="cogen.core.sockets.Socket.html#method-listen">listen</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.read.html">read</a>
+                        <a href="cogen.core.sockets.Socket.html#method-read">read</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.readall.html">readall</a>
+                        <a href="cogen.core.sockets.Socket.html#method-readall">readall</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.readline.html">readline</a>
+                        <a href="cogen.core.sockets.Socket.html#method-readline">readline</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.setblocking.html">setblocking</a>
+                        <a href="cogen.core.sockets.Socket.html#method-setblocking">setblocking</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.setsockopt.html">setsockopt</a>
+                        <a href="cogen.core.sockets.Socket.html#method-setsockopt">setsockopt</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.settimeout.html">settimeout</a>
+                        <a href="cogen.core.sockets.Socket.html#method-settimeout">settimeout</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.shutdown.html">shutdown</a>
+                        <a href="cogen.core.sockets.Socket.html#method-shutdown">shutdown</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.write.html">write</a>
+                        <a href="cogen.core.sockets.Socket.html#method-write">write</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.writeall.html">writeall</a>
+                        <a href="cogen.core.sockets.Socket.html#method-writeall">writeall</a>
                     </li>
                 </ul>
             </div>
@@ -95,14 +77,12 @@
         <div id="content">
     <h1>Class: cogen.core.sockets.Socket</h1>
     <div class="docstring plain">A wrapper for socket objects, sets nonblocking mode and
-add some attributes we need:
-<ul><li> rl_pending - for unchecked for linebreaks buffer</li><li> rl_list - for checked for linebreaks buffers</li><li> rl_list_sz - a cached size of the summed sizes of rl_list buffers</li></ul>
-Regular calls to the usual socket methods return operations for use in a
-coroutine.</div>
+adds some internal bufers and wrappers. Regular calls to the usual
+socket methods return operations for use in a coroutine.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L37">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L47">View source</a>
     </li>
 </ul>
     <div>
@@ -115,7 +95,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L72">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L77">View source</a>
     </li>
 </ul>
             <h3 id="method-bind">
@@ -126,7 +106,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L78">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L83">View source</a>
     </li>
 </ul>
             <h3 id="method-close">
@@ -137,7 +117,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L75">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L80">View source</a>
     </li>
 </ul>
             <h3 id="method-connect">
@@ -148,7 +128,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L81">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L86">View source</a>
     </li>
 </ul>
             <h3 id="method-fileno">
@@ -159,7 +139,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L84">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L89">View source</a>
     </li>
 </ul>
             <h3 id="method-getpeername">
@@ -170,7 +150,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L90">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L95">View source</a>
     </li>
 </ul>
             <h3 id="method-getsockname">
@@ -181,7 +161,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L93">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L98">View source</a>
     </li>
 </ul>
             <h3 id="method-gettimeout">
@@ -192,7 +172,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L99">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L104">View source</a>
     </li>
 </ul>
             <h3 id="method-listen">
@@ -203,7 +183,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L87">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L92">View source</a>
     </li>
 </ul>
             <h3 id="method-read">
@@ -214,7 +194,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L57">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L62">View source</a>
     </li>
 </ul>
             <h3 id="method-readall">
@@ -225,7 +205,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L60">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L65">View source</a>
     </li>
 </ul>
             <h3 id="method-readline">
@@ -236,7 +216,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L63">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L68">View source</a>
     </li>
 </ul>
             <h3 id="method-setblocking">
@@ -247,7 +227,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L105">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L110">View source</a>
     </li>
 </ul>
             <h3 id="method-setsockopt">
@@ -258,7 +238,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L109">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L114">View source</a>
     </li>
 </ul>
             <h3 id="method-settimeout">
@@ -269,7 +249,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L96">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L101">View source</a>
     </li>
 </ul>
             <h3 id="method-shutdown">
@@ -280,7 +260,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L102">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L107">View source</a>
     </li>
 </ul>
             <h3 id="method-write">
@@ -291,7 +271,7 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L66">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L71">View source</a>
     </li>
 </ul>
             <h3 id="method-writeall">
@@ -302,14 +282,14 @@ coroutine.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L69">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L74">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.3</a>
+            Apydia 0.0.2</a>
         </div>
     </div>
 </body>

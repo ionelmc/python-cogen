@@ -27,25 +27,7 @@
                     </li><li class="active">
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
-                    </li><li>
-                        <a href="cogen.core.events.html">cogen.core.events</a>
-                    </li><li>
-                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
-                    </li><li>
-                        <a href="cogen.core.queue.html">cogen.core.queue</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
-                    </li><li>
-                        <a href="cogen.core.util.html">cogen.core.util</a>
-                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
-                    </li><li>
-                        <a href="cogen.web.async.html">cogen.web.async</a>
-                    </li><li>
-                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -57,9 +39,9 @@
                     </li><li>
                         <a href="cogen.core.events.html">events</a>
                     </li><li>
-                        <a href="cogen.core.pollers.html">pollers</a>
-                    </li><li>
                         <a href="cogen.core.queue.html">queue</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.html">reactors</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">schedulers</a>
                     </li><li>
@@ -75,14 +57,14 @@
         cogen.core
     </h1>
     <div class="docstring plain">This module holds the essential stuff.<br /><br />Programming with this library should be straghtforward. A coroutine is just
-a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python" name="code">
+a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python" name="code">
 @coroutine
 def mycoro(bla):
     yield &lt;operation&gt;
     yield &lt;operation&gt;
 </pre>
 <blockquote></blockquote><ul><li> the <code name="code" class="python">operation</code> instructs the scheduler what to do with the </li></ul><blockquote>coroutine: suspend it till someting happens, add another coro in the scheduler, raise a event and so on.</blockquote><ul><li> the <code name="code" class="python">operations</code> are split up in 2 modules: events and sockets<ul><li> the <code name="code" class="python">operations</code> from sockets are related to network, like reading and </li></ul></li></ul><blockquote>writing, and these are done asynchronously but your code in the coroutine will see them as a regular synchronous or blocking call.</blockquote><ul><li> the <code name="code" class="python">operations</code> from events are related to signals and </li></ul><blockquote>coroutine/scheduler management.</blockquote><ul><li> if a <code name="code" class="python">operation</code> has a result associated then the yield will return that </li></ul><blockquote>result (eg. a string or a (connection, address) tuple) otherwise it will return the operation instance.</blockquote>
-Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python" name="code">
+Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 import sys, os
 from cogen.common import *
 
@@ -149,19 +131,6 @@ m.run()
     </li>
 </ul>
             <h3>
-                <a href="cogen.core.pollers.html">pollers</a>
-            </h3>
-            <div class="docstring plain">Network polling code.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.pollers.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pollers.py#L1">View source</a>
-    </li>
-</ul>
-            <h3>
                 <a href="cogen.core.queue.html">queue</a>
             </h3>
             <div class="docstring plain">Port of Queue.Queue from the python standard library.</div>
@@ -172,6 +141,19 @@ m.run()
     </li>
     <li class="link-to-sourcecode">
         <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L1">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.core.reactors.html">reactors</a>
+            </h3>
+            <div class="docstring plain">Network polling code.</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.core.reactors.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L1">View source</a>
     </li>
 </ul>
             <h3>
@@ -217,7 +199,7 @@ m.run()
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.3</a>
+            Apydia 0.0.2</a>
         </div>
     </div>
 </body>

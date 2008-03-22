@@ -27,25 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
-                    </li><li>
-                        <a href="cogen.core.events.html">cogen.core.events</a>
-                    </li><li>
-                        <a href="cogen.core.pollers.html">cogen.core.pollers</a>
-                    </li><li>
-                        <a href="cogen.core.queue.html">cogen.core.queue</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
-                    </li><li>
-                        <a href="cogen.core.util.html">cogen.core.util</a>
-                    </li><li>
                         <a href="cogen.web.html">cogen.web</a>
-                    </li><li class="active">
-                        <a href="cogen.web.async.html">cogen.web.async</a>
-                    </li><li>
-                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
                     </li>
                 </ul>
             </div>
@@ -71,7 +53,7 @@
                 <h2>Functions</h2>
                 <ul>
                     <li>
-                        <a href="cogen.web.async.sync_input.html">sync_input</a>
+                        <a href="cogen.web.async.html#function-sync_input">sync_input</a>
                     </li>
                 </ul>
             </div>
@@ -83,7 +65,7 @@
     <div class="docstring plain">cogen.web.wsgi server is asynchronous by default. If you need to run a app that
 uses wsgi.input synchronously you need to wrapp it in
 <code name="code" class="python">SynchronousInputMiddleware</code>.<br /><br />Wsgi asynchronous api only provides a read operation at the moment. Here's a
-example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python" name="code">
+example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 buff = StringIO()
 while 1:
     yield environ['cogen.input'].Read(self.buffer_length)
@@ -160,7 +142,7 @@ something more elegant at some point.</div>
         <a href="cogen.web.async.Read.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L93">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L97">View source</a>
     </li>
 </ul>
             <h3>
@@ -174,7 +156,7 @@ things too much at the moment).</div>
         <a href="cogen.web.async.ReadLine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L247">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L254">View source</a>
     </li>
 </ul>
             <h3>
@@ -187,7 +169,7 @@ things too much at the moment).</div>
         <a href="cogen.web.async.SynchronousInputMiddleware.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L57">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L58">View source</a>
     </li>
 </ul>
     </div>
@@ -201,14 +183,14 @@ things too much at the moment).</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L90">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L94">View source</a>
     </li>
 </ul>
     </div>
         </div>
         <div id="footer">
             Generated with <a href="http://apydia.ematia.de/" class="extern">
-            Apydia 0.0.3</a>
+            Apydia 0.0.2</a>
         </div>
     </div>
 </body>
