@@ -103,10 +103,16 @@ class Scheduler(object):
         while self.timewait and self.timewait[0].wake_time <= now:
             op = heapq.heappop(self.timewait)
             self.active.appendleft((op, op.coro))
-    
+    #~ @debug(0)
     def next_timer_delta(self): 
         if self.timewait and not self.active:
-            return (datetime.datetime.now() - self.timewait[0].wake_time)
+            now = datetime.datetime.now()
+            if now > self.timewait[0].wake_time:
+                #looks like we've exceded the time
+                return 0
+            else:
+                return (self.timewait[0].wake_time - now)
+            
         else:
             if self.active:
                 return 0

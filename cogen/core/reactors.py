@@ -59,15 +59,14 @@ class ReactorBase(object):
         'handle_events'
     ]
     
-    RESOLUTION = .05 # seconds
-    
-    
-    mRESOLUTION = RESOLUTION*1000 # miliseconds
-    nRESOLUTION = RESOLUTION*1000000000 #nanoseconds
-    def __init__(self, scheduler):
+    def __init__(self, scheduler, resolution=.01):
         self.waiting_reads = {}
         self.waiting_writes = {}
         self.scheduler = scheduler
+        self.resolution = resolution # seconds
+        self.m_resolution = resolution*1000 # miliseconds
+        self.n_resolution = resolution*1000000000 #nanoseconds
+    
     def run_once(self, fdesc, waiting_ops):           
         """ Run a operation, remove it from the reactor and return the result. 
         Called from the main reactor loop. """
@@ -151,9 +150,11 @@ class SelectReactor(ReactorBase):
         if isinstance(op, sockets.ReadOperation):
             if op.sock in self.waiting_reads:
                 del self.waiting_reads[op.sock]
+                return True
         if isinstance(op, sockets.WriteOperation):
             if op.sock in self.waiting_writes:
                 del self.waiting_writes[op.sock]
+                return True
     def add(self, op, coro):
         if isinstance(op, sockets.ReadOperation):
             assert op.sock not in self.waiting_reads
@@ -187,10 +188,9 @@ class SelectReactor(ReactorBase):
         
         select timeout param is a float number of seconds.
         """
-        ptimeout = timeout.microseconds/1000000+timeout.seconds \
-                if timeout else (self.RESOLUTION if timeout is None else 0)
+        ptimeout = timeout.days*86400 + timeout.microseconds/1000000 + timeout.seconds \
+                if timeout else (self.resolution if timeout is None else 0)
         if self.waiting_reads or self.waiting_writes:
-            #~ print 'SELECTING, timeout:', timeout, 'ptimeout:', ptimeout, 'socks:',self.waiting_reads, self.waiting_writes
             ready_to_read, ready_to_write, in_error = select.select(
                 self.waiting_reads.keys(), 
                 self.waiting_writes.keys(), 
@@ -202,7 +202,7 @@ class SelectReactor(ReactorBase):
             for i in in_error:
                 self.handle_errored(i)
         else:
-            time.sleep(self.RESOLUTION)
+            time.sleep(self.resolution)
 class KQueueReactor(ReactorBase):
     def __init__(self, scheduler, default_size = 1024):
         super(self.__class__, self).__init__(scheduler)
@@ -225,14 +225,15 @@ class KQueueReactor(ReactorBase):
     def remove(self, op, coro):
         fileno = getattr(op, 'fileno', None)
         if fileno:
-            if fileno in self.klist:
-                self.klist.remove(fileno)
+            if coro in self.klist:
+                del self.klist[coro]
                 filter = kqueue.EVFILT_READ \
                     if isinstance(op, sockets.ReadOperation) \
                     else kqueue.EVFILT_WRITE
                 delev = kqueue.EV_SET(fileno, filter, kqueue.EV_DELETE)
                 delev.udata = op, coro
                 self.kq.kevent(delev)
+                return True
     #~ @debug(0)    
     def add(self, op, coro):
         fileno = op.fileno = op.sock.fileno()
@@ -262,10 +263,18 @@ class KQueueReactor(ReactorBase):
         
         kqueue timeout param is a integer number of nanoseconds (seconds/10**9).
         """
-        ptimeout = int(timeout.microseconds*1000+timeout.seconds*1000000000 
-                if timeout else (self.nRESOLUTION if timeout is None else 0))
+        ptimeout = int(
+            timeout.days*86400000000000 + 
+            timeout.microseconds*1000 + 
+            timeout.seconds*1000000000 
+            if timeout else (self.n_resolution if timeout is None else 0)
+        )
+        if ptimeout>sys.maxint:
+            ptimeout = sys.maxint
         if self.klist:
+            #~ print ptimeout, self.klist
             events = self.kq.kevent(None, self.default_size, ptimeout)
+            # should check here if timeout isn't negative or larger than maxint
             nr_events = len(events)-1
             for nr, ev in enumerate(events):
                 fd = ev.ident
@@ -333,6 +342,7 @@ class PollReactor(ReactorBase):
                     except OSError, e:
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_reads[fileno]
+                    return True
             if isinstance(op, sockets.WriteOperation):
                 if fileno in self.waiting_writes:
                     try:
@@ -340,6 +350,7 @@ class PollReactor(ReactorBase):
                     except OSError:
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_writes[fileno]
+                    return True
     def add(self, op, coro):
         fileno = op.fileno = op.sock.fileno()
         if isinstance(op, sockets.ReadOperation):
@@ -357,8 +368,12 @@ class PollReactor(ReactorBase):
         object, 0 if active coros or None. 
         """
         # poll timeout param is a integer number of miliseconds (seconds/1000).
-        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
-                if timeout else (self.mRESOLUTION if timeout is None else 0))
+        ptimeout = int(
+            timeout.days * 86400000 + 
+            timeout.microseconds / 1000 + 
+            timeout.seconds * 1000 
+            if timeout else (self.m_resolution if timeout is None else 0)
+        )
         #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
             events = self.poller.poll(ptimeout)
@@ -391,7 +406,7 @@ class PollReactor(ReactorBase):
                         else:
                             self.scheduler.active.append( (op, coro) )    
         else:
-            time.sleep(self.RESOLUTION)
+            time.sleep(self.resolution)
 
 
 class EpollReactor(ReactorBase):
@@ -410,6 +425,7 @@ class EpollReactor(ReactorBase):
                     except OSError, e:
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_reads[fileno]
+                    return True
             if isinstance(op, sockets.WriteOperation):
                 if fileno in self.waiting_writes:
                     try:
@@ -418,6 +434,7 @@ class EpollReactor(ReactorBase):
                     except OSError:
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_writes[fileno]
+                    return True
     def add(self, op, coro):
         fileno = op.fileno = op.sock.fileno()
         if isinstance(op, sockets.ReadOperation):
@@ -447,7 +464,7 @@ class EpollReactor(ReactorBase):
         epoll timeout param is a integer number of miliseconds (seconds/1000).
         """
         ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
-                if timeout else (self.mRESOLUTION if timeout is None else 0))
+                if timeout else (self.m_resolution if timeout is None else 0))
         #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
             events = epoll.epoll_wait(self.epoll_fd, 1024, ptimeout)
@@ -481,7 +498,7 @@ class EpollReactor(ReactorBase):
                         else:
                             self.scheduler.active.append( (op, coro) )    
         else:
-            time.sleep(self.RESOLUTION)
+            time.sleep(self.resolution)
     
 class IOCPProactor(ReactorBase):
     def __init__(self, scheduler, default_size = 1024):
@@ -575,11 +592,16 @@ class IOCPProactor(ReactorBase):
             self.registered_ops[op].object = None
             win32file.CancelIo(op.sock._fd.fileno())
             del self.registered_ops[op]
+            return True
 
     def run(self, timeout = 0):
         # same resolution as epoll
-        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
-                if timeout else (self.mRESOLUTION if timeout is None else 0))
+        ptimeout = int(
+            timeout.days * 86400000 + 
+            timeout.microseconds / 1000 +
+            timeout.seconds * 1000 
+            if timeout else (self.m_resolution if timeout is None else 0)
+        )
         if self.registered_ops:
             urgent = None
             # we use urgent as a optimisation: the last operation is returned 
@@ -622,7 +644,7 @@ class IOCPProactor(ReactorBase):
                     break
             return urgent
         else:
-            time.sleep(self.RESOLUTION)    
+            time.sleep(self.resolution)    
             
 
 available = []
