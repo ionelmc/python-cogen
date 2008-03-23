@@ -59,7 +59,7 @@ class ReactorBase(object):
         'handle_events'
     ]
     
-    RESOLUTION = .05 # seconds
+    RESOLUTION = .01 # seconds
     
     
     mRESOLUTION = RESOLUTION*1000 # miliseconds
@@ -187,10 +187,9 @@ class SelectReactor(ReactorBase):
         
         select timeout param is a float number of seconds.
         """
-        ptimeout = timeout.microseconds/1000000+timeout.seconds \
+        ptimeout = timeout.days*86400 + timeout.microseconds/1000000 + timeout.seconds \
                 if timeout else (self.RESOLUTION if timeout is None else 0)
         if self.waiting_reads or self.waiting_writes:
-            #~ print 'SELECTING, timeout:', timeout, 'ptimeout:', ptimeout, 'socks:',self.waiting_reads, self.waiting_writes
             ready_to_read, ready_to_write, in_error = select.select(
                 self.waiting_reads.keys(), 
                 self.waiting_writes.keys(), 
@@ -262,10 +261,17 @@ class KQueueReactor(ReactorBase):
         
         kqueue timeout param is a integer number of nanoseconds (seconds/10**9).
         """
-        ptimeout = int(timeout.microseconds*1000+timeout.seconds*1000000000 
-                if timeout else (self.nRESOLUTION if timeout is None else 0))
+        ptimeout = int(
+            timeout.days*86400000000000 + 
+            timeout.microseconds*1000 + 
+            timeout.seconds*1000000000 
+            if timeout else (self.nRESOLUTION if timeout is None else 0)
+        )
+        if ptimeout>sys.maxint:
+            ptimeout = sys.maxint
         if self.klist:
             events = self.kq.kevent(None, self.default_size, ptimeout)
+            # should check here if timeout isn't negative or larger than maxint
             nr_events = len(events)-1
             for nr, ev in enumerate(events):
                 fd = ev.ident
@@ -357,8 +363,12 @@ class PollReactor(ReactorBase):
         object, 0 if active coros or None. 
         """
         # poll timeout param is a integer number of miliseconds (seconds/1000).
-        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
-                if timeout else (self.mRESOLUTION if timeout is None else 0))
+        ptimeout = int(
+            timeout.days * 86400000 + 
+            timeout.microseconds / 1000 + 
+            timeout.seconds * 1000 
+            if timeout else (self.mRESOLUTION if timeout is None else 0)
+        )
         #~ print self.waiting_reads
         if self.waiting_reads or self.waiting_writes:
             events = self.poller.poll(ptimeout)
@@ -578,8 +588,12 @@ class IOCPProactor(ReactorBase):
 
     def run(self, timeout = 0):
         # same resolution as epoll
-        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
-                if timeout else (self.mRESOLUTION if timeout is None else 0))
+        ptimeout = int(
+            timeout.days * 86400000 + 
+            timeout.microseconds / 1000 +
+            timeout.seconds * 1000 
+            if timeout else (self.mRESOLUTION if timeout is None else 0)
+        )
         if self.registered_ops:
             urgent = None
             # we use urgent as a optimisation: the last operation is returned 

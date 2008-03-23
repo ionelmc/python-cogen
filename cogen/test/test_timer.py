@@ -45,18 +45,13 @@ class Timer_MixIn:
             yield events.Sleep(1)
             self.msgs.append(time.time() - self.now)
             cli = sockets.Socket()
-            yield sockets.Connect(cli, self.local_addr, prio = self.prio, timeout=5)
+            yield sockets.Connect(cli, self.local_addr, prio = self.prio)
             try:
                 self.now = time.time()
                 yield sockets.ReadAll(cli, 4096, timeout=2, prio = self.prio)
             except events.OperationTimeout:
                 self.msgs.append(time.time() - self.now)
-            
-            # well, this is certainly weird - if i close this sock the descriptor
-            #will be reused and aparently this one is botched and breaks what 
-            #follows
-            #~ cli.close()
-            # or maybe split this test in two (todo)
+            cli.close()
             
             time.sleep(5)
             srv = sockets.Socket()
@@ -65,7 +60,7 @@ class Timer_MixIn:
             srv.listen(10)
             
             self.ev.set()
-            yield sockets.Accept(srv, prio = self.prio, timeout=5)
+            yield sockets.Accept(srv, prio = self.prio)
             try:
                 self.now = time.time()
                 yield sockets.Accept(srv, timeout = 3, prio = self.prio)

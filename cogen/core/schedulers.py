@@ -63,6 +63,7 @@ class Scheduler(object):
       * default_timeout: a default timedelta or number of seconds to wait for 
       the operation
     """
+    delta0 = datetime.timedelta()
     def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None):
         self.timeouts = []
         self.active = collections.deque()
@@ -103,10 +104,18 @@ class Scheduler(object):
         while self.timewait and self.timewait[0].wake_time <= now:
             op = heapq.heappop(self.timewait)
             self.active.appendleft((op, op.coro))
-    
+    #~ @debug(0)
     def next_timer_delta(self): 
         if self.timewait and not self.active:
-            return (datetime.datetime.now() - self.timewait[0].wake_time)
+            now = datetime.datetime.now()
+            print now > self.timewait[0].wake_time, now, self.timewait[0].wake_time
+            print self.timewait[0].wake_time - now
+            if now > self.timewait[0].wake_time:
+                #looks like we've exceded the time
+                return 0
+            else:
+                return (self.timewait[0].wake_time - now)
+            
         else:
             if self.active:
                 return 0
