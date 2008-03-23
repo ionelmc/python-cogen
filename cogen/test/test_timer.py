@@ -35,9 +35,9 @@ class Timer_MixIn:
         self.ev.clear()
         @coroutine 
         def sleeper(secs):
-            self.now = time.time()
+            now = time.time()
             yield events.Sleep(secs)
-            self.msgs.append(time.time() - self.now)
+            self.msgs.append(time.time() - now)
         @coroutine
         def coro():
             
