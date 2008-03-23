@@ -35,9 +35,9 @@ class Timer_MixIn:
         self.ev.clear()
         @coroutine 
         def sleeper(secs):
-            self.now = time.time()
+            now = time.time()
             yield events.Sleep(secs)
-            self.msgs.append(time.time() - self.now)
+            self.msgs.append(time.time() - now)
         @coroutine
         def coro():
             
@@ -45,13 +45,13 @@ class Timer_MixIn:
             yield events.Sleep(1)
             self.msgs.append(time.time() - self.now)
             cli = sockets.Socket()
-            yield sockets.Connect(cli, self.local_addr, prio = self.prio)
+            yield sockets.Connect(cli, self.local_addr, prio = self.prio, timeout=5)
             try:
                 self.now = time.time()
                 yield sockets.ReadAll(cli, 4096, timeout=2, prio = self.prio)
             except events.OperationTimeout:
                 self.msgs.append(time.time() - self.now)
-            cli.close()
+            #~ cli.close()
             
             time.sleep(5)
             srv = sockets.Socket()
@@ -60,7 +60,7 @@ class Timer_MixIn:
             srv.listen(10)
             
             self.ev.set()
-            yield sockets.Accept(srv, prio = self.prio)
+            yield sockets.Accept(srv, prio = self.prio, timeout=5)
             try:
                 self.now = time.time()
                 yield sockets.Accept(srv, timeout = 3, prio = self.prio)
@@ -74,8 +74,6 @@ class Timer_MixIn:
                 )
             except events.OperationTimeout:
                 self.msgs.append(time.time() - self.now)
-            
-            
             
         self.local_sock.bind(self.local_addr)
         self.local_sock.listen(10)

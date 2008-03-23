@@ -1,6 +1,6 @@
 __doc_all__ = []
 import sys
-#~ sys.setcheckinterval(0)
+sys.setcheckinterval(0)
 
 from cogen.common import *
 
