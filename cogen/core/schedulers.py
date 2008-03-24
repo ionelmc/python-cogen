@@ -132,12 +132,11 @@ class Scheduler(object):
                     if op.last_update > timo.last_checkpoint:
                         timo.last_checkpoint = op.last_update
                         timo.timeout = timo.last_checkpoint + timo.delta
-                        print 'push'
                         heapq.heappush(self.timeouts, timo)
                         continue
-                
+                inpoll=True
                 if isinstance(op, sockets.SocketOperation):
-                    self.poll.remove(op, coro)
+                    inpoll=self.poll.remove(op, coro)
                 elif coro and isinstance(op, events.Join):
                     op.coro.remove_waiter(coro)
                 elif isinstance(op, events.WaitForSignal):
@@ -145,7 +144,7 @@ class Scheduler(object):
                         self.sigwait[op.name].remove((op, coro))
                     except ValueError:
                         pass
-                if not op.finalized and coro and coro.running:
+                if not op.finalized and coro and coro.running and inpoll:
                     self.active.append((
                         events.CoroutineException((
                             events.OperationTimeout, 
