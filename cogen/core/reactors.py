@@ -59,7 +59,7 @@ class ReactorBase(object):
         'handle_events'
     ]
     
-    def __init__(self, scheduler, resolution=.01):
+    def __init__(self, scheduler, resolution):
         self.waiting_reads = {}
         self.waiting_writes = {}
         self.scheduler = scheduler
@@ -204,8 +204,8 @@ class SelectReactor(ReactorBase):
         else:
             time.sleep(self.resolution)
 class KQueueReactor(ReactorBase):
-    def __init__(self, scheduler, default_size = 1024):
-        super(self.__class__, self).__init__(scheduler)
+    def __init__(self, scheduler, res, default_size = 1024):
+        super(self.__class__, self).__init__(scheduler, res)
         self.default_size = default_size
         self.kq = kqueue.kqueue()
         self.klist = {}
@@ -328,8 +328,8 @@ class PollReactor(ReactorBase):
         POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
         POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
         POLL_OUT = select.POLLOUT | POLL_ERR
-    def __init__(self, scheduler):
-        super(self.__class__, self).__init__(scheduler)
+    def __init__(self, scheduler, res):
+        super(self.__class__, self).__init__(scheduler, res)
         self.scheduler = scheduler
         self.poller = select.poll()
     def remove(self, op, coro):
@@ -410,8 +410,8 @@ class PollReactor(ReactorBase):
 
 
 class EpollReactor(ReactorBase):
-    def __init__(self, scheduler, default_size = 1024):
-        super(self.__class__, self).__init__(scheduler)
+    def __init__(self, scheduler, res, default_size = 1024):
+        super(self.__class__, self).__init__(scheduler, res)
         self.scheduler = scheduler
         self.epoll_fd = epoll.epoll_create(default_size)
     def remove(self, op, coro):
@@ -501,8 +501,8 @@ class EpollReactor(ReactorBase):
             time.sleep(self.resolution)
     
 class IOCPProactor(ReactorBase):
-    def __init__(self, scheduler, default_size = 1024):
-        super(self.__class__, self).__init__(scheduler)
+    def __init__(self, scheduler, res):
+        super(self.__class__, self).__init__(scheduler, res)
         self.scheduler = scheduler
         self.iocp = win32file.CreateIoCompletionPort(
             win32file.INVALID_HANDLE_VALUE, None, 0, 0
@@ -586,7 +586,7 @@ class IOCPProactor(ReactorBase):
         for op in self.registered_ops:
             if self.registered_ops[op].object[1] is testcoro:
                 return op
-
+    #~ @debug(0)
     def remove(self, op, coro):
         if op in self.registered_ops:
             self.registered_ops[op].object = None
@@ -613,9 +613,9 @@ class IOCPProactor(ReactorBase):
                         self.iocp,
                         ptimeout
                     )
-                except Exception, e:
-                    # this needs some reasearch
-                    warnings.warn(traceback.format_exc())
+                except RuntimeError, e:
+                    # this needs some research
+                    traceback.print_exc()
                     break 
                     
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo

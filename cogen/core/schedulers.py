@@ -63,13 +63,13 @@ class Scheduler(object):
       * default_timeout: a default timedelta or number of seconds to wait for 
       the operation
     """
-    def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None):
+    def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None, reactor_resolution=.01):
         self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
         self.signals = collections.defaultdict(collections.deque)
         self.timewait = [] # heapq
-        self.poll = reactor(self)
+        self.poll = reactor(self, reactor_resolution)
         self.default_priority = default_priority
         self.default_timeout = default_timeout
         self.running = False
@@ -132,6 +132,7 @@ class Scheduler(object):
                     if op.last_update > timo.last_checkpoint:
                         timo.last_checkpoint = op.last_update
                         timo.timeout = timo.last_checkpoint + timo.delta
+                        print 'push'
                         heapq.heappush(self.timeouts, timo)
                         continue
                 
@@ -168,6 +169,10 @@ class Scheduler(object):
         return None, None
     #~ @debug()    
     def run(self):
+        """This is the main loop.
+        This loop will exit when there are no more coroutines to run or stop has
+        been called.
+        """
         self.running = True
         urgent = None
         while self.running and (self.active or self.poll or self.timewait or urgent):
