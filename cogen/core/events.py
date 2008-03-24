@@ -17,6 +17,17 @@ __doc_all__ = [
     'Join',
     'Sleep'
 ]
+class CoroutineException(Exception):
+    """This is used intenally to carry exception state in the poller and 
+    scheduler."""
+    __doc_all__ = []
+    prio = priority.DEFAULT
+    def __init__(self, *args):
+        for i in args:
+            if isinstance(i, TimedOperation):
+                i.finalize()
+        super(CoroutineException, self).__init__(*args)
+
 class ConnectionError(Exception):
     "Raised when a socket has a error flag (in epoll or select)"
     __doc_all__ = []
@@ -27,11 +38,6 @@ class OperationTimeout(Exception):
     """Raised when the timeout for a operation expires. The exception 
     message will be the operation"""
     __doc_all__ = []
-class CoroutineException(Exception):
-    """This is used intenally to carry exception state in the poller and 
-    scheduler."""
-    __doc_all__ = []
-    prio = priority.DEFAULT
 
 class Operation(object):
     """All operations derive from this. This base class handles 

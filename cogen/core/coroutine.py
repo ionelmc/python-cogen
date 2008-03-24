@@ -45,6 +45,7 @@ class Coroutine(events.Operation):
         'f_args', 'f_kws', 'name', 'state', 
         'exception', 'coro', 'caller', 'waiters', 'result',
         'prio', 'handle_error', '__weakref__',
+        'lastop'
     ]
     running = property(lambda self: self.state < self.STATE_COMPLETED)
     
@@ -132,6 +133,14 @@ class Coroutine(events.Operation):
                 self, 
                 self._state_names[self.STATE_COMPLETED]
             )
+        #~ assert self.state < self.STATE_COMPLETED, \
+            #~ "%s called with:%s, last one:%s, expected state less than %s!" % (
+                #~ self, 
+                #~ op,
+                #~ isinstance(self.lastop, events.CoroutineException) and ''.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
+                #~ self._state_names[self.STATE_COMPLETED]
+            #~ )
+        #~ self.lastop = op
         try:
             if self.state == self.STATE_RUNNING:
                 if isinstance(op, events.CoroutineException):

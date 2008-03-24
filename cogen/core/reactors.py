@@ -615,7 +615,8 @@ class IOCPProactor(ReactorBase):
                     )
                 except RuntimeError, e:
                     # this needs some research
-                    traceback.print_exc()
+                    print e
+                    sys.exc_clear()
                     break 
                     
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo

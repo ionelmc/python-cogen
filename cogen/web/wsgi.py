@@ -491,7 +491,7 @@ class WSGIConnection(object):
           events.ConnectionClosed, 
           events.ConnectionError):
         return
-      except (KeyboardInterrupt, SystemExit, GeneratorExit):
+      except (KeyboardInterrupt, SystemExit, GeneratorExit, MemoryError):
         raise
       except:
         if not self.started_response:
