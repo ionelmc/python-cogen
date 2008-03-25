@@ -31,6 +31,17 @@ def coroutine(func):
     make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
 
+def debug_coroutine(func):
+    def make_new_coroutine(*args, **kws):
+        c = Coroutine(func, *args, **kws)
+        c.debug = True
+        return c
+    make_new_coroutine.__name__ = func.__name__
+    make_new_coroutine.__doc__ = func.__doc__
+    make_new_coroutine.__module__ = func.__module__ 
+    return make_new_coroutine
+
+
 
 class Coroutine(events.Operation):
     ''' 
@@ -45,11 +56,12 @@ class Coroutine(events.Operation):
         'f_args', 'f_kws', 'name', 'state', 
         'exception', 'coro', 'caller', 'waiters', 'result',
         'prio', 'handle_error', '__weakref__',
-        'lastop'
+        'lastop', 'debug'
     ]
     running = property(lambda self: self.state < self.STATE_COMPLETED)
     
     def __init__(self, coro, *args, **kws):
+        self.debug = False
         self.f_args = args
         self.f_kws = kws
         if self._valid_gen(coro):
@@ -141,8 +153,12 @@ class Coroutine(events.Operation):
                 #~ self._state_names[self.STATE_COMPLETED]
             #~ )
         #~ self.lastop = op
+        if self.debug:
+            print 'Running %s with: %s' % (self, op)
         try:
             if self.state == self.STATE_RUNNING:
+                if self.debug:
+                    print traceback.print_stack(self.coro.gi_frame)
                 if isinstance(op, events.CoroutineException):
                     rop = self.coro.throw(*op.message)
                 else:
