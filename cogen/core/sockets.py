@@ -1,5 +1,7 @@
 """
 Socket-only coroutine operations and `Socket` wrapper.
+Really - the only thing you need to know for most stuff is 
+the [Docs_CogenCoreSocketsSocket Socket] class.
 """
 import socket
 import errno
@@ -39,6 +41,16 @@ class Socket(object):
     A wrapper for socket objects, sets nonblocking mode and
     adds some internal bufers and wrappers. Regular calls to the usual 
     socket methods return operations for use in a coroutine.
+    
+        Socket([family[, type[, proto]]]) -> socket object
+
+    Open a socket of the given type.  The family argument specifies the
+    address family; it defaults to AF_INET.  The type argument specifies
+    whether this is a stream (SOCK_STREAM, this is the default)
+    or datagram (SOCK_DGRAM) socket.  The protocol argument defaults to 0,
+    specifying the default protocol.  Keyword arguments are accepted.
+
+    A socket object represents one endpoint of a network connection.
     """
     __slots__ = ['_fd', '_rl_list', '_rl_list_sz', '_rl_pending', '_timeout']
     def __init__(self, *a, **k):
@@ -49,59 +61,104 @@ class Socket(object):
         self._fd.setblocking(0)
         self._timeout = _TIMEOUT
         
-    def read(self, size):
-        return Read(self, size, timeout=self._timeout)
+    def read(self, bufsize):
+        """Receive data from the socket. The return value is a string 
+        representing the data received. The amount of data may be less than the
+        ammount specified by _bufsize_. """
+        return Read(self, bufsize, timeout=self._timeout)
         
-    def readall(self, size):
-        return ReadAll(self, size, timeout=self._timeout)
+    def readall(self, bufsize):
+        """Receive data from the socket. The return value is a string 
+        representing the data received. The amount of data will be the exact
+        ammount specified by _bufsize_. """
+        return ReadAll(self, bufsize, timeout=self._timeout)
         
     def readline(self, size):
+        """Receive one line of data from the socket. The return value is a string 
+        representing the data received. The amount of data will at most
+        ammount specified by _size_. If no line separator has been found and the 
+        ammount received has reached _size_ an OverflowException will be raised.
+        """
         return ReadLine(self, size, timeout=self._timeout)
         
     def write(self, data):
+        """Send data to the socket. The socket must be connected to a remote 
+        socket. Ammount sent may be less than the data provided."""
         return Write(self, data, timeout=self._timeout)
         
     def writeall(self, data):
+        """Send data to the socket. The socket must be connected to a remote 
+        socket. All the data is guaranteed to be sent."""
         return WriteAll(self, data, timeout=self._timeout)
         
     def accept(self):
+        """Accept a connection. The socket must be bound to an address and 
+        listening for connections. The return value is a pair (conn, address) 
+        where conn is a new socket object usable to send and receive data on the 
+        connection, and address is the address bound to the socket on the other 
+        end of the connection. 
+        
+        Example:
+        {{{
+        conn, address = yield mysock.accept()
+        }}}
+        """
         return Accept(self)
         
     def close(self, *args):
+        """Close the socket. All future operations on the socket object will 
+        fail. The remote end will receive no more data (after queued data is 
+        flushed). Sockets are automatically closed when they are garbage-collected. 
+        """
         self._fd.close()
         
     def bind(self, *args):
+        """Bind the socket to _address_. The socket must not already be bound. 
+        (The format of _address_ depends on the address family) 
+        """
         return self._fd.bind(*args)
         
-    def connect(self, addr):
+    def connect(self, address):
+        """Connect to a remote socket at _address_. """
         return Connect(self, addr)
         
     def fileno(self):
+        """Return the socket's file descriptor """
         return self._fd.fileno()
         
     def listen(self, backlog):
+        """Listen for connections made to the socket. The _backlog_ argument 
+        specifies the maximum number of queued connections and should be at 
+        least 1; the maximum value is system-dependent (usually 5). 
+        """
         return self._fd.listen(backlog)
         
     def getpeername(self):
+        """Return the remote address to which the socket is connected."""
         return self._fd.getpeername()
         
     def getsockname(self, *args):
+        """Return the socket's own address. """
         return self._fd.getsockname()
         
     def settimeout(self, to):
+        """Set a timeout on blocking socket operations. The value argument can 
+        be a nonnegative float expressing seconds, timedelta or None. 
+        """
         self._timeout = to
         
     def gettimeout(self, *args):
+        """Return the associated timeout value. """
         return self._timeout
         
     def shutdown(self, *args):
-        return self._fd.shutdown()
+        """Shut down one or both halves of the connection. Same as the usual 
+        socket method."""
+        return self._fd.shutdown(*args)
         
-    def setblocking(self, val):
-        if val: 
-            raise RuntimeError("You can't.")
-            
     def setsockopt(self, *args):
+        """Set the value of the given socket option. Same as the usual socket 
+        method."""
         self._fd.setsockopt(*args)
         
     def __repr__(self):
@@ -214,16 +271,16 @@ class SendFile(WriteOperation):
         Usage:
             
         {{{
-        yield sockets.SendFile(<file handle>, <sock>, 0) 
+        yield sockets.SendFile(file_object, socket_object, 0) 
             # will send till send operations return 0
             
-        yield sockets.SendFile(<file handle>, <sock>, 0, blocksize=0)
+        yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
             # there will be only one send operation (if successfull)
             # that meas the whole file will be read in memory if there is 
             #no sendfile
             
-        yield sockets.SendFile(<file handle>, <sock>, 0, <file size>)
-            # this will hang if we can't read <file size> bytes
+        yield sockets.SendFile(file_object, socket_object, 0, file_size)
+            # this will hang if we can't read file_size bytes
             #from the file
         }}}
     """
@@ -715,11 +772,11 @@ class Connect(WriteOperation):
             raise NotImplementedError(
                 "win32file doesn't have connect calls that work with overlappeds"
             )    
-        """ 
-        We need to avoid some non-blocking socket connect quirks: 
-          - if you attempt a connect in NB mode you will always 
-          get EWOULDBLOCK, presuming the addr is correct.
-        """
+        #
+        #We need to avoid some non-blocking socket connect quirks: 
+        #  - if you attempt a connect in NB mode you will always 
+        #  get EWOULDBLOCK, presuming the addr is correct.
+        #
         err = self.sock._fd.connect_ex(self.addr)
         if err:
             if err in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
