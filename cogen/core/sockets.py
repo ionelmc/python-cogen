@@ -23,25 +23,14 @@ try:
 except ImportError:
     sendfile = None
     
-__doc_all__ = [
-    'Socket',
-    'SendFile',    
-    'Read',    
-    'ReadAll',    
-    'ReadLine',    
-    'Write',    
-    'WriteAll',    
-    'Accept',    
-    'Connect',
-    'Operation',
-]
-
 _TIMEOUT = None
 
 def getdefaulttimeout():
     return _TIMEOUT
 
 def setdefaulttimeout(timeout):
+    """Set the default timeout used by the socket wrapper 
+    ([Docs_CogenCoreSocketsSocket Socket] class)"""
     _TIMEOUT = timeout
 
 

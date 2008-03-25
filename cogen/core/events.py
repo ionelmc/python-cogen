@@ -7,16 +7,6 @@ import heapq
 
 from cogen.core.util import debug, TimeoutDesc, priority
 
-__doc_all__ = [
-    'ConnectionClosed',
-    'OperationTimeout',
-    'WaitForSignal',
-    'Signal',
-    'Call',
-    'AddCoro',
-    'Join',
-    'Sleep'
-]
 class CoroutineException(Exception):
     """This is used intenally to carry exception state in the poller and 
     scheduler."""

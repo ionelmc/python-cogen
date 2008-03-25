@@ -1,5 +1,10 @@
 """
 Scheduling framework.
+
+The scheduler handles the timeouts, run the operations and does very basic 
+management of coroutines. Most of the heavy logic is in each operation class.
+See: [Docs_CogenCoreEvents events] and [Docs_CogenCoreSockets sockets]
+Most of those operations work with attributes we set in the scheduler.
 """
 
 import collections
@@ -24,6 +29,9 @@ class DebugginWrapper:
         else:
             return getattr(self.obj, name)
 class Timeout(object):
+    """This wrapps a (op, coro) pair in weakreferences, extracts the timeout 
+    value from the operation. We add instances of this class in the timeouts 
+    heapq."""
     __slots__ = [
         'coro', 'op', 'timeout', 'weak_timeout', 
         'delta', 'last_checkpoint'
@@ -65,7 +73,7 @@ class Scheduler(object):
       the operation
     """
     def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None, reactor_resolution=.01):
-        self.timeouts = []
+        self.timeouts = [] #heapq
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
         self.signals = collections.defaultdict(collections.deque)
@@ -104,7 +112,7 @@ class Scheduler(object):
         while self.timewait and self.timewait[0].wake_time <= now:
             op = heapq.heappop(self.timewait)
             self.active.appendleft((op, op.coro))
-    #~ @debug(0)
+
     def next_timer_delta(self): 
         if self.timewait and not self.active:
             now = datetime.datetime.now()
@@ -113,14 +121,15 @@ class Scheduler(object):
                 return 0
             else:
                 return (self.timewait[0].wake_time - now)
-            
         else:
             if self.active:
                 return 0
             else:
                 return None
+    
     def add_timeout(self, op, coro, weak_timeout):
         heapq.heappush(self.timeouts, Timeout(op, coro, weak_timeout))
+    
     def handle_timeouts(self):
         now = datetime.datetime.now()
         #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
@@ -136,6 +145,8 @@ class Scheduler(object):
                         heapq.heappush(self.timeouts, timo)
                         continue
                 inpoll=True
+                # inpoll is a extracheck that we need in case we get dead 
+                #operations from the timeout
                 if isinstance(op, sockets.SocketOperation):
                     inpoll=self.poll.remove(op, coro)
                 elif coro and isinstance(op, events.Join):
@@ -153,8 +164,9 @@ class Scheduler(object):
                         )), 
                         coro
                     ))
-    #~ @debug(0)        
+    
     def process_op(self, op, coro):
+        "Process a (op, coro) pair and return another pair. Handles exceptions."
         if op is None:
             if self.active:
                 self.active.append((op, coro))
@@ -167,7 +179,7 @@ class Scheduler(object):
                 result = events.CoroutineException(sys.exc_info()), coro
             return result
         return None, None
-    #~ @debug()    
+    
     def run(self):
         """This is the main loop.
         This loop will exit when there are no more coroutines to run or stop has

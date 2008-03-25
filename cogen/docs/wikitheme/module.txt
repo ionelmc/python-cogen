@@ -17,7 +17,7 @@ ${'#'}labels Documentation
 ==== Attributes: ${" ".join("[%s %s]" % (a.href, a.name) for a in desc.attributes)} ====
 #end
 
-= Module: ${desc.name} =
+= Module: `${desc.name}` =
 ${project.render_description(desc)}
 
 #if desc.modules

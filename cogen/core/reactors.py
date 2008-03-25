@@ -1,5 +1,25 @@
 """
 Network polling code.
+
+The reactor works in tandem with the socket operations.
+Here's the basic workflow:
+
+  * the coroutine yields a operation
+  * the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)
+    Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method
+    * if run_or_add is False then the operation is added in the reactor for 
+    polling (with the exception that if we have data in out internal buffers
+    the operation is runned first)
+    * if run_or_add is set (it's default) in the operation then in process 
+    method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] 
+    is called with the operation and coroutine
+
+  
+Nnote: run_or_add is a optimization hack really, first it tries to run the
+operation (this asumes the sockets are usualy ready) and if it raises any 
+exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling 
+(via select, epoll, kqueue etc) then the run method will be called only when 
+select, epoll, kqueue says that the socket is ready.
 """
 
 from __future__ import division
