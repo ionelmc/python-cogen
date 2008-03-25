@@ -15,6 +15,7 @@ from cStringIO import StringIO
 from cogen.common import *
 from cogen.core import reactors
 from cogen.test.base import PrioMixIn, NoPrioMixIn
+from cogen.core.coroutine import debug_coroutine
 
 class SocketTest_MixIn:
     def setUp(self):
@@ -41,8 +42,8 @@ class SocketTest_MixIn:
             srv.setblocking(0)
             srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = (yield sockets.Accept(srv, prio = self.prio))
-            self.waitobj = sockets.ReadLine(conn, len=1024, prio = self.prio) 
+            conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add))
+            self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_or_add=self.run_or_add) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
@@ -52,19 +53,19 @@ class SocketTest_MixIn:
                 self.waitobj2 = yield sockets.ReadLine(
                     conn, 
                     len=512, 
-                    prio = self.prio
+                    prio=self.prio, run_or_add=self.run_or_add
                 )
             except exceptions.OverflowError, e:
                 self.waitobj2 = "OK"
                 self.waitobj_cleanup = yield sockets.Read(
                     conn, 
                     len=1024*8, 
-                    prio = self.prio
+                    prio=self.prio, run_or_add=self.run_or_add
                 ) 
                     # eat up the remaining data waiting on socket
-            y1 = sockets.ReadLine(conn, 1024, prio = self.prio)
-            y2 = sockets.ReadLine(conn, 1024, prio = self.prio)
-            y3 = sockets.ReadLine(conn, 1024, prio = self.prio)
+            y1 = sockets.ReadLine(conn, 1024, prio=self.prio, run_or_add=self.run_or_add)
+            y2 = sockets.ReadLine(conn, 1024, prio=self.prio, run_or_add=self.run_or_add)
+            y3 = sockets.ReadLine(conn, 1024, prio=self.prio, run_or_add=self.run_or_add)
             a1 = yield y1 
             a2 = yield y2
             a3 = yield y3
@@ -106,12 +107,12 @@ class SocketTest_MixIn:
             srv.setblocking(0)
             srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = yield sockets.Accept(srv, prio = self.prio)
-            self.recvobj = yield sockets.Read(conn, 1024*4, prio = self.prio)
+            conn, addr = yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add)
+            self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_or_add=self.run_or_add)
             self.recvobj_all = yield sockets.ReadAll(
                 conn, 
                 1024**2-1024*4, 
-                prio = self.prio
+                prio=self.prio, run_or_add=self.run_or_add
             )
             srv.close()
             self.m.stop()
@@ -183,11 +184,12 @@ class SocketTest_MixIn:
 
 for poller_cls in reactors.available:
     for prio_mixin in (NoPrioMixIn, PrioMixIn):
-        name = 'SocketTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
-        globals()[name] = type(
-            name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
-            {'poller':poller_cls}
-        )
+        for run_or_add in (True, False):
+            name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_or_add and 'TryFirst' or 'AddFirst')
+            globals()[name] = type(
+                name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
+                {'poller':poller_cls, 'run_or_add':run_or_add}
+            )
     
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

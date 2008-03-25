@@ -128,12 +128,12 @@ class SocketOperation(events.TimedOperation):
     """
     __slots__ = [
         'sock', 'last_update', 'fileno',
-        'len', 'buff', 'addr',
+        'len', 'buff', 'addr', 'run_or_add',
         
     ]
     __doc_all__ = ['__init__', 'try_run']
     trim = 2000
-    def __init__(self, sock, **kws):
+    def __init__(self, sock, run_or_add=True, **kws):
         """
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
@@ -149,6 +149,7 @@ class SocketOperation(events.TimedOperation):
         
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
+        self.run_or_add = run_or_add
         
     def try_run(self, reactor):
         """
@@ -178,13 +179,20 @@ class SocketOperation(events.TimedOperation):
     def process(self, sched, coro):
         #~ print '>process:', self
         super(SocketOperation, self).process(sched, coro)
-        r = sched.poll.run_or_add(self, coro)
-        if r:
-            #~ print '>we have result!'
-            if self.prio:
-                return r, r and coro
-            else:
-                sched.active.appendleft((r, coro))
+        if self.run_or_add or self.pending():
+            r = sched.poll.run_or_add(self, coro)
+            if r:
+                #~ print '>we have result!'
+                if self.prio:
+                    return r, r and coro
+                else:
+                    sched.active.appendleft((r, coro))
+        else:
+            sched.poll.add(self, coro)
+            
+    def pending(self):
+        return True if (self.sock._rl_pending or self.sock._rl_list) else False
+        
     def run(self, reactor):
         raise NotImplementedError()
     timeout = TimeoutDesc()
