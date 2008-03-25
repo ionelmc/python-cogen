@@ -41,6 +41,7 @@ class SocketTest_MixIn:
             srv = sockets.Socket()
             srv.setblocking(0)
             srv.bind(self.local_addr)
+            srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.listen(0)
             conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add))
             self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_or_add=self.run_or_add) 
@@ -105,6 +106,7 @@ class SocketTest_MixIn:
         def reader():
             srv = sockets.Socket()
             srv.bind(self.local_addr)
+            srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.listen(0)
             conn, addr = yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add)
             self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_or_add=self.run_or_add)
@@ -144,6 +146,7 @@ class SocketTest_MixIn:
         srv = socket.socket()
         srv.setblocking(0)
         srv.bind(self.local_addr)
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         srv.listen(0)
         coro = self.m.add(writer)
         self.m_run.start()
