@@ -156,6 +156,9 @@ class Socket(object):
         socket method."""
         return self._fd.shutdown(*args)
         
+    def setblocking(self, val):
+        if val: 
+            raise RuntimeError("You can't.")
     def setsockopt(self, *args):
         """Set the value of the given socket option. Same as the usual socket 
         method."""
