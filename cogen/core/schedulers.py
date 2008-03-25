@@ -7,6 +7,7 @@ import datetime
 import heapq
 import weakref
 import sys                
+import errno
 
 from cogen.core.reactors import DefaultReactor
 from cogen.core import events
@@ -184,7 +185,11 @@ class Scheduler(object):
                         break  
                     
             if self.poll:
-                urgent = self.poll.run(timeout = self.next_timer_delta())
+                try:
+                    urgent = self.poll.run(timeout = self.next_timer_delta())
+                except OSError, exc:
+                    if exc[0] != errno.EINTR:
+                        raise
                 #~ if urgent:print '>urgent:', urgent
             if self.timewait:
                 self.run_timer()
