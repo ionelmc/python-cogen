@@ -216,7 +216,7 @@ class SocketOperation(events.TimedOperation):
             self.last_update = datetime.datetime.now()
             return result
         except socket.error, exc:
-            if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK): 
+            if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS): 
                 return None
             elif exc[0] == errno.EPIPE:
                 raise events.ConnectionClosed(exc)
@@ -248,7 +248,9 @@ class SocketOperation(events.TimedOperation):
 
 class ReadOperation(SocketOperation): 
     __slots__ = ['iocp_buff', 'temp_buff']
-    
+    def __init__(self, sock, **kws):
+        super(ReadOperation, self).__init__(sock, **kws)
+        self.temp_buff = None
     def iocp(self, overlap):
         self.iocp_buff = win32file.AllocateReadBuffer(
             self.len-self.sock._rl_list_sz
@@ -757,13 +759,14 @@ class Connect(WriteOperation):
     """
     Connect to the given `addr` using `sock`.
     """
-    __slots__ = []
+    __slots__ = ['connect_attempted']
     __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, addr, **kws):
         super(Connect, self).__init__(sock, **kws)
         self.addr = addr
-        
+        self.connect_attempted = False # this is a shield against multiple 
+                                       #connect_ex calls
     def iocp(self, overlaped):
         raise NotImplementedError()
         
@@ -780,17 +783,24 @@ class Connect(WriteOperation):
         #  - if you attempt a connect in NB mode you will always 
         #  get EWOULDBLOCK, presuming the addr is correct.
         #
+        # check: http://cr.yp.to/docs/connect.html
+        if self.connect_attempted:
+            try:
+                self.sock._fd.getpeername()
+            except socket.error, exc:
+                if exc[0] not in (errno.EAGAIN, errno.EWOULDBLOCK, 
+                                errno.EINPROGRESS, errno.ENOTCONN):
+                    raise
+            return self
         err = self.sock._fd.connect_ex(self.addr)
+        self.connect_attempted = True
         if err:
-            if err in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
-                try:
-                    self.sock.getpeername()
-                except socket.error, exc:
-                    if exc[0] == errno.ENOTCONN:
-                        raise
-            else:
+            if err == errno.EISCONN:
+                return self
+            if err not in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
                 raise socket.error(err, errno.errorcode[err])
-        return self
+        else:
+            return self
         
     def __repr__(self):
         return "<%s at 0x%X %s to:%s>" % (
