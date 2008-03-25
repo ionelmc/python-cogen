@@ -2,6 +2,7 @@
    A Python module interface to epoll(4)
    Copyright (C) 2005 Ben Woolley <user ben at host tautology.org>
    Modified July 2007 by Jacob Potter
+   Modified March 2005 as suggested by nolan@sigbus.net (epevents is a int)
 
    This is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,11 +47,11 @@ static PyObject * method_epoll_ctl(PyObject *self, PyObject *args) {
 	int epfd;
 	int epop;
 	int fd;
-	uint32_t epevents;
+	int epevents;
 
 	int sts;
 
-	if (!PyArg_ParseTuple(args, "iiik", &epfd, &epop, &fd, &epevents)) {
+	if (!PyArg_ParseTuple(args, "iiii", &epfd, &epop, &fd, &epevents)) {
 		return NULL;
 	}
 
