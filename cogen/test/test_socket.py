@@ -104,7 +104,6 @@ class SocketTest_MixIn:
         @coroutine
         def reader():
             srv = sockets.Socket()
-            srv.setblocking(0)
             srv.bind(self.local_addr)
             srv.listen(0)
             conn, addr = yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add)
