@@ -120,7 +120,7 @@ class Socket(object):
         
     def connect(self, address):
         """Connect to a remote socket at _address_. """
-        return Connect(self, addr)
+        return Connect(self, address)
         
     def fileno(self):
         """Return the socket's file descriptor """
