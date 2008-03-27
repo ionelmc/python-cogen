@@ -159,10 +159,12 @@ class WSGIConnection(object):
     "wsgi.file_wrapper": WSGIFileWrapper,
   }
   
-  def __init__(self, sock, wsgi_app, environ):
+  def __init__(self, sock, wsgi_app, environ, sockoper_run_or_add):
     self.conn = sock
     self.wsgi_app = wsgi_app
     self.server_environ = environ
+    self.sockoper_run_or_add = sockoper_run_or_add
+    self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
   
   def start_response(self, status, headers, exc_info = None):
     """WSGI callable to begin the HTTP response."""
@@ -245,7 +247,7 @@ class WSGIConnection(object):
     buf.append("\r\n")
     if msg:
       buf.append(msg)
-    return sockets.WriteAll(self.conn, "".join(buf))
+    return sockets.WriteAll(self.conn, "".join(buf), run_or_add=self.sockoper_run_or_add)
   def check_start_response(self):
     if self.started_response:
       if not self.sent_headers:
@@ -256,6 +258,7 @@ class WSGIConnection(object):
   def run(self):
     """A bit bulky atm..."""
     self.close_connection = False
+    run_or_add = self.sockoper_run_or_add
     with closing(self.conn):
       try:
         while True:
@@ -269,12 +272,12 @@ class WSGIConnection(object):
           ENVIRON = self.environ = self.connection_environ.copy()
           self.environ.update(self.server_environ)
               
-          request_line = yield sockets.ReadLine(self.conn)
+          request_line = yield sockets.ReadLine(self.conn, run_or_add=run_or_add)
           if request_line == "\r\n":
             # RFC 2616 sec 4.1: "... it should ignore the CRLF."
             tolerance = 5
             while tolerance and request_line == "\r\n":
-              request_line = yield sockets.ReadLine(self.conn)
+              request_line = yield sockets.ReadLine(self.conn, run_or_add=run_or_add)
               tolerance -= 1
             if not tolerance:
               return
@@ -339,7 +342,7 @@ class WSGIConnection(object):
           # then all the http headers
           try:
             while True:
-              line = yield sockets.ReadLine(self.conn)
+              line = yield sockets.ReadLine(self.conn, run_or_add=run_or_add)
               
               if line == '\r\n':
                 # Normal end of headers
@@ -430,12 +433,18 @@ class WSGIConnection(object):
           response = self.wsgi_app(ENVIRON, self.start_response)
           with tryclosing(response):
             if isinstance(response, WSGIFileWrapper):
-              #XXX: need tcp_cork
+              # set tcp_cork to pack the header with the file data
+              if hasattr(socket, "TCP_CORK"):
+                self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 1)
               headers = self.check_start_response()
               if headers:
-                yield sockets.WriteAll(self.conn, headers)
+                yield sockets.WriteAll(self.conn, headers, run_or_add=run_or_add)
               yield sockets.SendFile( response.filelike, self.conn, 
-                                      blocksize=response.blocksize )#, timeout=-1)
+                                      blocksize=response.blocksize, run_or_add=run_or_add)#, timeout=-1)
+              #  also, tcp_cork will make the file data sent on packet boundaries, 
+              # wich is a good thing
+              if hasattr(socket, "TCP_CORK"):
+                self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 0)
               #XXX: use content-length 
               #XXX: use chunking
             else:
@@ -448,17 +457,17 @@ class WSGIConnection(object):
                     if headers:
                       headers = [headers]
                       headers.extend(buf)
-                      yield sockets.WriteAll(self.conn, "".join(headers))
+                      yield sockets.WriteAll(self.conn, "".join(headers), run_or_add=run_or_add)
                     else:
-                      yield sockets.WriteAll(self.conn, "".join(buf))
+                      yield sockets.WriteAll(self.conn, "".join(buf), run_or_add=run_or_add)
                   else:
                     if headers:
-                      yield sockets.WriteAll(self.conn, headers+chunk)
+                      yield sockets.WriteAll(self.conn, headers+chunk, run_or_add=run_or_add)
                     else:
-                      yield sockets.WriteAll(self.conn, chunk)
+                      yield sockets.WriteAll(self.conn, chunk, run_or_add=run_or_add)
                 else:
                   if headers: 
-                    yield sockets.WriteAll(self.conn, headers)
+                    yield sockets.WriteAll(self.conn, headers, run_or_add=run_or_add)
                   if ENVIRON['cogen.wsgi'].operation:
                     op = ENVIRON['cogen.wsgi'].operation
                     ENVIRON['cogen.wsgi'].operation = None
@@ -473,11 +482,11 @@ class WSGIConnection(object):
                         ENVIRON['cogen.wsgi'].exception[1]
                     del op
           if self.chunked_write:
-            yield sockets.WriteAll(self.conn, "0\r\n\r\n")
+            yield sockets.WriteAll(self.conn, "0\r\n\r\n", run_or_add=run_or_add)
         
           if self.close_connection:
             return
-          while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'])):
+          while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'], run_or_add=run_or_add)):
             # we need to consume any unread input data to read the next 
             #pipelined request
             pass
@@ -523,9 +532,15 @@ class WSGIServer(object):
   ConnectionClass = WSGIConnection
   environ = {}
   
-  def __init__(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=64):
+  def __init__(self, bind_addr, wsgi_app, scheduler, 
+            server_name=None, 
+            request_queue_size=64,
+            sockoper_run_or_add=True
+        ):
     self.request_queue_size = int(request_queue_size)
+    self.sockoper_run_or_add = sockoper_run_or_add
     self.scheduler = scheduler
+    
     self.version = "%s.%s/%s.%s/%s Python/%s" % (
       self.__class__.__module__, self.__class__.__name__, 
       scheduler.poll.__class__.__module__, scheduler.poll.__class__.__name__, 
@@ -628,7 +643,7 @@ class WSGIServer(object):
     with closing(self.socket):
       while True:
         try:
-          s, addr = yield sockets.Accept(self.socket, timeout=-1)
+          s, addr = yield sockets.Accept(self.socket, timeout=-1, run_or_add=self.sockoper_run_or_add)
         except: 
           # make acceptor more robust in the face of weird 
           # accept bugs, XXX: but we might get a infinite loop
@@ -654,7 +669,7 @@ class WSGIServer(object):
           environ["REMOTE_ADDR"] = addr[0]
           environ["REMOTE_PORT"] = str(addr[1])
         
-        conn = self.ConnectionClass(s, self.wsgi_app, environ)
+        conn = self.ConnectionClass(s, self.wsgi_app, environ, self.sockoper_run_or_add)
         yield events.AddCoro(conn.run, prio=priority.CORO)
         #TODO: how scheduling ?
 
@@ -668,26 +683,35 @@ class WSGIServer(object):
     self.socket.bind(self.bind_addr)
   
 def server_factory(global_conf, host, port, **options):
+  """Server factory for paste. 
+  
+  Options are:
+    * reactor
+    * default_priority
+    * default_timeout
+    * reactor_resolution
+    * server_name
+    * request_queue_size
+    * sockoper_run_or_add
+    * socket_nagle
+    
+  """
   port = int(port)
+    
   def serve(app):
     sched = Scheduler(
-      poller = getattr(
-        cogen.core.pollers, 
-        options.get('scheduler.poller', 'DefaultPoller')
-      ), 
-      default_priority = 
-        int(options.get('scheduler.default_priority', priority.FIRST)), 
-      default_timeout = 
-        int(options.get('scheduler.default_timeout', 15))
+      reactor=getattr(cogen.core.reactors, options.get('reactor', 'DefaultReactor')), 
+      default_priority=int(options.get('default_priority', priority.FIRST)), 
+      default_timeout=int(options.get('default_timeout', 15)),
+      reactor_resolution=float(options.get('reactor_resolution', 0.5)),
     )
     server = WSGIServer( 
       (host, port), 
       app, 
       sched, 
-      server_name=host, 
-      **dict(
-        [(k.split('.',1)[1],v) for k,v in options.items() if k.startswith('wsgi_server.')]
-      )
+      server_name=options.get('server_name', host), 
+      request_queue_size=int(options.get('request_queue_size', 64)),
+      sockoper_run_or_add=bool(options.get('sockoper_run_or_add', True)),
     )
     sched.add(server.serve)
     sched.run()
