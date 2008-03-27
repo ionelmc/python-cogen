@@ -18,6 +18,8 @@ from cogen.core.reactors import DefaultReactor
 from cogen.core import events
 from cogen.core import sockets
 from cogen.core.util import debug, TimeoutDesc, priority
+#~ getnow = debug(0)(datetime.datetime.now)
+getnow = datetime.datetime.now
 
 class DebugginWrapper:
     def __init__(self, obj):
@@ -39,11 +41,12 @@ class Timeout(object):
     def __init__(self, op, coro, weak_timeout=False):
         assert isinstance(op.timeout, datetime.datetime)
         self.timeout = op.timeout
-        self.last_checkpoint = datetime.datetime.now()
-        self.delta = self.timeout - self.last_checkpoint
         self.coro = weakref.ref(coro)
         self.op = weakref.ref(op)
         self.weak_timeout = weak_timeout
+        if weak_timeout:
+            self.last_checkpoint = getnow()
+            self.delta = self.timeout - self.last_checkpoint
         
     def __cmp__(self, other):
         return cmp(self.timeout, other.timeout)    
@@ -70,7 +73,7 @@ class Scheduler(object):
       * default_priority: a default priority option for operations that do not 
       set it. check [Docs_CogenCoreUtilPriority priority].
       * default_timeout: a default timedelta or number of seconds to wait for 
-      the operation
+      the operation, -1 means no timeout.
     """
     def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None, reactor_resolution=.01):
         self.timeouts = [] #heapq
@@ -110,14 +113,14 @@ class Scheduler(object):
         return coro
        
     def run_timer(self):
-        now = datetime.datetime.now() 
+        now = getnow() 
         while self.timewait and self.timewait[0].wake_time <= now:
             op = heapq.heappop(self.timewait)
             self.active.appendleft((op, op.coro))
-
+    
     def next_timer_delta(self): 
         if self.timewait and not self.active:
-            now = datetime.datetime.now()
+            now = getnow()
             if now > self.timewait[0].wake_time:
                 #looks like we've exceded the time
                 return 0
@@ -133,7 +136,7 @@ class Scheduler(object):
         heapq.heappush(self.timeouts, Timeout(op, coro, weak_timeout))
     
     def handle_timeouts(self):
-        now = datetime.datetime.now()
+        now = getnow()
         #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
         while self.timeouts and self.timeouts[0].timeout <= now:
             timo = heapq.heappop(self.timeouts)

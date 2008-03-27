@@ -9,7 +9,7 @@ import exceptions
 import warnings
 import datetime
 import struct
-    
+
 try:
     import ctypes
     import win32file
@@ -20,6 +20,9 @@ except:
 
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority, fmt_list
+#~ getnow = debug(0)(datetime.datetime.now)
+getnow = datetime.datetime.now
+
 try:
     import sendfile
 except ImportError:
@@ -213,7 +216,8 @@ class SocketOperation(events.TimedOperation):
         """
         try:
             result = self.run(reactor)
-            self.last_update = datetime.datetime.now()
+            if self._timeout and self._timeout != -1 and self.weak_timeout:
+                self.last_update = getnow()
             return result
         except socket.error, exc:
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS): 

@@ -6,6 +6,8 @@ import datetime
 import heapq
 
 from cogen.core.util import debug, TimeoutDesc, priority
+#~ getnow = debug(0)(datetime.datetime.now)
+getnow = datetime.datetime.now
 
 class CoroutineException(Exception):
     """This is used intenally to carry exception state in the poller and 
@@ -110,7 +112,7 @@ class TimedOperation(Operation):
         
         if not self.timeout:
             self.timeout = sched.default_timeout
-        if self.timeout and self.timeout != -1:
+        if self._timeout and self._timeout != -1:
             sched.add_timeout(self, coro, False)
         
 class WaitForSignal(TimedOperation):
@@ -408,15 +410,14 @@ class Sleep(Operation):
     def __init__(self, val=None, timestamp=None):
         super(Sleep, self).__init__()
         if isinstance(val, datetime.timedelta):
-            self.wake_time = datetime.datetime.now() + val
+            self.wake_time = getnow() + val
         elif isinstance(val, datetime.datetime):
             self.wake_time = val
         else:
             if timestamp:
                 self.wake_time = datetime.datetime.fromtimestamp(int(timestamp))
             else:
-                self.wake_time = datetime.datetime.now() + \
-                                 datetime.timedelta(seconds=val)
+                self.wake_time = getnow() + datetime.timedelta(seconds=val)
     def process(self, sched, coro):
         super(Sleep, self).process(sched, coro)
         self.coro = coro
