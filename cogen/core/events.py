@@ -94,7 +94,10 @@ class TimedOperation(Operation):
     
     def __init__(self, timeout=None, weak_timeout=True, **kws):
         super(TimedOperation, self).__init__(**kws)
-        self.timeout = timeout
+        if timeout:
+            self.timeout = timeout
+        else:
+            self._timeout = None
         self.finalized = False
         self.weak_timeout = weak_timeout
     

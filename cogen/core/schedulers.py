@@ -99,6 +99,8 @@ class Scheduler(object):
                 del self.poll.scheduler
             del self.poll
     def add(self, coro, args=(), kwargs={}, first=True):
+        """Add a coroutine in the scheduler. You can add arguments 
+        (_args_, _kwargs_) to init the coroutine with."""
         assert callable(coro), "Coroutine not a callable object"
         coro = coro(*args, **kwargs)
         if first:

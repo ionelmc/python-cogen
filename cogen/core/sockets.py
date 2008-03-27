@@ -244,8 +244,7 @@ class SocketOperation(events.TimedOperation):
         
     def run(self, reactor):
         raise NotImplementedError()
-    timeout = TimeoutDesc()
-
+    
 class ReadOperation(SocketOperation): 
     __slots__ = ['iocp_buff', 'temp_buff']
     def __init__(self, sock, **kws):
