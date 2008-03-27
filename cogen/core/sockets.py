@@ -45,8 +45,16 @@ class Socket(object):
     adds some internal bufers and wrappers. Regular calls to the usual 
     socket methods return operations for use in a coroutine.
     
+    So you use this in a coroutine like:
+    {{{
+        sock = Socket(family, type, proto) # just like the builtin socket module
+        yield sock.read(1024)
+    }}}
+    
+    Constructor details:
+    {{{
         Socket([family[, type[, proto]]]) -> socket object
-
+    }}}
     Open a socket of the given type.  The family argument specifies the
     address family; it defaults to AF_INET.  The type argument specifies
     whether this is a stream (SOCK_STREAM, this is the default)

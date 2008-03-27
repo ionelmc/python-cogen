@@ -11,6 +11,6 @@ def somecoroutine():
     result = yield mysocket.read(10240)
     print result
 
-sched = Scheduler(reactor=SelectReactor)
+sched = Scheduler(reactor=SelectReactor) 
 sched.add(somecoroutine)
-sched.run()
+sched.run() # this is the main loop

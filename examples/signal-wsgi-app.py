@@ -1,5 +1,6 @@
-import gc
-gc.disable()
+import datetime
+from cogen.core.util import debug
+
 import wsgiref.validate 
 import pprint
 import cgi
@@ -33,10 +34,10 @@ import cogen
 from cogen.web.wsgi import WSGIServer
 from cogen.web.async import sync_input
 sched = cogen.core.schedulers.Scheduler(
-    default_timeout=3, 
-    #~ reactor=cogen.core.reactors.SelectReactor,
+    default_timeout=None, 
+    #~ reactor=cogen.core.reactors.PollReactor,
     default_priority=cogen.core.util.priority.FIRST,
-    reactor_resolution=.05
+    reactor_resolution=1
 )
     
 server = WSGIServer( 
@@ -49,7 +50,8 @@ server = WSGIServer(
   ], 
   sched, 
   server_name='localhost', 
-  request_queue_size=2048
+  request_queue_size=2048,
+  #~ sockoper_run_or_add=False
 )
 sched.add(server.serve)
 sched.run()
@@ -70,7 +72,7 @@ sched.run()
         #~ stream = file('cprofile.%s.%s.txt' % (
                 #~ os.path.split(__file__)[1],
                 #~ i
-            #~ ),'w'
+            #~ ),'w+'
         #~ )
     #~ )
     #~ stats.sort_stats(i)

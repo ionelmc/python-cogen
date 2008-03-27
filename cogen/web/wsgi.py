@@ -693,7 +693,6 @@ def server_factory(global_conf, host, port, **options):
     * server_name
     * request_queue_size
     * sockoper_run_or_add
-    * socket_nagle
     
   """
   port = int(port)
