@@ -2,7 +2,7 @@
    A Python module interface to epoll(4)
    Copyright (C) 2005 Ben Woolley <user ben at host tautology.org>
    Modified July 2007 by Jacob Potter
-   Modified March 2005 as suggested by nolan@sigbus.net (epevents is a int)
+   Modified March 2008 as suggested by nolan at sigbus.net (epevents is a int)
 
    This is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
