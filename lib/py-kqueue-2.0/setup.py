@@ -6,6 +6,6 @@ module1 = Extension('kqueuemodule',
 setup (name = 'kqueue',
        version = '2.0',
        description = 'This is a kqueue package',
-       author_email='jdolecek@netbsd.org',
-       maintainer_email='ionel.mc@gmail.com',
+       author='Jaromir Dolecek',author_email='jdolecek@netbsd.org',
+       url='ftp://ftp.NetBSD.org/pub/NetBSD/misc/jdolecek/',
        ext_modules = [module1])
