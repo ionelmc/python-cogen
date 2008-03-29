@@ -3,6 +3,7 @@ import ez_setup
 ez_setup.use_setuptools()
 
 from setuptools import setup
+import sys
 from cogen import __version__ as version
 setup(
     name='cogen',
@@ -51,7 +52,10 @@ setup(
             'wiki=cogen.docs.wikirender:WikiTextRenderer'
         ]
     },
-    install_requires = [],
+    install_requires = \
+        (["py-kqueue>=2.0"] if 'bsd' in sys.platform else []) +
+        (["py-epoll>=1.2"] if 'linux' in sys.platform else []) +\
+        (["py-sendfile>=1.2.2"] if ('linux' in sys.platform) or ('bsd' in sys.platform) else []),
     test_suite = "cogen.test"
     
 )
