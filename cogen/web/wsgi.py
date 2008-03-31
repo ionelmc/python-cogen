@@ -224,9 +224,9 @@ class WSGIConnection(object):
       buf += [k + ": " + v + "\r\n" for k, v in self.outheaders]
     except TypeError:
       if not isinstance(k, str):
-        raise TypeError("WSGI response header key %r is not a string.")
+        raise TypeError("WSGI response header key %r is not a string." % k)
       if not isinstance(v, str):
-        raise TypeError("WSGI response header value %r is not a string.")
+        raise TypeError("WSGI response header value %r is not a string." % v)
       else:
         raise
     buf.append("\r\n")
@@ -541,11 +541,7 @@ class WSGIServer(object):
     self.sockoper_run_or_add = sockoper_run_or_add
     self.scheduler = scheduler
     
-    self.version = "%s.%s/%s.%s/%s Python/%s" % (
-      self.__class__.__module__, self.__class__.__name__, 
-      scheduler.poll.__class__.__module__, scheduler.poll.__class__.__name__, 
-      cogen.__version__, sys.version.split()[0]
-    )
+    self.version = "cogen/%s" % cogen.__version__
     if callable(wsgi_app):
       # We've been handed a single wsgi_app, in CP-2.1 style.
       # Assume it's mounted at "".
@@ -670,7 +666,7 @@ class WSGIServer(object):
           environ["REMOTE_PORT"] = str(addr[1])
         
         conn = self.ConnectionClass(s, self.wsgi_app, environ, self.sockoper_run_or_add)
-        yield events.AddCoro(conn.run, prio=priority.CORO)
+        yield events.AddCoro(conn.run, prio=priority.FIRST)
         #TODO: how scheduling ?
 
    
