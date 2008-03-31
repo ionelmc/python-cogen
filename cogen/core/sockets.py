@@ -63,7 +63,7 @@ class Socket(object):
 
     A socket object represents one endpoint of a network connection.
     """
-    __slots__ = ['_fd', '_rl_list', '_rl_list_sz', '_rl_pending', '_timeout']
+    __slots__ = ['_fd', '_rl_list', '_rl_list_sz', '_rl_pending', '_timeout', '_reactor_added']
     def __init__(self, *a, **k):
         self._fd = socket.socket(*a, **k)
         self._rl_list = [] # for linebreaks checked buffers
@@ -71,38 +71,39 @@ class Socket(object):
         self._rl_pending = '' # for linebreaks unchecked buffer
         self._fd.setblocking(0)
         self._timeout = _TIMEOUT
+        self._reactor_added = False
         
-    def read(self, bufsize):
+    def read(self, bufsize, **kws):
         """Receive data from the socket. The return value is a string 
         representing the data received. The amount of data may be less than the
         ammount specified by _bufsize_. """
-        return Read(self, bufsize, timeout=self._timeout)
+        return Read(self, bufsize, timeout=self._timeout, **kws)
         
-    def readall(self, bufsize):
+    def readall(self, bufsize, **kws):
         """Receive data from the socket. The return value is a string 
         representing the data received. The amount of data will be the exact
         ammount specified by _bufsize_. """
-        return ReadAll(self, bufsize, timeout=self._timeout)
+        return ReadAll(self, bufsize, timeout=self._timeout, **kws)
         
-    def readline(self, size):
+    def readline(self, size, **kws):
         """Receive one line of data from the socket. The return value is a string 
         representing the data received. The amount of data will at most
         ammount specified by _size_. If no line separator has been found and the 
         ammount received has reached _size_ an OverflowException will be raised.
         """
-        return ReadLine(self, size, timeout=self._timeout)
+        return ReadLine(self, size, timeout=self._timeout, **kws)
         
-    def write(self, data):
+    def write(self, data, **kws):
         """Send data to the socket. The socket must be connected to a remote 
         socket. Ammount sent may be less than the data provided."""
-        return Write(self, data, timeout=self._timeout)
+        return Write(self, data, timeout=self._timeout, **kws)
         
-    def writeall(self, data):
+    def writeall(self, data, **kws):
         """Send data to the socket. The socket must be connected to a remote 
         socket. All the data is guaranteed to be sent."""
-        return WriteAll(self, data, timeout=self._timeout)
+        return WriteAll(self, data, timeout=self._timeout, **kws)
         
-    def accept(self):
+    def accept(self, **kws):
         """Accept a connection. The socket must be bound to an address and 
         listening for connections. The return value is a pair (conn, address) 
         where conn is a new socket object usable to send and receive data on the 
@@ -114,7 +115,7 @@ class Socket(object):
         conn, address = yield mysock.accept()
         }}}
         """
-        return Accept(self)
+        return Accept(self, **kws)
         
     def close(self, *args):
         """Close the socket. All future operations on the socket object will 
@@ -129,9 +130,9 @@ class Socket(object):
         """
         return self._fd.bind(*args)
         
-    def connect(self, address):
+    def connect(self, address, **kws):
         """Connect to a remote socket at _address_. """
-        return Connect(self, address)
+        return Connect(self, address, **kws)
         
     def fileno(self):
         """Return the socket's file descriptor """
@@ -814,9 +815,10 @@ class Connect(WriteOperation):
             return self
         
     def __repr__(self):
-        return "<%s at 0x%X %s to:%s>" % (
+        return "<%s at 0x%X %s to:%s attempted:%s>" % (
             self.__class__.__name__, 
             id(self), 
             self.sock, 
-            self.timeout
+            self.timeout,
+            self.connect_attempted
         )
