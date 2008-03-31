@@ -1,12 +1,13 @@
 from cogen.core import sockets
 from cogen.core import schedulers
 from cogen.core.coroutine import coroutine
+from cogen.core import reactors
 
 @coroutine
 def server():
     srv = sockets.Socket()
     print type(srv)
-    srv.bind(('localhost',777))
+    srv.bind(('0.0.0.0',776))
     srv.listen(10)
     while 1:
         print "Listening..."
@@ -26,6 +27,6 @@ def handler(sock, addr):
             return
         yield sock.write(line)
 
-m = schedulers.Scheduler()
+m = schedulers.Scheduler(reactor_resolution=.5)
 m.add(server)
 m.run()
