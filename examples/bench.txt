@@ -1,0 +1,108 @@
+root@ubuntu:/cogen/trunk/examples# ab -n 10000 -c 800 http://localhost:9001/            This is ApacheBench, Version 2.0.40-dev <$Revision: 1.146 $> apache-2.0
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Copyright 2006 The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Finished 10000 requests
+
+
+Server Software:        cogen/0.1.7
+Server Hostname:        localhost
+Server Port:            9001
+
+Document Path:          /
+Document Length:        19 bytes
+
+Concurrency Level:      800
+Time taken for tests:   10.764483 seconds
+Complete requests:      10000
+Failed requests:        0
+Write errors:           0
+Total transferred:      1501792 bytes
+HTML transferred:       200944 bytes
+Requests per second:    928.98 [#/sec] (mean)
+Time per request:       861.159 [ms] (mean)
+Time per request:       1.076 [ms] (mean, across all concurrent requests)
+Transfer rate:          136.19 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:       85  447 630.3    365    3398
+Processing:    79  318 140.7    362     537
+Waiting:        1  207 149.1    167     534
+Total:        224  766 673.4    803    3689
+
+Percentage of the requests served within a certain time (ms)
+  50%    803
+  66%    808
+  75%    811
+  80%    814
+  90%    818
+  95%    820
+  98%   3611
+  99%   3654
+ 100%   3689 (longest request)
+root@ubuntu:/cogen/trunk/examples# ab -n 10000 -c 800 http://localhost:9002/
+This is ApacheBench, Version 2.0.40-dev <$Revision: 1.146 $> apache-2.0
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Copyright 2006 The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Finished 10000 requests
+
+
+Server Software:        TwistedWeb/8.0.1
+Server Hostname:        localhost
+Server Port:            9002
+
+Document Path:          /
+Document Length:        19 bytes
+
+Concurrency Level:      800
+Time taken for tests:   8.784925 seconds
+Complete requests:      10000
+Failed requests:        0
+Write errors:           0
+Total transferred:      1518400 bytes
+HTML transferred:       197600 bytes
+Requests per second:    1138.31 [#/sec] (mean)
+Time per request:       702.794 [ms] (mean)
+Time per request:       0.878 [ms] (mean, across all concurrent requests)
+Transfer rate:          168.70 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:      190  330  84.2    325     556
+Processing:   199  343  84.5    341     563
+Waiting:        5  237 136.7    239     554
+Total:        538  674  60.2    639     756
+
+Percentage of the requests served within a certain time (ms)
+  50%    639
+  66%    734
+  75%    739
+  80%    753
+  90%    754
+  95%    754
+  98%    755
+  99%    755
+ 100%    756 (longest request)
+root@ubuntu:/cogen/trunk/examples#
