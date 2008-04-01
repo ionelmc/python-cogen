@@ -147,7 +147,7 @@ class ReactorBase(object):
             self.waiting_writes
         )
 
-    def handle_errored(self, desc):
+    def handle_errored(self, desc, code=None):
         "Handles descriptors that have errors."
         if desc in self.waiting_reads:
             waiting_ops = self.waiting_reads
@@ -159,7 +159,7 @@ class ReactorBase(object):
         del waiting_ops[desc]
         self.scheduler.active.append((
             events.CoroutineException((
-                events.ConnectionError, events.ConnectionError(op)
+                events.ConnectionError, events.ConnectionError(code, op)
             )), 
             coro
         ))
@@ -496,7 +496,7 @@ class EpollReactor(ReactorBase):
                 elif ev == epoll.EPOLLOUT:
                     waiting_ops = self.waiting_writes
                 else:
-                    self.handle_errored(fd)
+                    self.handle_errored(fd, ev)
                     continue
                 
                 op, coro = waiting_ops[fd]
