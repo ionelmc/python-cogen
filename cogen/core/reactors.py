@@ -243,7 +243,7 @@ class KQueueReactor(ReactorBase):
             return self.klist[testcoro]
     #~ @debug(0)
     def remove(self, op, coro):
-        fileno = getattr(op, 'fileno', None)
+        fileno = op.fileno
         if fileno:
             if coro in self.klist:
                 del self.klist[coro]
@@ -353,7 +353,7 @@ class PollReactor(ReactorBase):
         self.scheduler = scheduler
         self.poller = select.poll()
     def remove(self, op, coro):
-        fileno = getattr(op, 'fileno', None)
+        fileno = op.fileno
         if fileno:
             if isinstance(op, sockets.ReadOperation):
                 if fileno in self.waiting_reads:
@@ -399,9 +399,9 @@ class PollReactor(ReactorBase):
             events = self.poller.poll(ptimeout)
             nr_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
-                if ev & self.POLL_IN:
+                if (ev & select.POLLIN) or (ev & select.POLLPRI):
                     waiting_ops = self.waiting_reads
-                elif ev & self.POLL_OUT:
+                elif ev & select.POLLOUT:
                     waiting_ops = self.waiting_writes
                 else:
                     self.handle_errored(fd)
@@ -435,7 +435,7 @@ class EpollReactor(ReactorBase):
         self.scheduler = scheduler
         self.epoll_fd = epoll.epoll_create(default_size)
     def remove(self, op, coro):
-        fileno = getattr(op, 'fileno', None)
+        fileno = op.fileno
         if fileno:
             if isinstance(op, sockets.ReadOperation):
                 if fileno in self.waiting_reads:
@@ -462,19 +462,22 @@ class EpollReactor(ReactorBase):
             self.waiting_reads[fileno] = op, coro
             epoll.epoll_ctl(
                 self.epoll_fd, 
-                epoll.EPOLL_CTL_ADD, 
+                epoll.EPOLL_CTL_MOD if op.sock._reactor_added else epoll.EPOLL_CTL_ADD, 
                 fileno, 
-                epoll.EPOLLIN
+                epoll.EPOLLIN | epoll.EPOLLONESHOT
             )
-        if isinstance(op, sockets.WriteOperation):
+        elif isinstance(op, sockets.WriteOperation):
             assert fileno not in self.waiting_writes
             self.waiting_writes[fileno] = op, coro
             epoll.epoll_ctl(
                 self.epoll_fd, 
-                epoll.EPOLL_CTL_ADD, 
+                epoll.EPOLL_CTL_MOD if op.sock._reactor_added else epoll.EPOLL_CTL_ADD,
                 fileno, 
-                epoll.EPOLLOUT
+                epoll.EPOLLOUT | epoll.EPOLLONESHOT 
             )
+        else:
+            raise RuntimeError("Bad operation %s" % op)
+        op.sock._reactor_added = True
 
     def run(self, timeout = 0):
         """ 
@@ -498,12 +501,14 @@ class EpollReactor(ReactorBase):
                 else:
                     self.handle_errored(fd, ev)
                     continue
-                
                 op, coro = waiting_ops[fd]
                 op = self.run_operation(op)
                 if op:
                     del waiting_ops[fd]
-                    epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
+                    
+                    #~ epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
+                    # no longer necesary because of EPOLLONESHOT
+                    
                     if nr == nr_events:
                         return op, coro
                         
@@ -517,8 +522,11 @@ class EpollReactor(ReactorBase):
                             self.scheduler.active.appendleft( (op, coro) )
                         else:
                             self.scheduler.active.append( (op, coro) )    
+                else:
+                    epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_MOD, fd, ev | epoll.EPOLLONESHOT)
         else:
             time.sleep(self.resolution)
+            # todo; fix this to timeout value
     
 class IOCPProactor(ReactorBase):
     def __init__(self, scheduler, res):
