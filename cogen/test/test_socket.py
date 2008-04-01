@@ -9,6 +9,8 @@ import sys
 import errno
 import exceptions
 import datetime
+import traceback 
+import thread
 
 from cStringIO import StringIO
 
@@ -138,52 +140,59 @@ class SocketTest_MixIn:
     def test_write_all(self):
         @coroutine
         def writer():
-            obj = yield sockets.Connect(sockets.Socket(), self.local_addr)    
-            self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
-            self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
-            obj.sock.close()
-
-        srv = socket.socket()
-        srv.setblocking(0)
-        srv.bind(self.local_addr)
-        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        srv.listen(0)
-        coro = self.m.add(writer)
-        self.m_run.start()
-        time.sleep(1)
-        while 1:
-            time.sleep(0.2)
             try:
-                cli, addr = srv.accept()    
-                break
-            except error, exc:
-                if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
-                    continue
-                else:
-                    raise
-            
-        time.sleep(0.2)
-        cli.setblocking(1)
-        buff = cli.recv(1024*2)
-        cli.setblocking(0)
-        time.sleep(0.5)
-        total = len(buff)
-        while len(buff):
-            time.sleep(0.01)
-            try:
-                buff = cli.recv(1024**2*10)
-                total += len(buff)
-            except socket.error, exc:
-                if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
+                obj = yield sockets.Connect(sockets.Socket(), self.local_addr)    
+                self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
+                self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
+                obj.sock.close()
+            except:
+                traceback.print_exc()
+                thread.interrupt_main()
+                
+        try:
+            srv = socket.socket()
+            srv.setblocking(0)
+            srv.bind(self.local_addr)
+            srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            srv.listen(0)
+            coro = self.m.add(writer)
+            self.m_run.start()
+            time.sleep(1)
+            while 1:
+                time.sleep(0.2)
+                try:
+                    cli, addr = srv.accept()    
                     break
-                else:
-                    raise
-        srv.close()
-        self.assertEqual(self.writeobj+self.writeobj_all, total)
-        self.assertEqual(len(self.m.poll), 0)
-        self.assertEqual(len(self.m.active), 0)
-        self.failIf(self.m_run.isAlive())
-
+                except error, exc:
+                    if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
+                        continue
+                    else:
+                        raise
+                
+            time.sleep(0.2)
+            cli.setblocking(1)
+            buff = cli.recv(1024*2)
+            cli.setblocking(0)
+            time.sleep(0.5)
+            total = len(buff)
+            while len(buff):
+                time.sleep(0.01)
+                try:
+                    buff = cli.recv(1024**2*10)
+                    total += len(buff)
+                except socket.error, exc:
+                    if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
+                        break
+                    else:
+                        raise
+            srv.close()
+            self.assertEqual(self.writeobj+self.writeobj_all, total)
+            self.assertEqual(len(self.m.poll), 0)
+            self.assertEqual(len(self.m.active), 0)
+            self.failIf(self.m_run.isAlive())
+        except KeyboardInterrupt:
+            self.failIf(True)
+            
 for poller_cls in reactors.available:
     for prio_mixin in (NoPrioMixIn, PrioMixIn):
         for run_or_add in (True, False):
