@@ -264,7 +264,7 @@ class KQueueReactor(ReactorBase):
             ev = kqueue.EV_SET(
                 fileno, 
                 kqueue.EVFILT_READ, 
-                kqueue.EV_ADD | kqueue.EV_ENABLE
+                kqueue.EV_ADD | kqueue.EV_ENABLE | kqueue.EV_ONESHOT
             )
             ev.udata = op, coro
             self.kq.kevent(ev)
@@ -272,7 +272,7 @@ class KQueueReactor(ReactorBase):
             ev = kqueue.EV_SET(
                 fileno, 
                 kqueue.EVFILT_WRITE, 
-                kqueue.EV_ADD | kqueue.EV_ENABLE
+                kqueue.EV_ADD | kqueue.EV_ENABLE | kqueue.EV_ONESHOT
             )
             ev.udata = op, coro
             self.kq.kevent(ev)
@@ -300,7 +300,6 @@ class KQueueReactor(ReactorBase):
                 fd = ev.ident
                 op, coro = ev.udata
                 if ev.flags & kqueue.EV_ERROR:
-                    print ' kqueue.EV_ERROR:', ev
                     if coro in self.klist:
                         del self.klist[coro]
 
@@ -315,7 +314,7 @@ class KQueueReactor(ReactorBase):
                     self.scheduler.active.append((
                         events.CoroutineException((
                             events.ConnectionError, 
-                            events.ConnectionError(op)
+                            events.ConnectionError(ev.flags, ev.data, "EV_ERROR on %s" % op)
                         )), 
                         coro
                     ))
@@ -325,10 +324,11 @@ class KQueueReactor(ReactorBase):
                 if op:
                     if coro in self.klist:
                         del self.klist[coro]
-                    delev = kqueue.EV_SET(fileno, ev.filter, kqueue.EV_DELETE)
-                    delev.udata = ev.udata
-                    self.kq.kevent(delev)
-                    del delev
+                    #~ delev = kqueue.EV_SET(fileno, ev.filter, kqueue.EV_DELETE)
+                    #~ delev.udata = ev.udata
+                    #~ self.kq.kevent(delev)
+                    #~ del delev
+                    # one-shot
                     if nr == nr_events:
                         return op, coro
                         
@@ -342,6 +342,9 @@ class KQueueReactor(ReactorBase):
                             self.scheduler.active.appendleft( (op, coro) )
                         else:
                             self.scheduler.active.append( (op, coro) )    
+                else:
+                    ev.flags = kqueue.EV_ADD | kqueue.EV_ENABLE | kqueue.EV_ONESHOT
+                    self.kq.kevent(ev)
 
 class PollReactor(ReactorBase):
     if select and hasattr(select, 'poll'):
@@ -404,7 +407,7 @@ class PollReactor(ReactorBase):
                 elif ev & select.POLLOUT:
                     waiting_ops = self.waiting_writes
                 else:
-                    self.handle_errored(fd)
+                    self.handle_errored(fd, ev)
                     continue
                 
                 op, coro = waiting_ops[fd]
