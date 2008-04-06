@@ -91,7 +91,12 @@ class WSGIFileWrapper:
     self.blocksize = blocksize
     if hasattr(filelike,'close'):
       self.close = filelike.close
-  #TODO: iter method            
+  def __getitem__(self,key):
+    data = self.filelike.read(self.blocksize)
+    if data:
+      return data
+    raise IndexError
+  
 class tryclosing(object):
   __doc_all__ = ['__init__', '__enter__', '__exit__']
   """
