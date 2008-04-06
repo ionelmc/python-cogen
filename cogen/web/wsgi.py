@@ -65,7 +65,7 @@ import cogen
 
 from cogen.common import *
 from cogen.core.util import debug
-#~ from cogen.wsgi \
+from cogen.core.coroutine import local
 import async
 
 quoted_slash = re.compile("(?i)%2F")
@@ -151,7 +151,7 @@ class WSGIConnection(object):
   connection_environ = {
     "wsgi.version": (1, 0),
     "wsgi.url_scheme": "http",
-    "wsgi.multithread": True,
+    "wsgi.multithread": False,
     "wsgi.multiprocess": False,
     "wsgi.run_once": False,
     "wsgi.errors": sys.stderr,
@@ -406,7 +406,6 @@ class WSGIConnection(object):
                 yield self.simple_response("501 Unimplemented")
                 self.close_connection = True
                 return
-          
           ENVIRON['cogen.wsgi'] = async.COGENProxy(
             read_chunked = read_chunked,
             content_length = int(ENVIRON.get('CONTENT_LENGTH', None) or 0) or None,
@@ -540,7 +539,8 @@ class WSGIServer(object):
     self.request_queue_size = int(request_queue_size)
     self.sockoper_run_or_add = sockoper_run_or_add
     self.scheduler = scheduler
-    
+    self.environ['cogen.sched'] = self.scheduler
+          
     self.version = "cogen/%s" % cogen.__version__
     if callable(wsgi_app):
       # We've been handed a single wsgi_app, in CP-2.1 style.
@@ -677,7 +677,8 @@ class WSGIServer(object):
     self.socket.setblocking(0)
     #~ self.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
     self.socket.bind(self.bind_addr)
-  
+
+
 def server_factory(global_conf, host, port, **options):
   """Server factory for paste. 
   
@@ -692,7 +693,13 @@ def server_factory(global_conf, host, port, **options):
     
   """
   port = int(port)
-    
+
+  try:
+    import paste.util.threadinglocal as pastelocal
+    pastelocal.local = local
+  except ImportError:
+    pass
+
   def serve(app):
     sched = Scheduler(
       reactor=getattr(cogen.core.reactors, options.get('reactor', 'DefaultReactor')), 
