@@ -680,6 +680,9 @@ class IOCPProactor(ReactorBase):
             
 
 available = []
+if win32file:
+    DefaultReactor = IOCPProactor
+    available.append(IOCPProactor)
 if select:
     DefaultReactor = SelectReactor
     available.append(SelectReactor)
@@ -692,6 +695,3 @@ if kqueue:
 if epoll:
     DefaultReactor = EpollReactor
     available.append(EpollReactor)
-if win32file:
-    DefaultReactor = IOCPProactor
-    available.append(IOCPProactor)
