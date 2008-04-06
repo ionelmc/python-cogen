@@ -276,16 +276,21 @@ class AddCoro(Operation):
     This is similar to Call, but it doesn't pause the current coroutine.
     See: [Docs_CogenCoreEventsOperation Operation]
     """
-    __slots__ = ['coro', 'args', 'kwargs']
+    __slots__ = ['coro', 'args', 'kwargs', 'result']
     __doc_all__ = ['__init__']
     def __init__(self, coro, args=None, kwargs=None, **kws):
         super(AddCoro, self).__init__(**kws)
         self.coro = coro
         self.args = args or ()
         self.kwargs = kwargs or {}
+    
+    def finalize(self):
+        super(AddCoro, self).finalize()
+        return self.result
+    
     def process(self, sched, coro):
         super(AddCoro, self).process(sched, coro)
-        sched.add(self.coro, self.args, self.kwargs, self.prio & priority.OP)
+        self.result = sched.add(self.coro, self.args, self.kwargs, self.prio & priority.OP)
         if self.prio & priority.CORO:
             return self, coro
         else:
