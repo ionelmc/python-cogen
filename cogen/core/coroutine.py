@@ -30,6 +30,7 @@ def coroutine(func):
     make_new_coroutine.__doc__ = func.__doc__
     make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
+coro = coroutine
 
 def debug_coroutine(func):
     def make_new_coroutine(*args, **kws):
@@ -41,7 +42,27 @@ def debug_coroutine(func):
     make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
 
+ident = None
 
+class local(object):
+    def __init__(self):
+        self.__dict__['__objs'] = {}
+    def __getattr__(self, attr):
+        try:
+            return self.__dict__['__objs'][ident][attr]
+        except KeyError:
+            raise AttributeError(
+                "No variable %s defined for the thread %s" % (attr, ident))
+    def __setattr__(self, attr, value):
+        self.__dict__['__objs'].setdefault(ident, {})[attr] = value
+    def __delattr__(self, attr):
+        try:
+            del self.__dict__['__objs'][ident][attr]
+        except KeyError:
+            raise AttributeError(
+                "No variable %s defined for thread %s" % (attr, ident))
+    def __repr__(self):
+        return "<coroutine.local at 0x%X %r>"%(id(self), self.__dict__['__objs'])
 
 class Coroutine(events.Operation):
     ''' 
@@ -121,8 +142,7 @@ class Coroutine(events.Operation):
                     return self, self.caller
             finally:
                 self.caller = None
-        
-        
+
     #~ @debug(0)
     def run_op(self, op): 
         """
@@ -155,6 +175,8 @@ class Coroutine(events.Operation):
         #~ self.lastop = op
         if self.debug:
             print 'Running %s with: %s' % (self, op)
+        global ident
+        ident = self
         try:
             if self.state == self.STATE_RUNNING:
                 if self.debug:
@@ -196,6 +218,8 @@ class Coroutine(events.Operation):
                 self.handle_error()
             rop = self
             sys.exc_clear()
+        finally:
+            ident = None
         return rop
     def handle_error(self):        
         print>>sys.stderr, '-'*40
