@@ -60,7 +60,7 @@ class InputTest_MixIn:
             resp = self.conn.getresponse()
             recvdata = resp.read()
             expectdata = self.make_str(SIZE, PSIZE, chunked=False)
-            self.assert_(recvdata == expectdata)
+            self.assertEqual(recvdata, expectdata)
     def test_nonchunked(self):
         for PSIZE in [1024, 10*1024, 10000, 5000, 12345]:
             SIZE = 10
@@ -69,7 +69,7 @@ class InputTest_MixIn:
 
             resp = self.conn.getresponse()
             recvdata = resp.read()
-            self.assert_(recvdata == data)
+            self.assertEqual(recvdata, data)
             
         
         
@@ -146,8 +146,8 @@ class AsyncInputTest_MixIn:
             self.conn.request('GET', '/read', data, {"Transfer-Encoding": "chunked"})
             resp = self.conn.getresponse()
             recvdata = resp.read()
-            self.assert_(self.result == expectdata)
-            self.assert_(recvdata == 'read')
+            self.assertEqual(self.result, expectdata)
+            self.assertEqual(recvdata, 'read')
     def test_readline_overflow(self):
         self.buffer_length = 512
         data = self.make_str(1, 512, psep="\n", chunked=False)
@@ -156,8 +156,8 @@ class AsyncInputTest_MixIn:
         self.conn.request('GET', '/readline', data)
         resp = self.conn.getresponse()
         recvdata = resp.read()
-        self.assert_(self.overflow == 'overflow')
-        self.assert_(recvdata == 'readline')
+        self.assertEqual(self.overflow, 'overflow')
+        self.assertEqual(recvdata, 'readline')
     def test_readline(self):
         self.buffer_length = 512
         data = self.make_str(1, 256, psep="\n", chunked=False)
@@ -166,9 +166,9 @@ class AsyncInputTest_MixIn:
         self.conn.request('GET', '/readline', data)
         resp = self.conn.getresponse()
         recvdata = resp.read()
-        self.assert_(self.overflow == None)
-        self.assert_(self.result == data)
-        self.assert_(recvdata == 'readline')
+        self.assertEqual(self.overflow, None)
+        self.assertEqual(self.result, data)
+        self.assertEqual(recvdata, 'readline')
 
 for poller_cls in reactors.available:
     for prio_mixin in (PrioMixIn, NoPrioMixIn):

@@ -45,8 +45,8 @@ class SocketTest_MixIn:
             srv.bind(self.local_addr)
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.listen(0)
-            conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add))
-            self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_or_add=self.run_or_add) 
+            conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first))
+            self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_first=self.run_first) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
@@ -56,19 +56,19 @@ class SocketTest_MixIn:
                 self.waitobj2 = yield sockets.ReadLine(
                     conn, 
                     len=512, 
-                    prio=self.prio, run_or_add=self.run_or_add
+                    prio=self.prio, run_first=self.run_first
                 )
             except exceptions.OverflowError, e:
                 self.waitobj2 = "OK"
                 self.waitobj_cleanup = yield sockets.Read(
                     conn, 
                     len=1024*8, 
-                    prio=self.prio, run_or_add=self.run_or_add
+                    prio=self.prio, run_first=self.run_first
                 ) 
                     # eat up the remaining data waiting on socket
-            y1 = sockets.ReadLine(conn, 1024, prio=self.prio, run_or_add=self.run_or_add)
-            y2 = sockets.ReadLine(conn, 1024, prio=self.prio, run_or_add=self.run_or_add)
-            y3 = sockets.ReadLine(conn, 1024, prio=self.prio, run_or_add=self.run_or_add)
+            y1 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
+            y2 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
+            y3 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
             a1 = yield y1 
             a2 = yield y2
             a3 = yield y3
@@ -110,12 +110,12 @@ class SocketTest_MixIn:
             srv.bind(self.local_addr)
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.listen(0)
-            conn, addr = yield sockets.Accept(srv, prio=self.prio, run_or_add=self.run_or_add)
-            self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_or_add=self.run_or_add)
+            conn, addr = yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first)
+            self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_first=self.run_first)
             self.recvobj_all = yield sockets.ReadAll(
                 conn, 
                 1024**2-1024*4, 
-                prio=self.prio, run_or_add=self.run_or_add
+                prio=self.prio, run_first=self.run_first
             )
             srv.close()
             self.m.stop()
@@ -141,7 +141,7 @@ class SocketTest_MixIn:
         @coroutine
         def writer():
             try:
-                obj = yield sockets.Connect(sockets.Socket(), self.local_addr)    
+                obj = yield sockets.Connect(sockets.Socket(), self.local_addr, timeout=5)    
                 self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
                 self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
                 obj.sock.close()
@@ -195,11 +195,11 @@ class SocketTest_MixIn:
             
 for poller_cls in reactors.available:
     for prio_mixin in (NoPrioMixIn, PrioMixIn):
-        for run_or_add in (True, False):
-            name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_or_add and 'TryFirst' or 'AddFirst')
+        for run_first in (True, False):
+            name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
             globals()[name] = type(
                 name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
-                {'poller':poller_cls, 'run_or_add':run_or_add}
+                {'poller':poller_cls, 'run_first':run_first}
             )
     
 if __name__ == "__main__":
