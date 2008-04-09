@@ -312,7 +312,7 @@ class SendFile(WriteOperation):
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
-        self.offset = self.position = offset or file_handl.tell()
+        self.offset = self.position = offset or file_handle.tell()
         self.length = length
         self.sent = 0
         self.blocksize = blocksize

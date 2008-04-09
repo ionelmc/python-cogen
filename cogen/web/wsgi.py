@@ -164,11 +164,12 @@ class WSGIConnection(object):
     "wsgi.file_wrapper": WSGIFileWrapper,
   }
   
-  def __init__(self, sock, wsgi_app, environ, sockoper_run_first):
+  def __init__(self, sock, wsgi_app, environ, sockoper_run_first, sendfile_timeout):
     self.conn = sock
     self.wsgi_app = wsgi_app
     self.server_environ = environ
     self.sockoper_run_first = sockoper_run_first
+    self.sendfile_timeout = sendfile_timeout
     self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
   
   def start_response(self, status, headers, exc_info = None):
@@ -192,6 +193,7 @@ class WSGIConnection(object):
     hkeys = [key.lower() for key, value in self.outheaders]
     status = int(self.status[:3])
     
+    self.content_length = int(self.outheaders[hkeys.index('content-length')][1])
     if status == 413:
       # Request Entity Too Large. Close conn to avoid garbage.
       self.close_connection = True
@@ -273,6 +275,7 @@ class WSGIConnection(object):
           self.sent_headers = False
           self.chunked_write = False
           self.write_buffer = StringIO.StringIO()
+          self.content_length = None
           # Copy the class environ into self.
           ENVIRON = self.environ = self.connection_environ.copy()
           self.environ.update(self.server_environ)
@@ -443,14 +446,25 @@ class WSGIConnection(object):
               headers = self.check_start_response()
               if headers:
                 yield sockets.WriteAll(self.conn, headers, run_first=run_first)
+                
+              offset = response.filelike.tell()
+              if self.chunked_write:
+                fsize = fstat(response.filelike.fileno()).st_size
+                yield sockets.WriteAll(self.conn, hex(fsize-offset) + "\r\n")
               yield sockets.SendFile( response.filelike, self.conn, 
-                                      blocksize=response.blocksize, run_first=run_first)#, timeout=-1)
+                                      blocksize=response.blocksize, 
+                                      offset=offset,
+                                      length=self.content_length,
+                                      run_first=run_first, 
+                                      timeout=self.sendfile_timeout
+                                    )
+              if self.chunked_write:
+                yield sockets.WriteAll(self.conn, "\r\n")
               #  also, tcp_cork will make the file data sent on packet boundaries, 
               # wich is a good thing
               if hasattr(socket, "TCP_CORK"):
                 self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 0)
-              #XXX: use content-length 
-              #XXX: use chunking
+                
             else:
               for chunk in response:
                 headers = self.check_start_response()
@@ -539,10 +553,12 @@ class WSGIServer(object):
   def __init__(self, bind_addr, wsgi_app, scheduler, 
             server_name=None, 
             request_queue_size=64,
-            sockoper_run_first=True
+            sockoper_run_first=True,
+            sendfile_timeout=-1
         ):
     self.request_queue_size = int(request_queue_size)
     self.sockoper_run_first = sockoper_run_first
+    self.sendfile_timeout = sendfile_timeout
     self.scheduler = scheduler
     self.environ['cogen.sched'] = self.scheduler
           
@@ -670,7 +686,8 @@ class WSGIServer(object):
           environ["REMOTE_ADDR"] = addr[0]
           environ["REMOTE_PORT"] = str(addr[1])
         
-        conn = self.ConnectionClass(s, self.wsgi_app, environ, self.sockoper_run_first)
+        conn = self.ConnectionClass(s, self.wsgi_app, environ, 
+                                self.sockoper_run_first, self.sendfile_timeout)
         yield events.AddCoro(conn.run, prio=priority.FIRST)
         #TODO: how scheduling ?
 
@@ -695,6 +712,7 @@ def server_factory(global_conf, host, port, **options):
     * server_name
     * request_queue_size
     * sockoper_run_first
+    * sendfile_timeout
     
   """
   port = int(port)
@@ -719,6 +737,7 @@ def server_factory(global_conf, host, port, **options):
       server_name=options.get('server_name', host), 
       request_queue_size=int(options.get('request_queue_size', 64)),
       sockoper_run_first=bool(options.get('sockoper_run_first', True)),
+      sendfile_timeout=int(options.get('sendfile_timeout', -1)),
     )
     sched.add(server.serve)
     sched.run()
