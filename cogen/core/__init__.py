@@ -62,7 +62,7 @@ m.run()
 
 from cogen.core import schedulers
 from cogen.core import reactors
-from cogen.core import coroutine
+from cogen.core import coroutines
 from cogen.core import events
 from cogen.core import sockets
 from cogen.core import queue

@@ -45,6 +45,18 @@ def debug_coroutine(func):
 ident = None
 
 class local(object):
+    """A threadlocal-like object that works in the context of coroutines.
+    That means, the current running coroutine has the _ident_.
+    
+    Coroutine.run_op sets the indent before running a step and unsets after.
+    
+    Example:
+    {{{
+    loc = local() 
+    loc.foo = 1
+    }}}
+    The *loc* instance's values will be different for separate coroutines.
+    """
     def __init__(self):
         self.__dict__['__objs'] = {}
     def __getattr__(self, attr):

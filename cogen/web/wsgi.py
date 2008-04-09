@@ -65,7 +65,7 @@ import cogen
 
 from cogen.common import *
 from cogen.core.util import debug
-from cogen.core.coroutine import local
+from cogen.core.coroutines import local
 import async
 
 quoted_slash = re.compile("(?i)%2F")
