@@ -1,7 +1,8 @@
 import sys, os, traceback
 from cogen.common import *
 
-m = Scheduler(reactor_resolution=.5, reactor=reactors.PollReactor)
+m = Scheduler()
+#~ reactor_resolution=.5, reactor=reactors.PollReactor)
 errors = 0
 recvs = 0
 @coroutine
@@ -9,7 +10,7 @@ def client(num):
     global errors, recvs
     sock = sockets.Socket()
     try:
-        yield sock.connect(("192.168.111.130", 776), run_or_add=False)
+        yield sock.connect(("192.168.111.128", 776), run_first=False)
     except Exception, e:
         errors+=1
         print 'Error in:', num, errors, e

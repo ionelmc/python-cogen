@@ -51,7 +51,7 @@ server = WSGIServer(
   sched, 
   server_name='localhost', 
   request_queue_size=2048,
-  #~ sockoper_run_or_add=False
+  #~ sockoper_run_first=False
 )
 sched.add(server.serve)
 sched.run()

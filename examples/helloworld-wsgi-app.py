@@ -12,10 +12,10 @@ def lorem_ipsum_app(environ, start_response):
 import cogen
 from cogen.web.wsgi import WSGIServer
 sched = cogen.core.schedulers.Scheduler(
-    default_timeout=10, 
+    default_timeout=-1, 
     #~ reactor=cogen.core.reactors.PollReactor,
     default_priority=cogen.core.util.priority.FIRST,
-    reactor_resolution=1
+    reactor_resolution=0.05
 )
     
 server = WSGIServer( 
@@ -24,7 +24,7 @@ server = WSGIServer(
   sched, 
   server_name='localhost', 
   request_queue_size=2048,
-  #~ sockoper_run_or_add=False
+  #~ sockoper_run_first=False
 )
 sched.add(server.serve)
 sched.run()
