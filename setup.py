@@ -1,6 +1,10 @@
 #!/usr/bin/python
-import ez_setup
-ez_setup.use_setuptools()
+try:
+    import setuptools
+except ImportError:
+
+    import ez_setup
+    ez_setup.use_setuptools()
 
 from setuptools import setup
 import sys
@@ -40,6 +44,7 @@ setup(
     entry_points={
         'paste.server_factory': [
             'wsgi=cogen.web.wsgi:server_factory',
+            'http=cogen.web.wsgi:server_factory',
         ],
         'paste.filter_app_factory': [
             'syncinput=cogen.web.async:SynchronousInputMiddleware'

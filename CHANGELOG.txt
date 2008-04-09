@@ -1,0 +1,9 @@
+0.1.8:
+
+ * added support for ConnectEx (via IOCPProactor)
+ * added content-length checking and adding chunking boudaries when app returns
+ wsgi.file_wrapper
+ * added a option for sendfile_timeout to the wsgi server
+ * added support for a threading.local-like object in cogen.core.coroutines.local
+ * changed epoll and kqueue to use ONE-SHOT events
+ 
