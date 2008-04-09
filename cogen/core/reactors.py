@@ -7,15 +7,15 @@ Here's the basic workflow:
   * the coroutine yields a operation
   * the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)
     Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method
-    * if run_or_add is False then the operation is added in the reactor for 
+    * if run_first is False then the operation is added in the reactor for 
     polling (with the exception that if we have data in out internal buffers
     the operation is runned first)
-    * if run_or_add is set (it's default) in the operation then in process 
+    * if run_first is set (it's default) in the operation then in process 
     method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] 
     is called with the operation and coroutine
 
   
-Nnote: run_or_add is a optimization hack really, first it tries to run the
+Note: run_first is a optimization hack really, first it tries to run the
 operation (this asumes the sockets are usualy ready) and if it raises any 
 exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling 
 (via select, epoll, kqueue etc) then the run method will be called only when 
@@ -59,9 +59,9 @@ except ImportError:
 
 
 
-from cogen.core import sockets
-from cogen.core import events
-from cogen.core.util import debug, TimeoutDesc, priority
+import sockets
+import events
+from util import debug, TimeoutDesc, priority
 __doc_all__ = [
     "ReactorBase",
     "SelectReactor",
@@ -592,7 +592,7 @@ class IOCPProactor(ReactorBase):
                 return op, coro
             else:
                 # operation hasn't completed yet (not enough data etc)
-                # readd it in the iocp
+                # read it in the iocp
                 self.registered_ops[prev_op] = self.run_iocp(prev_op, coro)
                 
         else:

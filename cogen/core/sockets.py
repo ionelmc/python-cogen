@@ -18,8 +18,10 @@ try:
 except:
     pass
 
-from cogen.core import events
-from cogen.core.util import debug, TimeoutDesc, priority, fmt_list
+import events
+from util import debug, TimeoutDesc, priority, fmt_list
+import reactors
+
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
@@ -189,12 +191,12 @@ class SocketOperation(events.TimedOperation):
     """
     __slots__ = [
         'sock', 'last_update', 'fileno',
-        'len', 'buff', 'addr', 'run_or_add',
+        'len', 'buff', 'addr', 'run_first',
         
     ]
     __doc_all__ = ['__init__', 'try_run']
     trim = 2000
-    def __init__(self, sock, run_or_add=True, **kws):
+    def __init__(self, sock, run_first=True, **kws):
         """
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
@@ -210,7 +212,7 @@ class SocketOperation(events.TimedOperation):
         
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
-        self.run_or_add = run_or_add
+        self.run_first = run_first
         
     def try_run(self, reactor):
         """
@@ -241,7 +243,7 @@ class SocketOperation(events.TimedOperation):
     def process(self, sched, coro):
         #~ print '>process:', self
         super(SocketOperation, self).process(sched, coro)
-        if self.run_or_add or self.pending():
+        if self.run_first or self.pending():
             r = sched.poll.run_or_add(self, coro)
             if r:
                 #~ print '>we have result!'
@@ -262,7 +264,8 @@ class ReadOperation(SocketOperation):
     __slots__ = ['iocp_buff', 'temp_buff']
     def __init__(self, sock, **kws):
         super(ReadOperation, self).__init__(sock, **kws)
-        self.temp_buff = None
+        self.temp_buff = 0
+        
     def iocp(self, overlap):
         self.iocp_buff = win32file.AllocateReadBuffer(
             self.len-self.sock._rl_list_sz
@@ -417,7 +420,7 @@ class Read(ReadOperation):
                 self.buff, self.addr = self.sock._fd.recvfrom(self.len)
             else:
                 self.buff = self.temp_buff
-                del self.temp_buff
+                self.temp_buff = None
                 #TODO: self.addr
             if self.buff:
                 return self
@@ -485,9 +488,10 @@ class ReadAll(ReadOperation):
                 buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
             else:
                 buff = self.temp_buff
-                del self.temp_buff
+                self.temp_buff = None
                 #TODO: self.addr
                 
+            #~ print '[', buff and len(buff), reactor, self.temp_buff, ']',
             if buff:
                 self.sock._rl_list.append(buff)
                 self.sock._rl_list_sz += len(buff)
@@ -583,11 +587,13 @@ class ReadLine(ReadOperation):
             x_buff, self.addr = self.sock._fd.recvfrom(self.len-self.sock._rl_list_sz)
         else:
             x_buff = self.temp_buff
-            del self.temp_buff
+            self.temp_buff = None
             #TODO: self.addr
             
-        nl = x_buff.find("\n")
+        #~ print '[[', x_buff and len(x_buff), reactor, self.temp_buff, ']]',
+            
         if x_buff:
+            nl = x_buff.find("\n")
             if nl >= 0:
                 nl += 1
                 self.sock._rl_list.append(x_buff[:nl])
@@ -730,6 +736,8 @@ class Accept(ReadOperation):
             self.conn = Socket(_sock=self.conn)
             self.conn.setblocking(0)
         else:
+            if not self.conn:
+                return
             self.conn.setblocking(0)
             self.conn.setsockopt(
                 socket.SOL_SOCKET, 
@@ -779,17 +787,51 @@ class Connect(WriteOperation):
         self.addr = addr
         self.connect_attempted = False # this is a shield against multiple 
                                        #connect_ex calls
+    def process(self, sched, coro):
+        #  we can't just try-run this with iocp, because if we do ConnectEx 
+        # will fail
+        super(SocketOperation, self).process(sched, coro)
+        if not isinstance(sched.poll, reactors.IOCPProactor) and \
+                                (self.run_first or self.pending()):
+            r = sched.poll.run_or_add(self, coro)
+            if r:
+                if self.prio:
+                    return r, r and coro
+                else:
+                    sched.active.appendleft((r, coro))
+        else:
+            sched.poll.add(self, coro)
+            
     def iocp(self, overlaped):
-        raise NotImplementedError()
+        # ConnectEx requires that the socket be bound beforehand
+        try:
+            # just in case we get a already-bound socket
+            self.sock.bind(('0.0.0.0', 0))
+        except socket.error, exc:
+            if exc[0] not in (errno.EINVAL, errno.WSAEINVAL):
+                raise
+        self.connect_attempted = True
+        return win32file.ConnectEx(self.sock, self.addr, overlaped)
         
     def iocp_done(self, *args):
-        raise NotImplementedError()
-        
+        self.sock.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_CONNECT_CONTEXT, "")
+    
     def run(self, reactor):
         if not reactor:
-            raise NotImplementedError(
-                "win32file doesn't have connect calls that work with overlappeds"
-            )    
+            # this means we've been called from IOCPProactor
+            # we can't just attempt a blind connect because we can't use 
+            #ConnectEx then.
+            
+            # so basicaly we do this:
+            if self.connect_attempted:
+                # connection has been successful - as we've got here from a gqcs
+                return self
+            else:
+                # we need to connect via ConnectEx - we force adding this op in 
+                #the reactor
+                return 
+                
+            
         #
         #We need to avoid some non-blocking socket connect quirks: 
         #  - if you attempt a connect in NB mode you will always 
@@ -804,6 +846,8 @@ class Connect(WriteOperation):
                                 errno.EINPROGRESS, errno.ENOTCONN):
                     raise
             return self
+        #~ print 'self.sock._fd.connect_ex(self.addr)'
+        #~ raise Exception, reactor
         err = self.sock._fd.connect_ex(self.addr)
         self.connect_attempted = True
         if err:
