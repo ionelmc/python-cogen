@@ -266,274 +266,274 @@ class WSGIConnection(object):
     """A bit bulky atm..."""
     self.close_connection = False
     run_first = self.sockoper_run_first
-    if 1:
-      try:
-        while True:
-          self.started_response = False
-          self.status = ""
-          self.outheaders = []
-          self.sent_headers = False
-          self.chunked_write = False
-          self.write_buffer = StringIO.StringIO()
-          self.content_length = None
-          # Copy the class environ into self.
-          ENVIRON = self.environ = self.connection_environ.copy()
-          self.environ.update(self.server_environ)
-              
-          request_line = yield sockets.ReadLine(self.conn, run_first=run_first)
-          if request_line == "\r\n":
-            # RFC 2616 sec 4.1: "... it should ignore the CRLF."
-            tolerance = 5
-            while tolerance and request_line == "\r\n":
-              request_line = yield sockets.ReadLine(self.conn, run_first=run_first)
-              tolerance -= 1
-            if not tolerance:
-              return
-          method, path, req_protocol = request_line.strip().split(" ", 2)
-          ENVIRON["REQUEST_METHOD"] = method
-          ENVIRON["CONTENT_LENGTH"] = ''
-          
-          scheme, location, path, params, qs, frag = urlparse(path)
-          
-          if frag:
-            yield self.simple_response("400 Bad Request",
-                        "Illegal #fragment in Request-URI.")
-            return
-          
-          if scheme:
-            ENVIRON["wsgi.url_scheme"] = scheme
-          if params:
-            path = path + ";" + params
-          
-          ENVIRON["SCRIPT_NAME"] = ""
-          
-          # Unquote the path+params (e.g. "/this%20path" -> "this path").
-          # http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
-          #
-          # But note that "...a URI must be separated into its components
-          # before the escaped characters within those components can be
-          # safely decoded." http://www.ietf.org/rfc/rfc2396.txt, sec 2.4.2
-          atoms = [unquote(x) for x in quoted_slash.split(path)]
-          path = "%2F".join(atoms)
-          ENVIRON["PATH_INFO"] = path
-          
-          # Note that, like wsgiref and most other WSGI servers,
-          # we unquote the path but not the query string.
-          ENVIRON["QUERY_STRING"] = qs
-          
-          # Compare request and server HTTP protocol versions, in case our
-          # server does not support the requested protocol. Limit our output
-          # to min(req, server). We want the following output:
-          #     request    server     actual written   supported response
-          #     protocol   protocol  response protocol    feature set
-          # a     1.0        1.0           1.0                1.0
-          # b     1.0        1.1           1.1                1.0
-          # c     1.1        1.0           1.0                1.0
-          # d     1.1        1.1           1.1                1.1
-          # Notice that, in (b), the response will be "HTTP/1.1" even though
-          # the client only understands 1.0. RFC 2616 10.5.6 says we should
-          # only return 505 if the _major_ version is different.
-          rp = int(req_protocol[5]), int(req_protocol[7])
-          server_protocol = ENVIRON["ACTUAL_SERVER_PROTOCOL"]
-          sp = int(server_protocol[5]), int(server_protocol[7])
-          if sp[0] != rp[0]:
-            yield self.simple_response("505 HTTP Version Not Supported")
-            return
-          # Bah. "SERVER_PROTOCOL" is actually the REQUEST protocol.
-          ENVIRON["SERVER_PROTOCOL"] = req_protocol
-          self.response_protocol = "HTTP/%s.%s" % min(rp, sp)
-          
-          # If the Request-URI was an absoluteURI, use its location atom.
-          if location:
-            ENVIRON["SERVER_NAME"] = location
-          
-          # then all the http headers
-          try:
-            while True:
-              line = yield sockets.ReadLine(self.conn, run_first=run_first)
-              
-              if line == '\r\n':
-                # Normal end of headers
-                break
-              
-              if line[0] in ' \t':
-                # It's a continuation line.
-                v = line.strip()
-              else:
-                k, v = line.split(":", 1)
-                k, v = k.strip().upper(), v.strip()
-                envname = "HTTP_" + k.replace("-", "_")
-              
-              if k in comma_separated_headers:
-                existing = ENVIRON.get(envname)
-                if existing:
-                  v = ", ".join((existing, v))
-              ENVIRON[envname] = v
+    
+    try:
+      while True:
+        self.started_response = False
+        self.status = ""
+        self.outheaders = []
+        self.sent_headers = False
+        self.chunked_write = False
+        self.write_buffer = StringIO.StringIO()
+        self.content_length = None
+        # Copy the class environ into self.
+        ENVIRON = self.environ = self.connection_environ.copy()
+        self.environ.update(self.server_environ)
             
-            ct = ENVIRON.pop("HTTP_CONTENT_TYPE", None)
-            if ct:
-              ENVIRON["CONTENT_TYPE"] = ct
-            cl = ENVIRON.pop("HTTP_CONTENT_LENGTH", None)
-            if cl:
-              ENVIRON["CONTENT_LENGTH"] = cl
-          except ValueError, ex:
-            yield self.simple_response("400 Bad Request", repr(ex.args))
+        request_line = yield sockets.ReadLine(self.conn, run_first=run_first)
+        if request_line == "\r\n":
+          # RFC 2616 sec 4.1: "... it should ignore the CRLF."
+          tolerance = 5
+          while tolerance and request_line == "\r\n":
+            request_line = yield sockets.ReadLine(self.conn, run_first=run_first)
+            tolerance -= 1
+          if not tolerance:
             return
-          
-          creds = ENVIRON.get("HTTP_AUTHORIZATION", "").split(" ", 1)
-          ENVIRON["AUTH_TYPE"] = creds[0]
-          if creds[0].lower() == 'basic':
-            user, pw = base64.decodestring(creds[1]).split(":", 1)
-            ENVIRON["REMOTE_USER"] = user
-          
-          # Persistent connection support
-          if self.response_protocol == "HTTP/1.1":
-            if ENVIRON.get("HTTP_CONNECTION", "") == "close":
-              self.close_connection = True
-          else:
-            # HTTP/1.0
-            if ENVIRON.get("HTTP_CONNECTION", "") != "Keep-Alive":
-              self.close_connection = True
-          
-          # Transfer-Encoding support
-          te = None
-          if self.response_protocol == "HTTP/1.1":
-            te = ENVIRON.get("HTTP_TRANSFER_ENCODING")
-            if te:
-              te = [x.strip().lower() for x in te.split(",") if x.strip()]
-          
-          read_chunked = False
-          
-          if te:
-            for enc in te:
-              if enc == "chunked":
-                read_chunked = True
-              else:
-                # Note that, even if we see "chunked", we must reject
-                # if there is an extension we don't recognize.
-                yield self.simple_response("501 Unimplemented")
-                self.close_connection = True
-                return
-          ENVIRON['cogen.wsgi'] = async.COGENProxy(
-            read_chunked = read_chunked,
-            content_length = int(ENVIRON.get('CONTENT_LENGTH', None) or 0) or None,
-            read_count = 0,
-            state = async.Read.NEED_SIZE,
-            chunk_remaining = 0,
-            operation = None,
-            result = None,
-            exception = None
-          )
-          ENVIRON['cogen.core'] = async.COGENOperationWrapper(
-            ENVIRON['cogen.wsgi'], 
-            cogen.core
-          )
-          ENVIRON['cogen.call'] = async.COGENCallWrapper(ENVIRON['cogen.wsgi'])
-          ENVIRON['cogen.input'] = async.COGENOperationWrapper(
-            ENVIRON['cogen.wsgi'], 
-            async.COGENProxy( 
-              Read = lambda len, **kws: \
-                async.Read(self.conn, ENVIRON['cogen.wsgi'], len, **kws),
-              ReadLine = lambda len, **kws: \
-                async.ReadLine(self.conn, ENVIRON['cogen.wsgi'], len, **kws)
-            )
-          )
-          response = self.wsgi_app(ENVIRON, self.start_response)
-          with tryclosing(response):
-            if isinstance(response, WSGIFileWrapper):
-              # set tcp_cork to pack the header with the file data
-              if hasattr(socket, "TCP_CORK"):
-                self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 1)
-              headers = self.check_start_response()
-              if headers:
-                yield sockets.WriteAll(self.conn, headers, run_first=run_first)
-                
-              offset = response.filelike.tell()
-              if self.chunked_write:
-                fsize = fstat(response.filelike.fileno()).st_size
-                yield sockets.WriteAll(self.conn, hex(fsize-offset) + "\r\n")
-              yield sockets.SendFile( response.filelike, self.conn, 
-                                      blocksize=response.blocksize, 
-                                      offset=offset,
-                                      length=self.content_length,
-                                      run_first=run_first, 
-                                      timeout=self.sendfile_timeout
-                                    )
-              if self.chunked_write:
-                yield sockets.WriteAll(self.conn, "\r\n")
-              #  also, tcp_cork will make the file data sent on packet boundaries, 
-              # wich is a good thing
-              if hasattr(socket, "TCP_CORK"):
-                self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 0)
-                
-            else:
-              for chunk in response:
-                headers = self.check_start_response()
-                if chunk:
-                  assert headers or self.sent_headers, "App sended a value but hasn't called start_response."
-                  if self.chunked_write:
-                    buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-                    if headers:
-                      headers = [headers]
-                      headers.extend(buf)
-                      yield sockets.WriteAll(self.conn, "".join(headers), run_first=run_first)
-                    else:
-                      yield sockets.WriteAll(self.conn, "".join(buf), run_first=run_first)
-                  else:
-                    if headers:
-                      yield sockets.WriteAll(self.conn, headers+chunk, run_first=run_first)
-                    else:
-                      yield sockets.WriteAll(self.conn, chunk, run_first=run_first)
-                else:
-                  if headers: 
-                    yield sockets.WriteAll(self.conn, headers, run_first=run_first)
-                  if ENVIRON['cogen.wsgi'].operation:
-                    op = ENVIRON['cogen.wsgi'].operation
-                    ENVIRON['cogen.wsgi'].operation = None
-                    try:
-                      #~ print 'WSGI OP:', op
-                      ENVIRON['cogen.wsgi'].result = yield op
-                      #~ print 'WSGI OP RESULT:',ENVIRON['cogen.wsgi'].result
-                    except:
-                      #~ print 'exception:', sys.exc_info()
-                      ENVIRON['cogen.wsgi'].exception = sys.exc_info()
-                      ENVIRON['cogen.wsgi'].result = \
-                        ENVIRON['cogen.wsgi'].exception[1]
-                    del op
-          if self.chunked_write:
-            yield sockets.WriteAll(self.conn, "0\r\n\r\n", run_first=run_first)
+        method, path, req_protocol = request_line.strip().split(" ", 2)
+        ENVIRON["REQUEST_METHOD"] = method
+        ENVIRON["CONTENT_LENGTH"] = ''
         
-          if self.close_connection:
-            return
-          while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'], run_first=run_first)):
-            # we need to consume any unread input data to read the next 
-            #pipelined request
-            pass
-      except socket.error, e:
-        errno = e.args[0]
-        if errno not in useless_socket_errors:
-          yield self.simple_response("500 Internal Server Error",
-                      format_exc())
-        return
-      except (events.OperationTimeout, 
-          events.ConnectionClosed, 
-          events.ConnectionError):
-        return
-      except (KeyboardInterrupt, SystemExit, GeneratorExit, MemoryError):
-        raise
-      except:
-        if not self.started_response:
-          yield self.simple_response(
-            "500 Internal Server Error", 
-            format_exc()
-          )
+        scheme, location, path, params, qs, frag = urlparse(path)
+        
+        if frag:
+          yield self.simple_response("400 Bad Request",
+                      "Illegal #fragment in Request-URI.")
+          return
+        
+        if scheme:
+          ENVIRON["wsgi.url_scheme"] = scheme
+        if params:
+          path = path + ";" + params
+        
+        ENVIRON["SCRIPT_NAME"] = ""
+        
+        # Unquote the path+params (e.g. "/this%20path" -> "this path").
+        # http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
+        #
+        # But note that "...a URI must be separated into its components
+        # before the escaped characters within those components can be
+        # safely decoded." http://www.ietf.org/rfc/rfc2396.txt, sec 2.4.2
+        atoms = [unquote(x) for x in quoted_slash.split(path)]
+        path = "%2F".join(atoms)
+        ENVIRON["PATH_INFO"] = path
+        
+        # Note that, like wsgiref and most other WSGI servers,
+        # we unquote the path but not the query string.
+        ENVIRON["QUERY_STRING"] = qs
+        
+        # Compare request and server HTTP protocol versions, in case our
+        # server does not support the requested protocol. Limit our output
+        # to min(req, server). We want the following output:
+        #     request    server     actual written   supported response
+        #     protocol   protocol  response protocol    feature set
+        # a     1.0        1.0           1.0                1.0
+        # b     1.0        1.1           1.1                1.0
+        # c     1.1        1.0           1.0                1.0
+        # d     1.1        1.1           1.1                1.1
+        # Notice that, in (b), the response will be "HTTP/1.1" even though
+        # the client only understands 1.0. RFC 2616 10.5.6 says we should
+        # only return 505 if the _major_ version is different.
+        rp = int(req_protocol[5]), int(req_protocol[7])
+        server_protocol = ENVIRON["ACTUAL_SERVER_PROTOCOL"]
+        sp = int(server_protocol[5]), int(server_protocol[7])
+        if sp[0] != rp[0]:
+          yield self.simple_response("505 HTTP Version Not Supported")
+          return
+        # Bah. "SERVER_PROTOCOL" is actually the REQUEST protocol.
+        ENVIRON["SERVER_PROTOCOL"] = req_protocol
+        self.response_protocol = "HTTP/%s.%s" % min(rp, sp)
+        
+        # If the Request-URI was an absoluteURI, use its location atom.
+        if location:
+          ENVIRON["SERVER_NAME"] = location
+        
+        # then all the http headers
+        try:
+          while True:
+            line = yield sockets.ReadLine(self.conn, run_first=run_first)
+            
+            if line == '\r\n':
+              # Normal end of headers
+              break
+            
+            if line[0] in ' \t':
+              # It's a continuation line.
+              v = line.strip()
+            else:
+              k, v = line.split(":", 1)
+              k, v = k.strip().upper(), v.strip()
+              envname = "HTTP_" + k.replace("-", "_")
+            
+            if k in comma_separated_headers:
+              existing = ENVIRON.get(envname)
+              if existing:
+                v = ", ".join((existing, v))
+            ENVIRON[envname] = v
+          
+          ct = ENVIRON.pop("HTTP_CONTENT_TYPE", None)
+          if ct:
+            ENVIRON["CONTENT_TYPE"] = ct
+          cl = ENVIRON.pop("HTTP_CONTENT_LENGTH", None)
+          if cl:
+            ENVIRON["CONTENT_LENGTH"] = cl
+        except ValueError, ex:
+          yield self.simple_response("400 Bad Request", repr(ex.args))
+          return
+        
+        creds = ENVIRON.get("HTTP_AUTHORIZATION", "").split(" ", 1)
+        ENVIRON["AUTH_TYPE"] = creds[0]
+        if creds[0].lower() == 'basic':
+          user, pw = base64.decodestring(creds[1]).split(":", 1)
+          ENVIRON["REMOTE_USER"] = user
+        
+        # Persistent connection support
+        if self.response_protocol == "HTTP/1.1":
+          if ENVIRON.get("HTTP_CONNECTION", "") == "close":
+            self.close_connection = True
         else:
-          print "*" * 60
-          traceback.print_exc()
-          print "*" * 60
-        sys.exc_clear()
-      finally:
-        ENVIRON = self.environ = None
+          # HTTP/1.0
+          if ENVIRON.get("HTTP_CONNECTION", "") != "Keep-Alive":
+            self.close_connection = True
+        
+        # Transfer-Encoding support
+        te = None
+        if self.response_protocol == "HTTP/1.1":
+          te = ENVIRON.get("HTTP_TRANSFER_ENCODING")
+          if te:
+            te = [x.strip().lower() for x in te.split(",") if x.strip()]
+        
+        read_chunked = False
+        
+        if te:
+          for enc in te:
+            if enc == "chunked":
+              read_chunked = True
+            else:
+              # Note that, even if we see "chunked", we must reject
+              # if there is an extension we don't recognize.
+              yield self.simple_response("501 Unimplemented")
+              self.close_connection = True
+              return
+        ENVIRON['cogen.wsgi'] = async.COGENProxy(
+          read_chunked = read_chunked,
+          content_length = int(ENVIRON.get('CONTENT_LENGTH', None) or 0) or None,
+          read_count = 0,
+          state = async.Read.NEED_SIZE,
+          chunk_remaining = 0,
+          operation = None,
+          result = None,
+          exception = None
+        )
+        ENVIRON['cogen.core'] = async.COGENOperationWrapper(
+          ENVIRON['cogen.wsgi'], 
+          cogen.core
+        )
+        ENVIRON['cogen.call'] = async.COGENCallWrapper(ENVIRON['cogen.wsgi'])
+        ENVIRON['cogen.input'] = async.COGENOperationWrapper(
+          ENVIRON['cogen.wsgi'], 
+          async.COGENProxy( 
+            Read = lambda len, **kws: \
+              async.Read(self.conn, ENVIRON['cogen.wsgi'], len, **kws),
+            ReadLine = lambda len, **kws: \
+              async.ReadLine(self.conn, ENVIRON['cogen.wsgi'], len, **kws)
+          )
+        )
+        response = self.wsgi_app(ENVIRON, self.start_response)
+        with tryclosing(response):
+          if isinstance(response, WSGIFileWrapper):
+            # set tcp_cork to pack the header with the file data
+            if hasattr(socket, "TCP_CORK"):
+              self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 1)
+            headers = self.check_start_response()
+            if headers:
+              yield sockets.WriteAll(self.conn, headers, run_first=run_first)
+              
+            offset = response.filelike.tell()
+            if self.chunked_write:
+              fsize = fstat(response.filelike.fileno()).st_size
+              yield sockets.WriteAll(self.conn, hex(fsize-offset) + "\r\n")
+            yield sockets.SendFile( response.filelike, self.conn, 
+                                    blocksize=response.blocksize, 
+                                    offset=offset,
+                                    length=self.content_length,
+                                    run_first=run_first, 
+                                    timeout=self.sendfile_timeout
+                                  )
+            if self.chunked_write:
+              yield sockets.WriteAll(self.conn, "\r\n")
+            #  also, tcp_cork will make the file data sent on packet boundaries, 
+            # wich is a good thing
+            if hasattr(socket, "TCP_CORK"):
+              self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 0)
+              
+          else:
+            for chunk in response:
+              headers = self.check_start_response()
+              if chunk:
+                assert headers or self.sent_headers, "App sended a value but hasn't called start_response."
+                if self.chunked_write:
+                  buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
+                  if headers:
+                    headers = [headers]
+                    headers.extend(buf)
+                    yield sockets.WriteAll(self.conn, "".join(headers), run_first=run_first)
+                  else:
+                    yield sockets.WriteAll(self.conn, "".join(buf), run_first=run_first)
+                else:
+                  if headers:
+                    yield sockets.WriteAll(self.conn, headers+chunk, run_first=run_first)
+                  else:
+                    yield sockets.WriteAll(self.conn, chunk, run_first=run_first)
+              else:
+                if headers: 
+                  yield sockets.WriteAll(self.conn, headers, run_first=run_first)
+                if ENVIRON['cogen.wsgi'].operation:
+                  op = ENVIRON['cogen.wsgi'].operation
+                  ENVIRON['cogen.wsgi'].operation = None
+                  try:
+                    #~ print 'WSGI OP:', op
+                    ENVIRON['cogen.wsgi'].result = yield op
+                    #~ print 'WSGI OP RESULT:',ENVIRON['cogen.wsgi'].result
+                  except:
+                    #~ print 'exception:', sys.exc_info()
+                    ENVIRON['cogen.wsgi'].exception = sys.exc_info()
+                    ENVIRON['cogen.wsgi'].result = \
+                      ENVIRON['cogen.wsgi'].exception[1]
+                  del op
+        if self.chunked_write:
+          yield sockets.WriteAll(self.conn, "0\r\n\r\n", run_first=run_first)
+      
+        if self.close_connection:
+          return
+        while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'], run_first=run_first)):
+          # we need to consume any unread input data to read the next 
+          #pipelined request
+          pass
+    except socket.error, e:
+      errno = e.args[0]
+      if errno not in useless_socket_errors:
+        yield self.simple_response("500 Internal Server Error",
+                    format_exc())
+      return
+    except (events.OperationTimeout, 
+        events.ConnectionClosed, 
+        events.ConnectionError):
+      return
+    except (KeyboardInterrupt, SystemExit, GeneratorExit, MemoryError):
+      raise
+    except:
+      if not self.started_response:
+        yield self.simple_response(
+          "500 Internal Server Error", 
+          format_exc()
+        )
+      else:
+        print "*" * 60
+        traceback.print_exc()
+        print "*" * 60
+      sys.exc_clear()
+    finally:
+      ENVIRON = self.environ = None
 class WSGIServer(object):
   """
   An HTTP server for WSGI.
