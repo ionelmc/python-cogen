@@ -44,10 +44,18 @@ class COGENOperationWrapper(object):
             return COGENOperationCall(self.gate, what)
         else:
             return self.__class__(self.gate, what)
+class COGENCallWrapper(object):
+    def __init__(self, gate):
+        self.gate = gate
+        
+    def __call__(self, obj):
+        return COGENOperationCall(self.gate, obj)
+
 class COGENOperationCall(object):
     def __init__(self, gate, obj):
         self.gate = gate
         self.obj = obj
+        
     def __call__(self, *args, **kwargs):
         self.gate.operation = self.obj(*args, **kwargs)
         return ""
@@ -56,6 +64,7 @@ class COGENProxy:
         self.__dict__.update(kws)
     def __str__(self):
         return repr(self.__dict__)
+        
 class SynchronousInputMiddleware:
     """Middleware for providing wsgi.input to the app."""
     __doc_all__ = ['__init__', '__call__']
