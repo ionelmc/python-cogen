@@ -167,22 +167,23 @@ class ReactorBase(object):
 class SelectReactor(ReactorBase):
     def remove(self, op, coro):
         #~ print '> remove', op
+        fileno = op.sock.fileno()
         if isinstance(op, sockets.ReadOperation):
-            if op.sock in self.waiting_reads:
-                del self.waiting_reads[op.sock]
+            if fileno in self.waiting_reads:
+                del self.waiting_reads[fileno]
                 return True
         if isinstance(op, sockets.WriteOperation):
-            if op.sock in self.waiting_writes:
-                del self.waiting_writes[op.sock]
+            if fileno in self.waiting_writes:
+                del self.waiting_writes[fileno]
                 return True
     def add(self, op, coro):
         if isinstance(op, sockets.ReadOperation):
             assert op.sock not in self.waiting_reads
-            self.waiting_reads[op.sock] = op, coro
+            self.waiting_reads[op.sock.fileno()] = op, coro
             
         if isinstance(op, sockets.WriteOperation):
             assert op.sock not in self.waiting_writes
-            self.waiting_writes[op.sock] = op, coro
+            self.waiting_writes[op.sock.fileno()] = op, coro
             
     def handle_events(self, ready, waiting_ops):
         for id in ready:
