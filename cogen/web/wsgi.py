@@ -192,8 +192,8 @@ class WSGIConnection(object):
   def render_headers(self):
     hkeys = [key.lower() for key, value in self.outheaders]
     status = int(self.status[:3])
-    
-    self.content_length = int(self.outheaders[hkeys.index('content-length')][1])
+    if 'content-length' in hkeys:
+        self.content_length = int(self.outheaders[hkeys.index('content-length')][1])
     if status == 413:
       # Request Entity Too Large. Close conn to avoid garbage.
       self.close_connection = True
@@ -266,7 +266,7 @@ class WSGIConnection(object):
     """A bit bulky atm..."""
     self.close_connection = False
     run_first = self.sockoper_run_first
-    with closing(self.conn):
+    if 1:
       try:
         while True:
           self.started_response = False
@@ -428,6 +428,7 @@ class WSGIConnection(object):
             ENVIRON['cogen.wsgi'], 
             cogen.core
           )
+          ENVIRON['cogen.call'] = async.COGENCallWrapper(ENVIRON['cogen.wsgi'])
           ENVIRON['cogen.input'] = async.COGENOperationWrapper(
             ENVIRON['cogen.wsgi'], 
             async.COGENProxy( 
