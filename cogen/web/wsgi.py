@@ -662,10 +662,10 @@ class WSGIServer(object):
       while True:
         try:
           s, addr = yield sockets.Accept(self.socket, timeout=-1, run_first=self.sockoper_run_first)
-        except: 
+        except Exception, exc: 
           # make acceptor more robust in the face of weird 
           # accept bugs, XXX: but we might get a infinite loop
-          warnings.warn("Accept thrown an exception: %s" % traceback.format_exc())
+          warnings.warn("Accept thrown an exception: %s" % exc)
           continue
          
         environ = self.environ.copy()
