@@ -256,7 +256,8 @@ class SocketOperation(events.TimedOperation):
             
     def pending(self):
         return True if (self.sock._rl_pending or self.sock._rl_list) else False
-        
+    def cleanup(self, sched, coro):
+        return sched.poll.remove(self, coro)
     def run(self, reactor):
         raise NotImplementedError()
     

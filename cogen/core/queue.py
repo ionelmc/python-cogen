@@ -21,10 +21,15 @@ class QGet(events.TimedOperation):
         self.block = block
         self.caller = None
         self.result = None
+        
     def finalize(self):
         super(QGet, self).finalize()
         return self.result
-            
+        
+    def cleanup(self, sched, coro):
+        self.queue.waiting_gets.remove(self)
+        return True
+
     def process(self, sched, coro):
         super(QGet, self).process(sched, coro)
         self.caller = coro
@@ -53,8 +58,9 @@ class QGet(events.TimedOperation):
                             sched.active.append((putop, putop.caller))
             return self, coro
     def __repr__(self):
-        return "<%s caller:%s block:%s result:%s>" % (
+        return "<%s@%X caller:%s block:%s result:%s>" % (
             self.__class__.__name__,
+            id(self),
             self.caller,
             self.block,
             self.result
@@ -69,7 +75,11 @@ class QPut(events.TimedOperation):
         self.item = item
         self.block = block
         self.caller = None
-        
+
+    def cleanup(self, sched, coro):
+        self.queue.waiting_puts.remove(self)
+        return True
+
     def process(self, sched, coro):
         super(QPut, self).process(sched, coro)
         self.caller = coro
@@ -101,8 +111,9 @@ class QPut(events.TimedOperation):
                 self.queue._put(self.item)
                 return self, coro
     def __repr__(self):
-        return "<%s caller:%s block:%s item:%s>" % (
+        return "<%s@%X caller:%s block:%s item:%s>" % (
             self.__class__.__name__,
+            id(self),
             self.caller,
             self.block,
             self.item

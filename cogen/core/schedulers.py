@@ -150,19 +150,9 @@ class Scheduler(object):
                         timo.timeout = timo.last_checkpoint + timo.delta
                         heapq.heappush(self.timeouts, timo)
                         continue
-                inpoll=True
-                # inpoll is a extracheck that we need in case we get dead 
-                #operations from the timeout
-                if isinstance(op, sockets.SocketOperation):
-                    inpoll=self.poll.remove(op, coro)
-                elif coro and isinstance(op, events.Join):
-                    op.coro.remove_waiter(coro)
-                elif isinstance(op, events.WaitForSignal):
-                    try:
-                        self.sigwait[op.name].remove((op, coro))
-                    except ValueError:
-                        pass
-                if not op.finalized and coro and coro.running and inpoll:
+                throw = op.cleanup(self, coro)
+                
+                if not op.finalized and coro and coro.running and throw:
                     self.active.append((
                         events.CoroutineException((
                             events.OperationTimeout, 

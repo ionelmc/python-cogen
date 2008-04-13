@@ -173,8 +173,8 @@ class Coroutine(events.Operation):
         if op is self:
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
-            "%s called, expected state less than %s!" % (
-                self, 
+            "%s called with %s op %r, expected state less than %s!" % (
+                self, ('finalized' if op.finalized else 'unfinalized'), op,
                 self._state_names[self.STATE_COMPLETED]
             )
         #~ assert self.state < self.STATE_COMPLETED, \

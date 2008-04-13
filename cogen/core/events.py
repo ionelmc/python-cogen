@@ -114,7 +114,14 @@ class TimedOperation(Operation):
             self.timeout = sched.default_timeout
         if self._timeout and self._timeout != -1:
             sched.add_timeout(self, coro, False)
-        
+            
+    def cleanup(self, sched):
+        """
+        Clean up after a timeout. Implemented in ops that need cleanup.
+        If return value evaluated to false the sched won't raise the timeout in 
+        the coroutine.
+        """
+        return True
 class WaitForSignal(TimedOperation):
     """The coroutine will resume when the same object is Signaled.
     
@@ -156,7 +163,13 @@ class WaitForSignal(TimedOperation):
     def finalize(self):
         super(WaitForSignal, self).finalize()
         return self.result
-           
+        
+    def cleanup(self, sched, coro):
+        try:
+            sched.sigwait[self.name].remove((self, coro))
+        except ValueError:
+            pass
+        return True
     def __repr__(self):
         return "<%s at 0x%X name:%s timeout:%s prio:%s>" % (
             self.__class__, 
@@ -384,6 +397,11 @@ class Join(TimedOperation):
     def process(self, sched, coro):
         super(Join, self).process(sched, coro)
         self.coro.add_waiter(coro)
+    
+    def cleanup(self, sched, coro):
+        self.coro.remove_waiter(coro)
+        return True
+        
     def __repr__(self):
         return '<%s instance at 0x%X, coro: %s>' % (
             self.__class__, 
