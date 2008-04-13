@@ -90,6 +90,34 @@ class QueueTest_MixIn:
             self.assertEqual(self.msgs, [-1] + range(SIZE+1) + [-2])
         else:
             self.assertEqual(self.msgs, range(SIZE+1) + [-1, -2])
+            
+    def test_queue_timo(self):
+        q = queue.Queue(50)
+        self.msgs = []
+        @coroutine
+        def get():
+            #~ while 1:
+            self.msgs.append((yield q.get(timeout=0.1)))
+            self.msgs.append((yield q.get(timeout=0.1)))
+            self.msgs.append((yield q.get()))
+
+        @coroutine
+        def put():
+            yield q.put(1)
+            yield events.Sleep(1)
+            yield q.put(2)
+
+        m = Scheduler(reactor_resolution=0.5)
+        m.add(put)
+        m.add(get)
+        sys.stderr = StringIO()
+        m.run()
+        self.assert_('OperationTimeout:' in sys.stderr.getvalue())
+        sys.stderr = sys.__stderr__
+        
+        self.assertEqual(self.msgs, [1])
+        self.assertEqual(list(q.queue), [2])
+
     def test_join(self):
         for i in xrange(1,6):
             SIZE = i
