@@ -6,9 +6,11 @@ except ImportError:
     import ez_setup
     ez_setup.use_setuptools()
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import sys
+
 from cogen import __version__ as version
+
 setup(
     name='cogen',
     version=version,
@@ -20,13 +22,8 @@ setup(
     author='Maries Ionel Cristian',
     author_email='ionel dot mc at gmail dot com',
     url='http://code.google.com/p/cogen/',
-    packages=[
-        'cogen',
-        'cogen.core',
-        'cogen.web',
-        'cogen.test',
-    ],
-    zip_safe=False,
+    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+    zip_safe=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
@@ -47,20 +44,22 @@ setup(
             'http=cogen.web.wsgi:server_factory',
         ],
         'paste.filter_app_factory': [
-            'syncinput=cogen.web.async:SynchronousInputMiddleware'
+            'syncinput=cogen.web.async:SynchronousInputMiddleware',
+            'lazysr=cogen.web.async:LazyStartResponseMiddleware'
         ],
         'apydia.themes': [
-            'cogen=cogen.docs.theme',
-            'cogenwiki=cogen.docs.wikitheme',
+            'cogen=docgen.theme',
+            'cogenwiki=docgen.wikitheme',
         ],
         'apydia.docrenderers': [
-            'wiki=cogen.docs.wikirender:WikiTextRenderer'
+            'wiki=docgen.wikirender:WikiTextRenderer'
         ]
     },
     install_requires = \
         (["py-kqueue>=2.0"] if 'bsd' in sys.platform else []) +
         (["py-epoll>=1.2"] if 'linux' in sys.platform else []) +\
         (["py-sendfile>=1.2.2"] if ('linux' in sys.platform) or ('bsd' in sys.platform) else []),
-    test_suite = "cogen.test"
+    test_suite='nose.collector',
+    tests_require=['nose', 'coverage']
     
 )

@@ -8,7 +8,7 @@ import datetime
 from cStringIO import StringIO
 
 from cogen.common import *
-from cogen.test.base import PrioMixIn, NoPrioMixIn
+from base import PrioMixIn, NoPrioMixIn
 
 class SchedulerTest_MixIn:
     def setUp(self):

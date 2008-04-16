@@ -9,7 +9,7 @@ from cStringIO import StringIO
 
 from cogen.common import *
 from cogen.core import queue
-from cogen.test.base import PrioMixIn, NoPrioMixIn
+from base import PrioMixIn, NoPrioMixIn
 
 class QueueTest_MixIn:
     def setUp(self):

@@ -16,7 +16,7 @@ from cStringIO import StringIO
 
 from cogen.common import *
 from cogen.core import reactors
-from cogen.test.base import PrioMixIn, NoPrioMixIn
+from base import PrioMixIn, NoPrioMixIn
 from cogen.core.coroutines import debug_coroutine
 
 class SocketTest_MixIn:

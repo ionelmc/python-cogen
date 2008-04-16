@@ -14,9 +14,10 @@ from cStringIO import StringIO
 from cogen.common import *
 from cogen.core import reactors
 from cogen.core.util import debug
-from cogen.test.base import PrioMixIn, NoPrioMixIn
 from cogen.web import wsgi, async
-from cogen.test.base_web import WebTest_Base
+
+from base import PrioMixIn, NoPrioMixIn
+from base_web import WebTest_Base
 
  
 
