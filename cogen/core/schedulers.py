@@ -206,6 +206,7 @@ class Scheduler(object):
                 
             #~ print 'active:  ',len(self.active)
             #~ print 'poll:    ',len(self.poll)
-            #~ print 'timeouts:',len(self.poll._timeouts)
+            #~ print 'timeouts:',len(self.timeouts)
+            #~ print 'running: ',self.running
     def stop(self):
         self.running = False

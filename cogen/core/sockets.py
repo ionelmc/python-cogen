@@ -339,18 +339,20 @@ class SendFile(WriteOperation):
             if self.blocksize:
                 return self.iocp_send(
                     self.offset + self.sent, 
-                    min(self.length-self.sent, self.blocksize)
+                    min(self.length-self.sent, self.blocksize),
+                    overlap
                 )
             else:
-                return self.iocp_send(self.offset+self.sent, self.length-self.sent)
+                return self.iocp_send(self.offset+self.sent, self.length-self.sent, overlap)
         else:
-            return self.iocp_send(self.offset+self.sent, self.blocksize)
+            return self.iocp_send(self.offset+self.sent, self.blocksize, overlap)
             
     def iocp_done(self, rc, nbytes):
         self.sent += nbytes
 
     def run(self, reactor):
-        assert self.sent <= self.length
+        if self.length:
+            assert self.sent <= self.length
         if self.sent == self.length:
             return self
             
