@@ -97,22 +97,6 @@ class WSGIFileWrapper:
       return data
     raise IndexError
   
-class tryclosing(object):
-  __doc_all__ = ['__init__', '__enter__', '__exit__']
-  """
-  This is the exact context manager as contextlib.closing but it 
-  doesn't throw a exception if the managed object doesn't have a
-  close method.
-  """
-  def __init__(self, thing):
-    self.thing = thing
-  def __enter__(self):
-    return self.thing
-  def __exit__(self, *exc_info):
-    if hasattr(self.thing, 'close'):
-      self.thing.close()    
-  
-  
 class WSGIPathInfoDispatcher(object):
   __doc_all__ = ['__init__', '__call__']
   """A WSGI dispatcher for dispatch based on the PATH_INFO.
@@ -387,13 +371,14 @@ class WSGIConnection(object):
           ENVIRON["REMOTE_USER"] = user
         
         # Persistent connection support
-        if self.response_protocol == "HTTP/1.1":
+        if req_protocol == "HTTP/1.1":
           if ENVIRON.get("HTTP_CONNECTION", "") == "close":
             self.close_connection = True
         else:
           # HTTP/1.0
-          if ENVIRON.get("HTTP_CONNECTION", "") != "Keep-Alive":
+          if ENVIRON.get("HTTP_CONNECTION", "").lower() != "keep-alive":
             self.close_connection = True
+        
         
         # Transfer-Encoding support
         te = None
@@ -424,6 +409,7 @@ class WSGIConnection(object):
           result = None,
           exception = None
         )
+        ENVIRON['cogen.http_connection'] = self
         ENVIRON['cogen.core'] = async.COGENOperationWrapper(
           ENVIRON['cogen.wsgi'], 
           cogen.core
@@ -439,7 +425,8 @@ class WSGIConnection(object):
           )
         )
         response = self.wsgi_app(ENVIRON, self.start_response)
-        with tryclosing(response):
+        
+        try:
           if isinstance(response, WSGIFileWrapper):
             # set tcp_cork to pack the header with the file data
             if hasattr(socket, "TCP_CORK"):
@@ -451,7 +438,7 @@ class WSGIConnection(object):
             offset = response.filelike.tell()
             if self.chunked_write:
               fsize = os.fstat(response.filelike.fileno()).st_size
-              yield sockets.WriteAll(self.conn, hex(fsize-offset) + "\r\n")
+              yield sockets.WriteAll(self.conn, hex(int(fsize-offset)) + "\r\n")
             yield sockets.SendFile( response.filelike, self.conn, 
                                     blocksize=response.blocksize, 
                                     offset=offset,
@@ -459,6 +446,7 @@ class WSGIConnection(object):
                                     run_first=run_first, 
                                     timeout=self.sendfile_timeout
                                   )
+            
             if self.chunked_write:
               yield sockets.WriteAll(self.conn, "\r\n")
             #  also, tcp_cork will make the file data sent on packet boundaries, 
@@ -500,6 +488,9 @@ class WSGIConnection(object):
                     ENVIRON['cogen.wsgi'].result = \
                       ENVIRON['cogen.wsgi'].exception[1]
                   del op
+        finally:
+          if hasattr(response, 'close'):
+            response.close()
         if self.chunked_write:
           yield sockets.WriteAll(self.conn, "0\r\n\r\n", run_first=run_first)
       
@@ -533,6 +524,7 @@ class WSGIConnection(object):
         print "*" * 60
       sys.exc_clear()
     finally:
+      self.conn.close()
       ENVIRON = self.environ = None
 class WSGIServer(object):
   """
