@@ -450,7 +450,7 @@ class WSGIConnection(object):
               
             offset = response.filelike.tell()
             if self.chunked_write:
-              fsize = fstat(response.filelike.fileno()).st_size
+              fsize = os.fstat(response.filelike.fileno()).st_size
               yield sockets.WriteAll(self.conn, hex(fsize-offset) + "\r\n")
             yield sockets.SendFile( response.filelike, self.conn, 
                                     blocksize=response.blocksize, 
