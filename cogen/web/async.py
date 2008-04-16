@@ -64,23 +64,45 @@ class COGENProxy:
         self.__dict__.update(kws)
     def __str__(self):
         return repr(self.__dict__)
+
+class LazyStartResponseMiddleware:
+    def __init__(self, app, global_conf={}):
+        self.app = app
         
+    def start_response(self, status, headers, exc=None):
+        self.status = status
+        self.headers = headers
+        self.exc = exc
+        self.out = StringIO()
+        return self.out.write
+    
+    def __call__(self, environ, start_response):
+        started = False
+        app_iter = self.app(environ, self.start_response)
+        for chunk in app_iter:
+            if not started and chunk:
+                started = True
+                write = start_response(self.status, self.headers, self.exc)
+                out = self.out.getvalue()
+                if out:
+                    write(out)
+            yield chunk
+
+lazy_sr = LazyStartResponseMiddleware
+
 class SynchronousInputMiddleware:
     """Middleware for providing wsgi.input to the app."""
     __doc_all__ = ['__init__', '__call__']
     def __init__(self, app, global_conf={}, buffer_length=1024):
-        #~ print 'SynchronousInputMiddleware loaded.'
         self.app = app
         self.buffer_length = int(buffer_length)
-    #~ @debug(0, 25)
+
     def __call__(self, environ, start_response):
         buff = StringIO()
         length = 0
-        #~ print 'WRAPPINGAPP', self.app
         while 1:
             yield environ['cogen.input'].Read(self.buffer_length)
             result = environ['cogen.wsgi'].result
-            #~ print "RESULT:%.100r" % result
             if isinstance(result, Exception):
                 import traceback
                 traceback.print_exception(*environ['cogen.wsgi'].exception)
@@ -91,18 +113,15 @@ class SynchronousInputMiddleware:
                 buff.write(result)
                 length += len(result)
         buff.seek(0)
-        #~ print '>>>>DONE', `buff.getvalue()`
         environ['wsgi.input'] = buff
         environ['CONTENT_LENGTH'] = str(length)
         iterator = self.app(environ, start_response)
         for i in iterator:
-            #~ print '--- iter', i
             yield i
         if hasattr(iterator, 'close'): 
             iterator.close()
-        #~ print '>>>>CLOSE'
-def sync_input(app):
-    return SynchronousInputMiddleware(app)
+
+sync_input = SynchronousInputMiddleware
 
 class Read(sockets.ReadAll, sockets.ReadLine):
     """This is actually a hack that mixes ReadAll and ReadLine and 
