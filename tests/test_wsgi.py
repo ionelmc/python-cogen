@@ -9,6 +9,8 @@ import random
 import threading
 import wsgiref.validate
 import httplib
+import os
+import tempfile
 from cStringIO import StringIO
 
 from cogen.common import *
@@ -171,8 +173,96 @@ class AsyncInputTest_MixIn:
         self.assertEqual(self.result, data)
         self.assertEqual(recvdata, 'readline')
 
+class FileWrapperTest_MixIn:
+    val = os.urandom(10240)
+    middleware = []
+    def app(self, environ, start_response):
+        tfile = tempfile.TemporaryFile()
+        tfile.write(self.val)
+        tfile.seek(1024)
+        sz, cl = environ['PATH_INFO'].lstrip('/').split('/')
+        headers = [('Content-type','application/octet-stream')]
+        if cl:
+            headers.append(('Content-length', str(1024*9)))
+        start_response('200 OK', headers)
+        return environ['wsgi.file_wrapper'](tfile, int(sz))
+        
+      
+    def test_http10_conn_close(self):
+        for sz in [100, 512, 1024]:
+            self.conn = httplib.HTTPConnection(*self.local_addr)
+            self.conn.connect()
+            self.conn._http_vsn = 10
+            self.conn._http_vsn_str = 'HTTP/1.0'
+            self.conn.auto_open = 0
+            self.conn.request('GET', '/1024/')
+            resp = self.conn.getresponse()
+            recvdata = resp.read()
+            self.assertEqual(len(recvdata), 1024*9)
+            self.assert_(recvdata == self.val[1024:])
+            try:
+                self.conn.request('GET', '/1024/', headers={})
+            except httplib.NotConnected:
+                pass
+            else:
+                self.failIf("Connection not closed!")
+    def test_http10_kalive(self):
+        for sz in [100, 512, 1024]:
+            self.conn._http_vsn = 10
+            self.conn._http_vsn_str = 'HTTP/1.0'
+            self.conn.auto_open = 0
+            self.conn.request('GET', '/1024/cl', headers={'Connection': 'keep-alive'})
+            resp = self.conn.getresponse()
+            recvdata = resp.read()
+            self.assertEqual(len(recvdata), 1024*9)
+            self.assert_(recvdata == self.val[1024:])
+        try:
+            self.conn.request('GET', '/1024/', headers={})
+        except httplib.NotConnected:
+            self.failIf("Connection closed!")
+    
+    def test_http11_kalive(self):
+        # should use chunking
+        for sz in [100, 512, 1024]:
+            self.conn.auto_open = 0
+            self.conn.request('GET', '/1024/')
+            resp = self.conn.getresponse()
+            self.assertEqual(resp.chunked, 1)
+            recvdata = resp.read()
+            self.assertEqual(len(recvdata), 1024*9)
+            self.assert_(recvdata == self.val[1024:])
+        try:
+            self.conn.request('GET', '/1024/', headers={})
+        except httplib.NotConnected:
+            self.failIf("Connection closed!")
+    
+    def test_http11_conn_close(self):
+        for sz in [100, 512, 1024]:
+            self.conn = httplib.HTTPConnection(*self.local_addr)
+            self.conn.connect()
+            self.conn.auto_open = 0
+            self.conn.request('GET', '/1024/cl', headers={'Connection': 'close'})
+            resp = self.conn.getresponse()
+            self.assertEqual(resp.chunked, 0)
+            recvdata = resp.read()
+            self.assertEqual(len(recvdata), 1024*9)
+            self.assert_(recvdata == self.val[1024:])
+            try:
+                self.conn.request('GET', '/1024/', headers={})
+            except httplib.NotConnected:
+                pass
+            else:
+                self.failIf("Connection not closed!")
+        
+    
 for poller_cls in reactors.available:
     for prio_mixin in (PrioMixIn, NoPrioMixIn):
+        name = 'FileWrapperTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, 
+            (FileWrapperTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
         name = 'SimpleAppTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(
             name, 
