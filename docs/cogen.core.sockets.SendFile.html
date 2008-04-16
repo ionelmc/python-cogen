@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -66,23 +66,23 @@
 there is no sendfile.
 You can use this as a WriteAll if you specify the length.
 Usage:
-<blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python python python python python python python" name="code">
-yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0) 
+<blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+yield sockets.SendFile(file_object, socket_object, 0) 
     # will send till send operations return 0
     
-yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, blocksize=0)
+yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
     # there will be only one send operation (if successfull)
     # that meas the whole file will be read in memory if there is 
     #no sendfile
     
-yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, &lt;file size&gt;)
-    # this will hang if we can't read &lt;file size&gt; bytes
+yield sockets.SendFile(file_object, socket_object, 0, file_size)
+    # this will hang if we can't read file_size bytes
     #from the file
 </pre></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L219">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L286">View source</a>
     </li>
 </ul>
     <div>
@@ -95,7 +95,7 @@ yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, &lt;file size&gt;)
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L245">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L312">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
@@ -106,7 +106,7 @@ yield sockets.SendFile(&lt;file handle&gt;, &lt;sock&gt;, 0, &lt;file size&gt;)
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L284">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L352">View source</a>
     </li>
 </ul>
     </div>

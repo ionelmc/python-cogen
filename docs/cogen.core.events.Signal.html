@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li class="active">
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -60,13 +60,17 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Signal</h1>
-    <div class="docstring plain">This will resume the coroutines that where paused with WaitForSignal.<br /><br />Usage:<br /><br /><pre class="codeblock python python python python python" name="code">
-nr = yield events.Signal(name, value)
-</pre><ul><li> nr - the number of coroutines woken up</li></ul></div>
+    <div class="docstring plain">This will resume the coroutines that where paused with WaitForSignal.<br /><br />Usage:<br /><br /><pre class="codeblock python python python python python python python python python" name="code">
+nr = yield events.Signal(
+    name, 
+    value,
+    prio=priority.DEFAULT
+)
+</pre><ul><li> nr - the number of coroutines woken up</li><li> name - object that coroutines wait on, can be a string </li><li> value - object that the waiting coros recieve when they are resumed.</li></ul><blockquote></blockquote>See: <a href="Docs_CogenCoreEventsOperation.html">Operation</a></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L143">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L180">View source</a>
     </li>
 </ul>
     <div>
@@ -80,7 +84,7 @@ active coroutine queue.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L158">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L203">View source</a>
     </li>
 </ul>
     </div>

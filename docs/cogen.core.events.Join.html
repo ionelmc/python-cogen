@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li class="active">
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -60,8 +60,8 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Join</h1>
-    <div class="docstring plain">A operator for waiting on a coroutine.
-Example:<br /><br /><pre class="codeblock python python python python" name="code">
+    <div class="docstring plain">A operation for waiting on a coroutine.
+Example:<br /><br /><pre class="codeblock python python python python python python python" name="code">
 @coroutine
 def coro_a():
     return_value = yield events.Join(ref)
@@ -74,11 +74,12 @@ def coro_b():
 
 ref = scheduler.add(coro_b)
 scheduler.add(coro_a)
-</pre></div>
+</pre>This will pause the coroutine and resume it when the other coroutine
+(<code name="code" class="python">ref</code> in the example) has died.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L311">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L368">View source</a>
     </li>
 </ul>
     <div>
@@ -91,7 +92,7 @@ scheduler.add(coro_a)
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L333">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L393">View source</a>
     </li>
 </ul>
     </div>

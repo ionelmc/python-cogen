@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li class="active">
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -61,14 +61,14 @@
         <div id="content">
     <h1>Class: cogen.core.events.Call</h1>
     <div class="docstring plain">This will pause the current coroutine, add a new coro in the scheduler and
-resume the callee when it returns.<br /><br />Usage:
-<pre class="codeblock python python python" name="code">
-result = yield events.Call(mycoro, args=&lt;a tuple&gt;, kwargs=&lt;a dict&gt;, prio=&lt;int&gt;)
-</pre><ul><li> if <code name="code" class="python">prio</code> is set the new coroutine will be added in the top of the </li></ul><blockquote>scheduler queue</blockquote></div>
+resume the callee when it returns. <br /><br />Usage:
+<pre class="codeblock python python python python python python" name="code">
+result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)
+</pre><ul><li> mycoro - the coroutine to add.</li><li> args, kwargs - params to call the coroutine with</li><li> if <code name="code" class="python">prio</code> is set the new coroutine will be added in the top of the </li></ul><blockquote>scheduler queue</blockquote>See: <a href="Docs_CogenCoreEventsOperation.html">Operation</a></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L192">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L237">View source</a>
     </li>
 </ul>
     <div>
@@ -81,7 +81,7 @@ result = yield events.Call(mycoro, args=&lt;a tuple&gt;, kwargs=&lt;a dict&gt;, 
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L208">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L257">View source</a>
     </li>
 </ul>
     </div>

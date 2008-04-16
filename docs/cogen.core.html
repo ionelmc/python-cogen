@@ -27,7 +27,7 @@
                     </li><li class="active">
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -53,7 +53,7 @@
                 <h2>Submodules</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.coroutine.html">coroutine</a>
+                        <a href="cogen.core.coroutines.html">coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">events</a>
                     </li><li>
@@ -75,14 +75,14 @@
         cogen.core
     </h1>
     <div class="docstring plain">This module holds the essential stuff.<br /><br />Programming with this library should be straghtforward. A coroutine is just
-a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python" name="code">
+a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 @coroutine
 def mycoro(bla):
     yield &lt;operation&gt;
     yield &lt;operation&gt;
 </pre>
 <blockquote></blockquote><ul><li> the <code name="code" class="python">operation</code> instructs the scheduler what to do with the </li></ul><blockquote>coroutine: suspend it till someting happens, add another coro in the scheduler, raise a event and so on.</blockquote><ul><li> the <code name="code" class="python">operations</code> are split up in 2 modules: events and sockets<ul><li> the <code name="code" class="python">operations</code> from sockets are related to network, like reading and </li></ul></li></ul><blockquote>writing, and these are done asynchronously but your code in the coroutine will see them as a regular synchronous or blocking call.</blockquote><ul><li> the <code name="code" class="python">operations</code> from events are related to signals and </li></ul><blockquote>coroutine/scheduler management.</blockquote><ul><li> if a <code name="code" class="python">operation</code> has a result associated then the yield will return that </li></ul><blockquote>result (eg. a string or a (connection, address) tuple) otherwise it will return the operation instance.</blockquote>
-Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 import sys, os
 from cogen.common import *
 
@@ -123,16 +123,16 @@ m.run()
     <div>
         <h2>Modules</h2>
             <h3>
-                <a href="cogen.core.coroutine.html">coroutine</a>
+                <a href="cogen.core.coroutines.html">coroutines</a>
             </h3>
             <div class="docstring plain">Coroutine related boilerplate and wrappers.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
-        <a href="cogen.core.coroutine.html">Details</a>
+        <a href="cogen.core.coroutines.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutine.py#L1">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L1">View source</a>
     </li>
 </ul>
             <h3>
@@ -164,7 +164,13 @@ m.run()
             <h3>
                 <a href="cogen.core.reactors.html">reactors</a>
             </h3>
-            <div class="docstring plain">Network polling code.</div>
+            <div class="docstring plain">Network polling code.<br /><br />The reactor works in tandem with the socket operations.
+Here's the basic workflow:<br /><br /><ul><li> the coroutine yields a operation</li><li> the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)</li></ul><blockquote>Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method</blockquote><ul><li> if run_first is False then the operation is added in the reactor for </li></ul><blockquote>polling (with the exception that if we have data in out internal buffersthe operation is runned first)</blockquote><ul><li> if run_first is set (it's default) in the operation then in process </li></ul><blockquote>method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] is called with the operation and coroutine</blockquote>
+<blockquote></blockquote>Note: run_first is a optimization hack really, first it tries to run the
+operation (this asumes the sockets are usualy ready) and if it raises any
+exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling
+(via select, epoll, kqueue etc) then the run method will be called only when
+select, epoll, kqueue says that the socket is ready.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -177,7 +183,10 @@ m.run()
             <h3>
                 <a href="cogen.core.schedulers.html">schedulers</a>
             </h3>
-            <div class="docstring plain">Scheduling framework.</div>
+            <div class="docstring plain">Scheduling framework.<br /><br />The scheduler handles the timeouts, run the operations and does very basic
+management of coroutines. Most of the heavy logic is in each operation class.
+See: <a href="Docs_CogenCoreEvents.html">events</a> and <a href="Docs_CogenCoreSockets.html">sockets</a>
+Most of those operations work with attributes we set in the scheduler.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
@@ -190,7 +199,9 @@ m.run()
             <h3>
                 <a href="cogen.core.sockets.html">sockets</a>
             </h3>
-            <div class="docstring plain">Socket-only coroutine operations and <code name="code" class="python">Socket</code> wrapper.</div>
+            <div class="docstring plain">Socket-only coroutine operations and <code name="code" class="python">Socket</code> wrapper.
+Really - the only thing you need to know for most stuff is
+the <a href="Docs_CogenCoreSocketsSocket.html">Socket</a> class.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>

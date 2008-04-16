@@ -7,7 +7,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
-        - Class: QDone</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+        - Class: TimedOperation</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
     <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
     <link rel="stylesheet" href="css/apydia.css" type="text/css" />
     <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
@@ -28,9 +28,9 @@
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
                         <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
-                    </li><li>
-                        <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li class="active">
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -53,9 +53,11 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.queue.QJoin.html#method-finalize">finalize</a>
+                        <a href="cogen.core.events.TimedOperation.html#method-cleanup">cleanup</a>
                     </li><li>
-                        <a href="cogen.core.queue.QDone.html#method-process">process</a>
+                        <a href="cogen.core.queue.QPut.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.core.events.TimedOperation.html#method-process">process</a>
                     </li>
                 </ul>
             </div>
@@ -63,35 +65,56 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
+                        <a href="cogen.core.queue.QPut.html#attribute-finalized">finalized</a>
+                    </li><li>
                         <a href="cogen.core.queue.QPut.html#attribute-prio">prio</a>
                     </li><li>
-                        <a href="cogen.core.queue.QDone.html#attribute-queue">queue</a>
+                        <a href="cogen.core.queue.QPut.html#attribute-weak_timeout">weak_timeout</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
-    <h1>Class: cogen.core.queue.QDone</h1>
-    <div class="docstring plain">A operation for the queue done_task call</div>
+    <h1>Class: cogen.core.events.TimedOperation</h1>
+    <div class="docstring plain">Operations that have a timeout derive from this.<br /><br />Eg:<br /><br /><pre class="codeblock python python python python python python python python python python python python" name="code">
+yield TimedOperation(
+    timeout=None, 
+    weak_timeout=True,
+    prio=priority.DEFAULT
+)
+</pre><ul><li> timeout - can be a float/int (number of seconds) or a timedelta or a datetime value</li></ul><blockquote>if it's a datetime the timeout will occur on that moment</blockquote><ul><li> weak_timeout - strong timeouts just happen when specified, weak_timeouts</li></ul><blockquote>get delayed if some action happens (eg: new but not enough data recieved)</blockquote>
+See: <a href="Docs_CogenCoreEventsOperation.html">Operation</a>
+Note: you don't really use this, this is for subclassing for other operations.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L122">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L72">View source</a>
     </li>
 </ul>
     <div>
         <h2>Methods</h2>
+            <h3 id="method-cleanup">
+                cleanup
+                <span class="args">(self, sched)</span>
+            </h3>
+            <div class="docstring plain">Clean up after a timeout. Implemented in ops that need cleanup.
+If return value evaluated to false the sched won't raise the timeout in
+the coroutine.</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L117">View source</a>
+    </li>
+</ul>
             <h3 id="method-finalize">
                 finalize
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Called just before the Coroutine wrapper passes the operation back
-in the generator. Return value is the value actualy sent in the
-generator.</div>
+            <div class="docstring plain"></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L65">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L105">View source</a>
     </li>
 </ul>
             <h3 id="method-process">
@@ -102,12 +125,22 @@ generator.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L130">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L109">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Attributes</h2>
+            <h3 id="attribute-finalized">finalized</h3>
+            <div class="docstring plain"></div>
+            <h4>Value of finalized</h4>
+            <pre class="code"><code>&lt;member 'finalized' of 'TimedOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+    </li>
+</ul>
             <h3 id="attribute-prio">prio</h3>
             <div class="docstring plain"></div>
             <h4>Value of prio</h4>
@@ -118,10 +151,10 @@ generator.</div>
         <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
     </li>
 </ul>
-            <h3 id="attribute-queue">queue</h3>
+            <h3 id="attribute-weak_timeout">weak_timeout</h3>
             <div class="docstring plain"></div>
-            <h4>Value of queue</h4>
-            <pre class="code"><code>&lt;member 'queue' of 'QDone' objects&gt;</code></pre>
+            <h4>Value of weak_timeout</h4>
+            <pre class="code"><code>&lt;member 'weak_timeout' of 'TimedOperation' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">

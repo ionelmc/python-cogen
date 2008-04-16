@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li class="active">
@@ -77,7 +77,7 @@
         <div id="content">
     <h1>Class: cogen.core.queue.Queue</h1>
     <div class="docstring plain">This class attempts to mimic the exact functionality of the
-python standard library Queue.Queue class, but with a coroutine context:<br /><br /> the queue calls return coroutine operations<br /><br />So, to use this you write someting like:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python" name="code">
+python standard library Queue.Queue class, but with a coroutine context:<br /><br /> the queue calls return coroutine operations<br /><br />So, to use this you write someting like:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 @coroutine
 def foo():
     q = cogen.core.queue.Queue(&lt;size&gt;)
@@ -87,7 +87,7 @@ def foo():
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L143">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L154">View source</a>
     </li>
 </ul>
     <div>
@@ -100,7 +100,7 @@ def foo():
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L213">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L224">View source</a>
     </li>
 </ul>
             <h3 id="method-full">
@@ -111,7 +111,7 @@ def foo():
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L217">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L228">View source</a>
     </li>
 </ul>
             <h3 id="method-get">
@@ -128,7 +128,7 @@ in that case).</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L242">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L253">View source</a>
     </li>
 </ul>
             <h3 id="method-get_nowait">
@@ -140,7 +140,7 @@ raise the Empty exception.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L255">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L266">View source</a>
     </li>
 </ul>
             <h3 id="method-join">
@@ -153,7 +153,7 @@ to indicate the item was retrieved and all work on it is complete.<br /><br />Wh
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L197">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L208">View source</a>
     </li>
 </ul>
             <h3 id="method-put">
@@ -170,7 +170,7 @@ is ignored in that case).</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L221">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L232">View source</a>
     </li>
 </ul>
             <h3 id="method-put_nowait">
@@ -182,7 +182,7 @@ Otherwise raise the Full exception.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L234">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L245">View source</a>
     </li>
 </ul>
             <h3 id="method-qsize">
@@ -193,7 +193,7 @@ Otherwise raise the Full exception.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L209">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L220">View source</a>
     </li>
 </ul>
             <h3 id="method-task_done">
@@ -209,7 +209,7 @@ placed in the queue.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L174">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L185">View source</a>
     </li>
 </ul>
     </div>

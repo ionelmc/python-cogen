@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -68,7 +68,13 @@
     <h1>Module:
         cogen.core.reactors
     </h1>
-    <div class="docstring plain">Network polling code.</div>
+    <div class="docstring plain">Network polling code.<br /><br />The reactor works in tandem with the socket operations.
+Here's the basic workflow:<br /><br /><ul><li> the coroutine yields a operation</li><li> the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)</li></ul><blockquote>Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method</blockquote><ul><li> if run_first is False then the operation is added in the reactor for </li></ul><blockquote>polling (with the exception that if we have data in out internal buffersthe operation is runned first)</blockquote><ul><li> if run_first is set (it's default) in the operation then in process </li></ul><blockquote>method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] is called with the operation and coroutine</blockquote>
+<blockquote></blockquote>Note: run_first is a optimization hack really, first it tries to run the
+operation (this asumes the sockets are usualy ready) and if it raises any
+exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling
+(via select, epoll, kqueue etc) then the run method will be called only when
+select, epoll, kqueue says that the socket is ready.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -87,7 +93,7 @@
         <a href="cogen.core.reactors.EpollReactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L411">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L435">View source</a>
     </li>
 </ul>
             <h3>
@@ -100,7 +106,7 @@
         <a href="cogen.core.reactors.KQueueReactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L205">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L226">View source</a>
     </li>
 </ul>
             <h3>
@@ -114,7 +120,7 @@ The operations are not done here, they are done in the socket ops instances.</di
         <a href="cogen.core.reactors.ReactorBase.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L50">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L70">View source</a>
     </li>
 </ul>
             <h3>
@@ -127,7 +133,7 @@ The operations are not done here, they are done in the socket ops instances.</di
         <a href="cogen.core.reactors.SelectReactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L146">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L166">View source</a>
     </li>
 </ul>
     </div>

@@ -27,7 +27,7 @@
                     </li><li>
                         <a href="cogen.core.html">cogen.core</a>
                     </li><li>
-                        <a href="cogen.core.coroutine.html">cogen.core.coroutine</a>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
@@ -61,12 +61,23 @@
                     </li>
                 </ul>
             </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.html#attribute-getnow">getnow</a>
+                    </li>
+                </ul>
+            </div>
         </div>
         <div id="content">
     <h1>Module:
         cogen.core.schedulers
     </h1>
-    <div class="docstring plain">Scheduling framework.</div>
+    <div class="docstring plain">Scheduling framework.<br /><br />The scheduler handles the timeouts, run the operations and does very basic
+management of coroutines. Most of the heavy logic is in each operation class.
+See: <a href="Docs_CogenCoreEvents.html">events</a> and <a href="Docs_CogenCoreSockets.html">sockets</a>
+Most of those operations work with attributes we set in the scheduler.</div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
@@ -85,7 +96,7 @@
         <a href="cogen.core.schedulers.DebugginWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L16">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L24">View source</a>
     </li>
 </ul>
             <h3>
@@ -93,27 +104,42 @@
             </h3>
             <div class="docstring plain">Basic deque-based scheduler with timeout support and primitive
 prioritisaiton parameters.<br /><br />Usage:
-<code class="codeblock python python python python python python python python python python python python python python python python python" name="code">Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</code><ul><li> reactor: a reactor class to use</li><li> default_priority: a default priority option for operations that do not </li></ul><blockquote>set it. check <a href="Docs_CogenCoreUtilPriority.html">priority</a>.</blockquote><ul><li> default_timeout: a default timedelta or number of seconds to wait for </li></ul><blockquote>the operation</blockquote></div>
+<code class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</code><ul><li> reactor: a reactor class to use</li><li> default_priority: a default priority option for operations that do not </li></ul><blockquote>set it. check <a href="Docs_CogenCoreUtilPriority.html">priority</a>.</blockquote><ul><li> default_timeout: a default timedelta or number of seconds to wait for </li></ul><blockquote>the operation, -1 means no timeout.</blockquote></div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.schedulers.Scheduler.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L53">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L65">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.schedulers.Timeout.html">Timeout</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring plain">This wrapps a (op, coro) pair in weakreferences, extracts the timeout
+value from the operation. We add instances of this class in the timeouts
+heapq.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.schedulers.Timeout.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L25">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L33">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-getnow">getnow</h3>
+            <div class="docstring plain"></div>
+            <h4>Value of getnow</h4>
+            <pre class="code"><code>&lt;built-in method now of type object at 0x1E1CAD88&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L0">View source</a>
     </li>
 </ul>
     </div>
