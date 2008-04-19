@@ -14,20 +14,22 @@ class Empty(Exception):
     pass
 class QGet(events.TimedOperation):
     "A operation for the queue get call."
-    __slots__ = ['queue', 'block', 'caller', 'result']
+    __slots__ = ['queue', 'block', 'caller', 'result', 'waiting']
     def __init__(self, queue, block, **kws):
         super(QGet, self).__init__(**kws)
         self.queue = queue
         self.block = block
         self.caller = None
         self.result = None
+        self.waiting = False
         
     def finalize(self):
         super(QGet, self).finalize()
         return self.result
         
     def cleanup(self, sched, coro):
-        self.queue.waiting_gets.remove(self)
+        if self.waiting:
+            self.queue.waiting_gets.remove(self)
         return True
 
     def process(self, sched, coro):
@@ -36,6 +38,7 @@ class QGet(events.TimedOperation):
         if self.queue._empty():
             if self.block:
                 self.queue.waiting_gets.append(self)
+                self.waiting = True
             else:
                 raise Empty
         else:
@@ -43,6 +46,7 @@ class QGet(events.TimedOperation):
             if self.queue.waiting_puts:
                 while not self.queue.full():
                     putop = self.queue.waiting_puts.popleft()
+                    putop.waiting = False
                     self.queue._put(putop.item)
                     if putop.prio & priority.CORO:
                         if putop.prio & priority.OP:
@@ -68,16 +72,18 @@ class QGet(events.TimedOperation):
         
 class QPut(events.TimedOperation):
     "A operation for the queue put call."
-    __slots__ = ['queue', 'item', 'block', 'caller', 'result']
+    __slots__ = ['queue', 'item', 'block', 'caller', 'result', 'waiting']
     def __init__(self, queue, item, block, **kws):
         super(QPut, self).__init__(**kws)
         self.queue = queue
         self.item = item
         self.block = block
         self.caller = None
+        self.waiting = False
 
     def cleanup(self, sched, coro):
-        self.queue.waiting_puts.remove(self)
+        if self.waiting:
+            self.queue.waiting_puts.remove(self)
         return True
 
     def process(self, sched, coro):
@@ -87,6 +93,7 @@ class QPut(events.TimedOperation):
             if self.block:
                 self.queue.unfinished_tasks += 1
                 self.queue.waiting_puts.append(self)
+                self.waiting = True
             else:
                 raise Full
         else:
@@ -94,6 +101,7 @@ class QPut(events.TimedOperation):
             if self.queue.waiting_gets:
                 getop = self.queue.waiting_gets.popleft()
                 getop.result = self.item
+                getop.waiting = False
                 if self.prio:
                     if self.prio & priority.CORO:
                         sched.active.appendleft((self, coro))
