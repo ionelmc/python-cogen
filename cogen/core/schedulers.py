@@ -114,12 +114,14 @@ class Scheduler(object):
         return coro
        
     def run_timer(self):
+        "Run the timer ops - not timeouts, this is for stuff like events.Sleep."
         now = getnow() 
         while self.timewait and self.timewait[0].wake_time <= now:
             op = heapq.heappop(self.timewait)
             self.active.appendleft((op, op.coro))
     
     def next_timer_delta(self): 
+        "Returns a timevalue that the reactor will wait on."
         if self.timewait and not self.active:
             now = getnow()
             if now > self.timewait[0].wake_time:
@@ -137,6 +139,26 @@ class Scheduler(object):
         heapq.heappush(self.timeouts, Timeout(op, coro, weak_timeout))
     
     def handle_timeouts(self):
+        """Handle timeouts. Raise timeouted operations with a OperationTimeout 
+        in the associated coroutine (if they are still alive and the operation
+        hasn't actualy sucessfuly completed) or, if the operation has a 
+        weak_timeout flag, update the timeout point and add it back in the 
+        heapq.
+        
+        weak_timeout notes:        
+          * weak_timeout means a last_update attribute is updated with
+          a timestamp of the last activity in the operation - for example, a
+          may recieve new data and not complete (not enough data, etc)
+          * if there was activity since the last time we've cheched this 
+          timeout we push it back in the heapq with a timeout value we'll check 
+          it again
+        
+        Also, we call a cleanup on the op, only if cleanup return true we raise 
+        the timeout (finalized isn't enough to check if the op has completed 
+        since finalized is set when the operation gets back in the coro - and
+        it might still be in the Scheduler.active queue when we get to this 
+        timeout - well, this is certainly a problem magnet: TODO: fix_finalized)
+        """
         now = getnow()
         #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
         while self.timeouts and self.timeouts[0].timeout <= now:
@@ -175,11 +197,15 @@ class Scheduler(object):
                 result = events.CoroutineException(sys.exc_info()), coro
             return result
         return None, None
-    
-    def run(self):
-        """This is the main loop.
-        This loop will exit when there are no more coroutines to run or stop has
-        been called.
+        
+    def iter_run(self):
+        """
+        The actual processing for the main loop is here.
+        
+        Running the main loop as a generator (where a iteration is a full 
+        sched, reactor and timers/timeouts run) is usefull for interleaving
+        the main loop with other applications that have a blocking main loop and 
+        require cogen to run in the same thread.
         """
         self.running = True
         urgent = None
@@ -203,10 +229,19 @@ class Scheduler(object):
                 self.run_timer()
             if self.timeouts: 
                 self.handle_timeouts()
-                
-            #~ print 'active:  ',len(self.active)
-            #~ print 'poll:    ',len(self.poll)
-            #~ print 'timeouts:',len(self.timeouts)
-            #~ print 'running: ',self.running
+            yield
+            # this could had beed a ordinary function and have the run() call 
+            #this repeatedly but the _urgent_ operation this is usefull (as it 
+            #saves us needlessly hammering the active coroutines queue with 
+            #append and pop calls on the same thing
+    
+    def run(self):
+        """This is the main loop.
+        This loop will exit when there are no more coroutines to run or stop has
+        been called.
+        """
+        for _ in self.iter_run():
+            pass
+            
     def stop(self):
         self.running = False
