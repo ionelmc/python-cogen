@@ -6,7 +6,7 @@ management of coroutines. Most of the heavy logic is in each operation class.
 See: [Docs_CogenCoreEvents events] and [Docs_CogenCoreSockets sockets]
 Most of those operations work with attributes we set in the scheduler.
 """
-
+__all__ = ['Scheduler']
 import collections
 import datetime
 import heapq

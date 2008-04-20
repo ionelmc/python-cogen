@@ -3,6 +3,11 @@ Socket-only coroutine operations and `Socket` wrapper.
 Really - the only thing you need to know for most stuff is 
 the [Docs_CogenCoreSocketsSocket Socket] class.
 """
+__all__ = [
+    'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Read',
+    'ReadAll', 'ReadLine', 'Write', 'WriteAll','Accept','Connect'
+]
+
 import socket
 import errno
 import exceptions

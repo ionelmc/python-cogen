@@ -842,3 +842,5 @@ if kqueue:
 if epoll:
     DefaultReactor = EpollReactor
     available.append(EpollReactor)
+
+__all__ = [cls.__name__ for cls in available]
