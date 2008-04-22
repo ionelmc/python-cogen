@@ -191,7 +191,7 @@ class SocketTest_MixIn:
             self.assertEqual(len(self.m.active), 0)
             self.failIf(self.m_run.isAlive())
         except KeyboardInterrupt:
-            self.failIf(True)
+            self.failIf("Interrupted from the coroutine, something failed.")
             
 for poller_cls in reactors.available:
     for prio_mixin in (NoPrioMixIn, PrioMixIn):

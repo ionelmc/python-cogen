@@ -158,6 +158,43 @@ class SchedulerTest_MixIn:
         self.m.add(caller)
         self.m.run()
         self.assertEqual(self.msgs, [1,2,3,4])
+    def test_bad_ops(self):
+        class HarmlessError(Exception):
+            pass
+        #~ class DoubleOperation(events.Sleep, events.TimedOperation):
+            #~ def __init__(self, val=None, timestamp=None, **kws):
+                #~ events.Sleep.__init__(self, val, timestamp)
+                #~ events.TimedOperation.__init__(**kws)
+        #TODO: add this too
+        
+        class ErrorOperation(events.TimedOperation):
+            def process(self, sched, coro):
+                super(ErrorOperation, self).process(sched, coro)
+                raise HarmlessError
+        self.botched = False
+        @coroutine
+        def worker():
+            sticky_reference = ErrorOperation(timeout=0.01)
+            try:
+                yield sticky_reference
+            except HarmlessError:
+                pass
+            else:
+                self.botched = HarmlessError
+            try:
+                bla = yield events.Sleep(0.05)
+            except:
+                self.botched = sys.exc_info()
+            bla = yield events.Sleep(0.05)
+
+        @coroutine
+        def monitor(coro):
+            yield events.Join(coro)
+        
+        self.m.add(monitor, args=(self.m.add(worker),))
+        
+        self.m.run()
+        self.assertEqual(self.botched, False)
 
 class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
     pass

@@ -103,7 +103,7 @@ class Timer_MixIn:
             #~ print self.m.active
             #~ print self.m.poll
         except KeyboardInterrupt:
-            self.failIf(True)
+            self.failIf("Interrupted from the coroutine, something failed.")
         self.m_run.join()
         self.assertEqual(len(self.m.poll), 0)
         self.assertEqual(len(self.m.active), 0)
