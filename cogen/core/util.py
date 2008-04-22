@@ -5,11 +5,11 @@ __all__ = ['debug', 'priority', 'fmt_list']
 
 import datetime
 import sys
-import traceback
 
                 
 def debug(trace=True, backtrace=1, other=None):
     from pprint import pprint
+    import traceback
     def debugdeco(func):
         """A decorator for debugging purposes. Shows the call arguments, result
         and instructions as they are runned."""

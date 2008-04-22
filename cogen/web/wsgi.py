@@ -57,15 +57,16 @@ except ImportError:
 import sys
 import time
 import traceback
-import warnings
 from urllib import unquote
 from urlparse import urlparse
 from traceback import format_exc
-import cogen
 
-from cogen.common import *
-from cogen.core.util import debug
-from cogen.core.coroutines import local
+from cogen import core, __version__
+from cogen.core import reactors, sockets, events
+from cogen.core.util import debug, priority
+from cogen.core.coroutines import coroutine, local
+from cogen.core.schedulers import Scheduler
+
 import async
 
 quoted_slash = re.compile("(?i)%2F")
@@ -412,7 +413,7 @@ class WSGIConnection(object):
         ENVIRON['cogen.http_connection'] = self
         ENVIRON['cogen.core'] = async.COGENOperationWrapper(
           ENVIRON['cogen.wsgi'], 
-          cogen.core
+          core
         )
         ENVIRON['cogen.call'] = async.COGENCallWrapper(ENVIRON['cogen.wsgi'])
         ENVIRON['cogen.input'] = async.COGENOperationWrapper(
@@ -555,7 +556,7 @@ class WSGIServer(object):
     self.scheduler = scheduler
     self.environ['cogen.sched'] = self.scheduler
           
-    self.version = "cogen/%s" % cogen.__version__
+    self.version = "cogen/%s" % __version__
     if callable(wsgi_app):
       # We've been handed a single wsgi_app, in CP-2.1 style.
       # Assume it's mounted at "".
@@ -657,6 +658,7 @@ class WSGIServer(object):
         except Exception, exc: 
           # make acceptor more robust in the face of weird 
           # accept bugs, XXX: but we might get a infinite loop
+          import warnings
           warnings.warn("Accept thrown an exception: %s" % exc)
           continue
          
@@ -718,7 +720,7 @@ def server_factory(global_conf, host, port, **options):
 
   def serve(app):
     sched = Scheduler(
-      reactor=getattr(cogen.core.reactors, options.get('reactor', 'DefaultReactor')), 
+      reactor=getattr(reactors, options.get('reactor', 'DefaultReactor')), 
       default_priority=int(options.get('default_priority', priority.FIRST)), 
       default_timeout=int(options.get('default_timeout', 15)),
       reactor_resolution=float(options.get('reactor_resolution', 0.5)),

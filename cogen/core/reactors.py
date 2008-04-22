@@ -26,8 +26,6 @@ from __future__ import division
 import collections
 import time
 import sys
-import warnings
-import traceback
 
 try:
     import select
@@ -364,6 +362,7 @@ class PollReactor(ReactorBase):
                     try:
                         self.poller.unregister(fileno)
                     except OSError, e:
+                        import warnings
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_reads[fileno]
                     return True
@@ -372,6 +371,7 @@ class PollReactor(ReactorBase):
                     try:
                         self.poller.unregister(fileno)
                     except OSError:
+                        import warnings
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_writes[fileno]
                     return True
@@ -447,6 +447,7 @@ class EpollReactor(ReactorBase):
                         epoll.epoll_ctl(self.epoll_fd, 
                                         epoll.EPOLL_CTL_DEL, fileno, 0)
                     except OSError, e:
+                        import warnings
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_reads[fileno]
                     return True
@@ -456,6 +457,7 @@ class EpollReactor(ReactorBase):
                         epoll.epoll_ctl(self.epoll_fd, 
                                         epoll.EPOLL_CTL_DEL, fileno, 0)
                     except OSError:
+                        import warnings
                         warnings.warn("FD Remove error: %r" % e)
                     del self.waiting_writes[fileno]
                     return True
@@ -605,6 +607,7 @@ class IOCPProactor(ReactorBase):
             #    self.registered_ops[op] = self.run_iocp(op, coro)
             del self.registered_ops[op]
             win32file.CancelIo(op.sock._fd.fileno())
+            import warnings
             warnings.warn("%s on %r/%r" % (
                 ctypes.FormatError(rc), op, coro), stacklevel=1
             )
@@ -789,7 +792,6 @@ class QtReactor(ReactorBase):
         except:
             import traceback
             traceback.print_exc()
-            print self.scheduler
             QObject.disconnect(self.timer, SIGNAL("timeout()"), self.sched_run)
         
     def __len__(self):

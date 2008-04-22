@@ -11,9 +11,8 @@ __all__ = [
 import socket
 import errno
 import exceptions
-import warnings
 import datetime
-import struct
+
 
 try:
     import ctypes

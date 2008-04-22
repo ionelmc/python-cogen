@@ -7,3 +7,5 @@
  * added support for a threading.local-like object in cogen.core.coroutines.local
  * changed epoll and kqueue to use ONE-SHOT events
  * reworked the IOCPProactor
+ * added a QtReactor for using cogen within a Qt app (unstable)
+ 

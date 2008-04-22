@@ -5,9 +5,6 @@ __all__ = ['local', 'Coroutine', 'coro', 'coroutine']
 
 import types
 import sys
-import gc
-import warnings
-import traceback
 
 from cogen.core import events
 from cogen.core.util import debug, TimeoutDesc, priority
@@ -172,6 +169,7 @@ class Coroutine(events.Operation):
         which handles it's own completion (resuming the caller and the waiters).
         """
         if op is self:
+            import warnings
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
@@ -194,6 +192,7 @@ class Coroutine(events.Operation):
         try:
             if self.state == self.STATE_RUNNING:
                 if self.debug:
+                    import traceback
                     print traceback.print_stack(self.coro.gi_frame)
                 if isinstance(op, events.CoroutineException):
                     rop = self.coro.throw(*op.message)
@@ -238,6 +237,7 @@ class Coroutine(events.Operation):
     def handle_error(self):        
         print>>sys.stderr, '-'*40
         print>>sys.stderr, 'Exception happened during processing of coroutine.'
+        import traceback
         traceback.print_exc()
         print>>sys.stderr, "Coroutine %s killed. " % self
         print>>sys.stderr, '-'*40
