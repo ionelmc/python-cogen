@@ -12,7 +12,7 @@ import socket
 import errno
 import exceptions
 import datetime
-
+import struct
 
 try:
     import ctypes
