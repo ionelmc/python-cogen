@@ -48,6 +48,8 @@ class Timeout(object):
         if weak_timeout:
             self.last_checkpoint = getnow()
             self.delta = self.timeout - self.last_checkpoint
+        else:
+            self.last_checkpoint = self.delta = None
         
     def __cmp__(self, other):
         return cmp(self.timeout, other.timeout)    
@@ -172,9 +174,8 @@ class Scheduler(object):
                         timo.timeout = timo.last_checkpoint + timo.delta
                         heapq.heappush(self.timeouts, timo)
                         continue
-                throw = op.cleanup(self, coro)
-                
-                if not op.finalized and coro and coro.running and throw:
+                if op.state is events.RUNNING and coro and coro.running and \
+                                                        op.cleanup(self, coro):
                     self.active.append((
                         events.CoroutineException((
                             events.OperationTimeout, 
@@ -194,6 +195,7 @@ class Scheduler(object):
             try:
                 result = op.process(self, coro) or (None, None)
             except:
+                op.state = events.ERRORED
                 result = events.CoroutineException(sys.exc_info()), coro
             return result
         return None, None

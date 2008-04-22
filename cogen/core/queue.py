@@ -30,7 +30,7 @@ class QGet(events.TimedOperation):
     def cleanup(self, sched, coro):
         if self.waiting:
             self.queue.waiting_gets.remove(self)
-        return True
+            return True
 
     def process(self, sched, coro):
         super(QGet, self).process(sched, coro)
@@ -84,7 +84,7 @@ class QPut(events.TimedOperation):
     def cleanup(self, sched, coro):
         if self.waiting:
             self.queue.waiting_puts.remove(self)
-        return True
+            return True
 
     def process(self, sched, coro):
         super(QPut, self).process(sched, coro)

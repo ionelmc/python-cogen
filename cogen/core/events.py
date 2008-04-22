@@ -13,15 +13,14 @@ from cogen.core.util import debug, TimeoutDesc, priority
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
+RUNNING, FINALIZED, ERRORED = range(3)
+
 class CoroutineException(Exception):
     """This is used intenally to carry exception state in the poller and 
     scheduler."""
     __doc_all__ = []
     prio = priority.DEFAULT
     def __init__(self, *args):
-        for i in args:
-            if isinstance(i, TimedOperation):
-                i.finalize()
         super(CoroutineException, self).__init__(*args)
 
 class ConnectionError(Exception):
@@ -54,10 +53,11 @@ class Operation(object):
     
     Note: you don't really use this, this is for subclassing for other operations.
     """
-    __slots__ = ['prio']
+    __slots__ = ['prio', 'state']
     
     def __init__(self, prio=priority.DEFAULT):
         self.prio = prio
+        self.state = RUNNING
     
     def process(self, sched, coro):
         """This is called when the operation is to be processed by the 
@@ -71,6 +71,7 @@ class Operation(object):
         """Called just before the Coroutine wrapper passes the operation back
         in the generator. Return value is the value actualy sent in the 
         generator."""
+        self.state = FINALIZED
         return self
             
 
@@ -95,7 +96,7 @@ class TimedOperation(Operation):
     See: [Docs_CogenCoreEventsOperation Operation]
     Note: you don't really use this, this is for subclassing for other operations.
     """
-    __slots__ = ['_timeout', '__weakref__', 'finalized', 'weak_timeout']
+    __slots__ = ['_timeout', '__weakref__', 'weak_timeout']
     timeout = TimeoutDesc()
     
     def __init__(self, timeout=None, weak_timeout=True, **kws):
@@ -104,12 +105,7 @@ class TimedOperation(Operation):
             self.timeout = timeout
         else:
             self._timeout = None
-        self.finalized = False
         self.weak_timeout = weak_timeout
-    
-    def finalize(self):
-        self.finalized = True
-        return self
         
     def process(self, sched, coro):
         super(TimedOperation, self).process(sched, coro)
@@ -119,7 +115,7 @@ class TimedOperation(Operation):
         if self._timeout and self._timeout != -1:
             sched.add_timeout(self, coro, False)
             
-    def cleanup(self, sched):
+    def cleanup(self, sched, coro):
         """
         Clean up after a timeout. Implemented in ops that need cleanup.
         If return value evaluated to false the sched won't raise the timeout in 
