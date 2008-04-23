@@ -112,7 +112,28 @@ class Timer_MixIn:
         self.assertAlmostEqual(self.msgs[2], 3.0, 1)
         self.assertAlmostEqual(self.msgs[3], 4.0, 1)
         self.assertAlmostEqual(self.msgs[4], 5.0, 1)
-
+    def test_sleep(self):
+        self.timo = False
+        @coroutine
+        def sleepo():
+            yield events.Sleep(1)
+        @coroutine
+        def timeouto():
+            ts = time.time()
+            s = sockets.Socket()
+            s.bind(self.local_addr)
+            s.listen(10)
+            try:
+                yield s.accept(timeout=0.1)
+            except events.OperationTimeout:
+                self.timo = True
+            self.delta = time.time()-ts
+        self.m.add(sleepo)
+        self.m.add(timeouto)
+        self.m_run.start()
+        self.m_run.join()
+        self.assert_(self.timo)
+        self.assert_(self.delta < 0.2)
         
 for poller_cls in reactors.available:
     for prio_mixin in (NoPrioMixIn, PrioMixIn):

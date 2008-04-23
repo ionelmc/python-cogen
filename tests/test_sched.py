@@ -4,6 +4,7 @@ import unittest
 import sys
 import exceptions
 import datetime
+import time
 
 from cStringIO import StringIO
 
@@ -195,7 +196,19 @@ class SchedulerTest_MixIn:
         
         self.m.run()
         self.assertEqual(self.botched, False)
-
+    def test_sleep(self):
+        self.sleept = False
+        @coroutine
+        def sleeper():
+            #~ yield events.TimedOperation(timeout=1)
+            yield events.Sleep(1)
+            self.sleept = True
+        ts = time.time()
+        self.m.add(sleeper)
+        self.m.run()
+        self.assertAlmostEqual(time.time() - ts, 1.0, 2)
+        self.assert_(self.sleept)
+        
 class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
     pass
 class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):

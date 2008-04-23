@@ -117,7 +117,7 @@ class SocketTest_MixIn:
                 1024**2-1024*4, 
                 prio=self.prio, run_first=self.run_first
             )
-            srv.close()
+            #~ srv.close()
             self.m.stop()
         coro = self.m.add(reader)
         self.m_run.start()
@@ -141,7 +141,7 @@ class SocketTest_MixIn:
         @coroutine
         def writer():
             try:
-                obj = yield sockets.Connect(sockets.Socket(), self.local_addr, timeout=5)    
+                obj = yield sockets.Connect(sockets.Socket(), self.local_addr, timeout=0.5)    
                 self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
                 self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
                 obj.sock.close()
