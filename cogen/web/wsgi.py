@@ -556,7 +556,7 @@ class WSGIServer(object):
     self.scheduler = scheduler
     self.environ['cogen.sched'] = self.scheduler
           
-    self.version = "cogen/%s" % __version__
+    self.version = "cogen.web/%s %s" % (__version__, scheduler.poll.__class__.__name__)
     if callable(wsgi_app):
       # We've been handed a single wsgi_app, in CP-2.1 style.
       # Assume it's mounted at "".
