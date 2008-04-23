@@ -646,7 +646,7 @@ class IOCPProactor(ReactorBase):
                 try:
                     rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
                         self.iocp,
-                        ptimeout
+                        0 if urgent else ptimeout
                     )
                 except RuntimeError, e:
                     # this needs some research
@@ -829,9 +829,6 @@ if QSocketNotifier:
     #~ available.append(QtReactor)
     # i would add it but the qt app can't run in a secondary thread and it 
     #fuxors my unittests. (TODO: fixthisfixthis)
-if win32file:
-    DefaultReactor = IOCPProactor
-    available.append(IOCPProactor)
 if select:
     DefaultReactor = SelectReactor
     available.append(SelectReactor)
@@ -844,5 +841,8 @@ if kqueue:
 if epoll:
     DefaultReactor = EpollReactor
     available.append(EpollReactor)
+if win32file:
+    DefaultReactor = IOCPProactor
+    available.append(IOCPProactor)
 
 __all__ = [cls.__name__ for cls in available]

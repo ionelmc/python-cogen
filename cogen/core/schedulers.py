@@ -10,7 +10,7 @@ __all__ = ['Scheduler']
 import collections
 import datetime
 import heapq
-import weakref
+#~ import weakref
 import sys                
 import errno
 import select
@@ -42,8 +42,8 @@ class Timeout(object):
     def __init__(self, op, coro, weak_timeout=False):
         assert isinstance(op.timeout, datetime.datetime)
         self.timeout = op.timeout
-        self.coro = weakref.ref(coro)
-        self.op = weakref.ref(op)
+        self.coro = coro
+        self.op = op
         self.weak_timeout = weak_timeout
         if weak_timeout:
             self.last_checkpoint = getnow()
@@ -58,8 +58,8 @@ class Timeout(object):
             self.__class__.__name__, 
             id(self), 
             self.timeout, 
-            self.coro(), 
-            self.op(), 
+            self.coro, 
+            self.op, 
             self.weak_timeout, 
             self.last_checkpoint, 
             self.delta
@@ -83,18 +83,17 @@ class Scheduler(object):
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
         self.signals = collections.defaultdict(collections.deque)
-        self.timewait = [] # heapq
         self.poll = reactor(self, reactor_resolution)
         self.default_priority = default_priority
         self.default_timeout = default_timeout
         self.running = False
     def __repr__(self):
-        return "<%s@0x%X active:%s sigwait:%s timewait:%s poller:%s default_priority:%s default_timeout:%s>" % (
+        return "<%s@0x%X active:%s sigwait:%s timeouts:%s poller:%s default_priority:%s default_timeout:%s>" % (
             self.__class__.__name__, 
             id(self), 
             len(self.active), 
             len(self.sigwait), 
-            len(self.timewait), 
+            len(self.timeouts), 
             self.poll, 
             self.default_priority, 
             self.default_timeout
@@ -115,22 +114,16 @@ class Scheduler(object):
             self.active.appendleft( (None, coro) )    
         return coro
        
-    def run_timer(self):
-        "Run the timer ops - not timeouts, this is for stuff like events.Sleep."
-        now = getnow() 
-        while self.timewait and self.timewait[0].wake_time <= now:
-            op = heapq.heappop(self.timewait)
-            self.active.appendleft((op, op.coro))
-    
     def next_timer_delta(self): 
         "Returns a timevalue that the reactor will wait on."
-        if self.timewait and not self.active:
+        if self.timeouts and not self.active:
             now = getnow()
-            if now > self.timewait[0].wake_time:
+            timo = self.timeouts[0].timeout
+            if now >= timo:
                 #looks like we've exceded the time
                 return 0
             else:
-                return (self.timewait[0].wake_time - now)
+                return (timo - now)
         else:
             if self.active:
                 return 0
@@ -165,24 +158,24 @@ class Scheduler(object):
         #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
         while self.timeouts and self.timeouts[0].timeout <= now:
             timo = heapq.heappop(self.timeouts)
-            op, coro = timo.op(), timo.coro()
-            if op:
-                #~ print timo
-                if timo.weak_timeout and hasattr(op, 'last_update'):
-                    if op.last_update > timo.last_checkpoint:
-                        timo.last_checkpoint = op.last_update
-                        timo.timeout = timo.last_checkpoint + timo.delta
-                        heapq.heappush(self.timeouts, timo)
-                        continue
-                if op.state is events.RUNNING and coro and coro.running and \
-                                                        op.cleanup(self, coro):
-                    self.active.append((
-                        events.CoroutineException((
-                            events.OperationTimeout, 
-                            events.OperationTimeout(op)
-                        )), 
-                        coro
-                    ))
+                
+            op = timo.op
+            coro = timo.coro
+            if timo.weak_timeout and hasattr(op, 'last_update'):
+                if op.last_update > timo.last_checkpoint:
+                    timo.last_checkpoint = op.last_update
+                    timo.timeout = timo.last_checkpoint + timo.delta
+                    heapq.heappush(self.timeouts, timo)
+                    continue
+            if op.state is events.RUNNING and coro and coro.running and \
+                                                    op.cleanup(self, coro):
+                self.active.append((
+                    events.CoroutineException((
+                        events.OperationTimeout, 
+                        events.OperationTimeout(op)
+                    )), 
+                    coro
+                ))
     
     def process_op(self, op, coro):
         "Process a (op, coro) pair and return another pair. Handles exceptions."
@@ -211,7 +204,7 @@ class Scheduler(object):
         """
         self.running = True
         urgent = None
-        while self.running and (self.active or self.poll or self.timewait or urgent):
+        while self.running and (self.active or self.poll or self.timeouts or urgent):
             if self.active or urgent:
                 op, coro = urgent or self.active.popleft()
                 urgent = None
@@ -227,8 +220,6 @@ class Scheduler(object):
                     if exc[0] != errno.EINTR:
                         raise
                 #~ if urgent:print '>urgent:', urgent
-            if self.timewait:
-                self.run_timer()
             if self.timeouts: 
                 self.handle_timeouts()
             yield

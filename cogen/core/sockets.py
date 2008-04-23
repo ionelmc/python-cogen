@@ -233,6 +233,8 @@ class SocketOperation(events.TimedOperation):
             result = self.run(reactor)
             if self._timeout and self._timeout != -1 and self.weak_timeout:
                 self.last_update = getnow()
+            if result:
+                self.state = events.FINALIZED
             return result
         except socket.error, exc:
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS): 
@@ -432,6 +434,8 @@ class Read(ReadOperation):
             if self.buff:
                 return self
             else:
+                if self.buff is None and not reactor:
+                    return
                 raise events.ConnectionClosed("Empty recv.")
     def finalize(self):
         super(Read, self).finalize()
@@ -503,6 +507,8 @@ class ReadAll(ReadOperation):
                 self.sock._rl_list.append(buff)
                 self.sock._rl_list_sz += len(buff)
             else:
+                if buff is None and not reactor:
+                    return
                 raise events.ConnectionClosed("Empty recv.")
         if self.sock._rl_list_sz == self.len:
             self.buff = ''.join(self.sock._rl_list)
@@ -564,19 +570,26 @@ class ReadLine(ReadOperation):
             # would error forever
             
             raise exceptions.OverflowError(
-                "Recieved %s bytes and no linebreak" % self.len
+                "Recieved more than %s bytes (%s) and no linebreak" % (
+                    self.len,
+                    self.sock._rl_list_sz
+                )
             )
+    #~ @debug(0)
     def run(self, reactor):
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
-            if nl + self.sock._rl_list_sz >= self.len:
-                self.sock._rl_list    = []
-                self.sock._rl_list_sz = 0
-                self.sock._rl_pending = ''
-                raise exceptions.OverflowError(
-                    "Recieved %s bytes and no linebreak" % self.len
-                )
             if nl >= 0:
+                if nl + self.sock._rl_list_sz >= self.len:
+                    self.sock._rl_list    = []
+                    self.sock._rl_list_sz = 0
+                    self.sock._rl_pending = ''
+                    raise exceptions.OverflowError(
+                        "Recieved more than %s bytes (%s) and no linebreak" % (
+                            self.len, self.sock._rl_list_sz+nl
+                        )
+                    )
+                
                 nl += 1
                 self.buff = ''.join(self.sock._rl_list) + \
                                             self.sock._rl_pending[:nl]
@@ -615,6 +628,8 @@ class ReadLine(ReadOperation):
                 self.sock._rl_list_sz += len(x_buff)
                 self.check_overflow()
         else: 
+            if x_buff is None and not reactor:
+                return
             raise events.ConnectionClosed("Empty recv.")
             
     def finalize(self):

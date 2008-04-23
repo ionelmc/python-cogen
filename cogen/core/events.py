@@ -410,7 +410,7 @@ class Join(TimedOperation):
         )
 
     
-class Sleep(Operation):
+class Sleep(TimedOperation):
     """
     A operation to pausing the coroutine for a specified amount of time.
     
@@ -428,23 +428,20 @@ class Sleep(Operation):
     
       * ts - a timestamp
     """
-    __slots__ = ['wake_time', 'coro']
+    __slots__ = []
     __doc_all__ = ['__init__']
-    def __init__(self, val=None, timestamp=None):
-        super(Sleep, self).__init__()
-        if isinstance(val, datetime.timedelta):
-            self.wake_time = getnow() + val
-        elif isinstance(val, datetime.datetime):
-            self.wake_time = val
-        else:
-            if timestamp:
-                self.wake_time = datetime.datetime.fromtimestamp(int(timestamp))
-            else:
-                self.wake_time = getnow() + datetime.timedelta(seconds=val)
+    def __init__(self, val):
+        super(Sleep, self).__init__(timeout=val)
+        
     def process(self, sched, coro):
         super(Sleep, self).process(sched, coro)
-        self.coro = coro
-        heapq.heappush(sched.timewait, self)
+        
+    def cleanup(self, sched, coro):
+        sched.active.append((self, coro))
+        # this is a sort of TimeoutOperation trick, when the timeout occurs
+        #we manualy add the coro back in the sched and don't return the cleanup
+        #as valid (valid cleanup means return true in cleanup)
+        
     def __cmp__(self, other):
         return cmp(self.wake_time, other.wake_time)
         
