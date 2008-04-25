@@ -11,6 +11,7 @@ import wsgiref.validate
 import httplib
 import os
 import tempfile
+import socket
 from cStringIO import StringIO
 
 from cogen.common import *
@@ -36,6 +37,22 @@ class SimpleAppTest_MixIn:
         time.sleep(0.1)
         self.assertEqual(resp.read(), 'test-resp-body')
         self.assertEqual(self.header, 'test-value')
+        
+class LazyStartResponseTest_MixIn:
+    middleware = [async.lazy_sr]
+    def app(self, environ, start_response):
+        start_response('200 OK', [('Content-type','text/html')])
+        return ['']
+        
+    def test_app(self):
+        #~ self.conn.set_debuglevel(100)
+        socket.setdefaulttimeout(1)
+        self.conn = httplib.HTTPConnection(*self.local_addr)
+        self.conn.connect()
+        self.conn.request('GET', '/')
+        resp = self.conn.getresponse().read()
+        socket.setdefaulttimeout(None)        
+        self.assertEqual(resp, '')
         
 class InputTest_MixIn:
     #~ @debug(0)
@@ -257,6 +274,13 @@ class FileWrapperTest_MixIn:
     
 for poller_cls in reactors.available:
     for prio_mixin in (PrioMixIn, NoPrioMixIn):
+        
+        name = 'LazyStartResponseTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        globals()[name] = type(
+            name, 
+            (LazyStartResponseTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            {'poller':poller_cls}
+        )
         name = 'FileWrapperTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(
             name, 

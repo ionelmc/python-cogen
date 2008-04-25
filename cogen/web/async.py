@@ -68,8 +68,10 @@ class COGENProxy:
 class LazyStartResponseMiddleware:
     def __init__(self, app, global_conf={}):
         self.app = app
+        self.sr_called = False
         
     def start_response(self, status, headers, exc=None):
+        self.sr_called = True
         self.status = status
         self.headers = headers
         self.exc = exc
@@ -80,14 +82,15 @@ class LazyStartResponseMiddleware:
         started = False
         app_iter = self.app(environ, self.start_response)
         for chunk in app_iter:
-            if not started and chunk:
+            if not started and self.sr_called and chunk:
                 started = True
                 write = start_response(self.status, self.headers, self.exc)
                 out = self.out.getvalue()
                 if out:
                     write(out)
             yield chunk
-
+        if not started and self.sr_called:
+            start_response(self.status, self.headers, self.exc)
 lazy_sr = LazyStartResponseMiddleware
 
 class SynchronousInputMiddleware:

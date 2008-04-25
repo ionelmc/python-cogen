@@ -240,12 +240,8 @@ class WSGIConnection(object):
     if msg:
       buf.append(msg)
     return sockets.WriteAll(self.conn, "".join(buf), run_first=self.sockoper_run_first)
-  def check_start_response(self):
-    if self.started_response:
-      if not self.sent_headers:
-        self.sent_headers = True
-        return self.render_headers()+self.write_buffer.getvalue()
-  
+  #~ from cogen.core.coroutines import debug_coroutine
+  #~ @debug_coroutine
   @coroutine
   def run(self):
     """A bit bulky atm..."""
@@ -432,9 +428,13 @@ class WSGIConnection(object):
             # set tcp_cork to pack the header with the file data
             if hasattr(socket, "TCP_CORK"):
               self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 1)
-            headers = self.check_start_response()
-            if headers:
-              yield sockets.WriteAll(self.conn, headers, run_first=run_first)
+            
+            assert self.started_response, "App returned the wsgi.file_wrapper but didn't call start_response."
+            assert not self.sent_headers
+            
+            self.sent_headers = True
+            yield sockets.WriteAll(self.conn, 
+              self.render_headers()+self.write_buffer.getvalue(), run_first=run_first)
               
             offset = response.filelike.tell()
             if self.chunked_write:
@@ -457,25 +457,33 @@ class WSGIConnection(object):
               
           else:
             for chunk in response:
-              headers = self.check_start_response()
               if chunk:
-                assert headers or self.sent_headers, "App sended a value but hasn't called start_response."
+                assert self.started_response, "App sended a value but hasn't called start_response."
+                if not self.sent_headers:
+                  self.sent_headers = True
+                  headers = [self.render_headers(), self.write_buffer.getvalue()]
+                else:
+                  headers = []
                 if self.chunked_write:
                   buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
                   if headers:
-                    headers = [headers]
                     headers.extend(buf)
                     yield sockets.WriteAll(self.conn, "".join(headers), run_first=run_first)
                   else:
                     yield sockets.WriteAll(self.conn, "".join(buf), run_first=run_first)
                 else:
                   if headers:
-                    yield sockets.WriteAll(self.conn, headers+chunk, run_first=run_first)
+                    headers.append(chunk)
+                    yield sockets.WriteAll(self.conn, "".join(headers), run_first=run_first)
                   else:
                     yield sockets.WriteAll(self.conn, chunk, run_first=run_first)
               else:
-                if headers: 
-                  yield sockets.WriteAll(self.conn, headers, run_first=run_first)
+                if self.started_response: 
+                  if not self.sent_headers:
+                    self.sent_headers = True
+                    yield sockets.WriteAll(self.conn,
+                                self.render_headers()+self.write_buffer.getvalue(), 
+                                run_first=run_first)
                 if ENVIRON['cogen.wsgi'].operation:
                   op = ENVIRON['cogen.wsgi'].operation
                   ENVIRON['cogen.wsgi'].operation = None
@@ -492,9 +500,19 @@ class WSGIConnection(object):
         finally:
           if hasattr(response, 'close'):
             response.close()
+        
+        if self.started_response:
+          if not self.sent_headers:
+            self.sent_headers = True
+            yield sockets.WriteAll(self.conn,
+                          self.render_headers()+self.write_buffer.getvalue(), 
+                          run_first=run_first)
+        else:
+          import warnings
+          warnings.warn("App was consumed and hasn't called start_response")
+        
         if self.chunked_write:
           yield sockets.WriteAll(self.conn, "0\r\n\r\n", run_first=run_first)
-      
         if self.close_connection:
           return
         while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'], run_first=run_first)):
