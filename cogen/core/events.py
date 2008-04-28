@@ -110,7 +110,7 @@ class TimedOperation(Operation):
     def process(self, sched, coro):
         super(TimedOperation, self).process(sched, coro)
         
-        if not self.timeout:
+        if sched.default_timeout and not self.timeout:
             self.timeout = sched.default_timeout
         if self._timeout and self._timeout != -1:
             sched.add_timeout(self, coro, False)
@@ -315,54 +315,6 @@ class AddCoro(Operation):
             self.coro, 
             self.args, 
             self.kwargs, 
-            self.prio
-        )
-
-class Pass(Operation):
-    """
-    A operation for setting the next (coro, op) pair to be runned by the 
-    scheduler. Used internally.
-    """
-    __slots__ = ['coro', 'op']
-    __doc_all__ = ['__init__']
-    def __init__(self, coro, op=None, **kws):
-        super(Pass, self).__init__(**kws)
-        self.coro = coro
-        self.op = op
-    def process(self, sched, coro):
-        super(Pass, self).process(sched, coro)
-        return self.op, self.coro
-    def __repr__(self):
-        return '<%s instance at 0x%X, coro: %s, op: %s, prio: %s>' % (
-            self.__class__, 
-            id(self), 
-            self.coro, 
-            self.op, 
-            self.prio
-        )
-
-class Complete(Operation):
-    """
-    A operation for adding a list of (coroutine, operator) pairs. Used 
-    internally.
-    """
-    __slots__ = ['args']
-    __doc_all__ = ['__init__']
-    def __init__(self, *args, **kws):
-        super(Complete, self).__init__(**kws)
-        self.args = tuple(args)
-    def process(self, sched, coro):
-        super(Complete, self).process(sched, coro)
-        if self.args:
-            if self.prio:
-                sched.active.extendleft(self.args)
-            else:
-                sched.active.extend(self.args)
-    def __repr__(self):
-        return '<%s instance at 0x%X, args: %s, prio: %s>' % (
-            self.__class__, 
-            id(self), 
-            self.args, 
             self.prio
         )
     
