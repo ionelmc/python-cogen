@@ -16,13 +16,18 @@ pubsub = PublishSubscribeQueue()
 class Client:
     def __init__(self):
         self.messages = queue.Queue(10)
+        self.dead = False
     @coro
     def watch(self):
         yield pubsub.subscribe()
         while 1:
             messages = yield pubsub.fetch()
-            yield self.messages.put_nowait(messages)
-        
+            try:
+                yield self.messages.put_nowait(messages)
+            except:
+                print 'Client %s is dead.' % self
+                self.dead = True
+                break
 class ChatController(BaseController):
     
     def push(self):
@@ -32,8 +37,9 @@ class ChatController(BaseController):
         yield str(request.environ['cogen.wsgi'].result)
         
     def pull(self):
-        if not 'client' in session:
+        if not 'client' in session or session['client'].dead:
             client = Client()
+            print 'Adding new client:', client
             session['client'] = client
             session.save()
             yield request.environ['cogen.core'].events.AddCoro(client.watch)
