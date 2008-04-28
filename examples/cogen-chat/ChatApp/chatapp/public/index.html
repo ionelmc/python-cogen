@@ -33,7 +33,7 @@ textarea, input {
     }
     function pull(req) {
         if(req.status == 200) {
-            document.chat.output.value += req.responseText;
+            document.chat.output.value = req.responseText + document.chat.output.value;
             xhr('/chat/pull', pull)
         } else {
             alert(req.responseText);

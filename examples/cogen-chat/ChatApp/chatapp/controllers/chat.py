@@ -21,8 +21,7 @@ class Client:
         yield pubsub.subscribe()
         while 1:
             messages = yield pubsub.fetch()
-            for message in messages:
-                yield self.messages.put_nowait(message)
+            yield self.messages.put_nowait(messages)
         
 class ChatController(BaseController):
     
@@ -49,4 +48,4 @@ class ChatController(BaseController):
             import traceback
             traceback.print_exception(*request.environ['cogen.wsgi'].exception)
         else:
-            yield "%s\r\n"% request.environ['cogen.wsgi'].result
+            yield "%s\r\n"% '\r\n'.join(request.environ['cogen.wsgi'].result)
