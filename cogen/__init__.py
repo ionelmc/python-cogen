@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 '''
 This is a library for network oriented, coroutine based programming. 
 The interfaces and events/operations aim to mimic thread features. Coroutines 
@@ -31,7 +31,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
-__author__ = "Mărieş Ionel Cristian"
+__author__ = u"Mărieş Ionel Cristian"
 __email__ = "ionel dot mc at gmail dot com"
 __revision__ = "$Revision$"
 __version__ = '0.1.8'
