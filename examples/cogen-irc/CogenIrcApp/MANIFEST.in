@@ -1,0 +1,2 @@
+recursive-include cogenircapp/public *
+recursive-include cogenircapp/templates *

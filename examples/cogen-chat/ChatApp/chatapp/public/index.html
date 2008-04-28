@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title></title>
+
+<style type="text/css">
+textarea, input {
+    font: 11px courier;
+}
+</style>
+</head>
+
+<body>
+<center>
+    <h1>chat powered by <a href="http://code.google.com/p/cogen/">cogen</a></h1>
+    <form name="chat">
+    <textarea id="ouput" name="output" rows="10" cols="80" readonly="readonly"></textarea><br/>
+    <input id="tosend" name="tosend" value="" size="80"/>
+    </form>
+    
+</center>
+<script language="javascript">
+    function xhr(url, callback, data) {
+        var req = window.XMLHttpRequest?new XMLHttpRequest():new ActiveXObject('Microsoft.XMLHTTP');
+        req.onreadystatechange = function() {
+            if (req.readyState == 4) {
+                if (callback) callback(req);
+            }
+        }
+        req.open(data?"POST":"GET", url, true);
+        req.send(data);
+    }
+    function pull(req) {
+        if(req.status == 200) {
+            document.chat.output.value += req.responseText;
+            xhr('/chat/pull', pull)
+        } else {
+            alert(req.responseText);
+        }
+    }
+    xhr('/chat/pull', pull);
+    document.chat.tosend.onkeydown = function (event) {
+        event = event || window.event;
+        var key = event.which || event.keyCode;
+        if (key == 13) {
+            xhr('/chat/push', null, document.chat.tosend.value);
+            document.chat.tosend.value = '';
+        }
+    }
+    document.chat.onsubmit = function() { return false; }
+</script>
+</body>
+</html>

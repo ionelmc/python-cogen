@@ -1,0 +1,2 @@
+recursive-include chatapp/public *
+recursive-include chatapp/templates *

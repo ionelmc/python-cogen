@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title></title>
+
+<style type="text/css">
+body {
+	margin:0;
+	padding:0;
+    text-align:center;
+}
+#connect {
+    margin: 0 auto;
+}
+#connect label{
+    display: block;
+}
+#connect span {
+    text-align:left;
+    width: 5em;
+    display: inline-block;
+}
+#connect label {
+    display: block;
+}
+.error-message {
+    color: red;
+    font-weight: bold;
+    display:inline !important;
+}
+
+.textarea {
+    text-align: left;
+}
+.inputarea {
+    display: block;
+    width: 100%;
+}
+#tabbar li {
+    background: gray;
+}
+
+ul#tabbar {
+    font: bold 11px verdana, arial, sans-serif;
+    list-style-type: none;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #6c6;
+    margin: 0;
+}
+
+ul#tabbar li {
+    float: left;
+    height: 21px;
+    background-color: #cfc;
+    margin: 2px 2px 0 2px;
+    border: 1px solid #6c6;
+}
+
+ul#tabbar li.active {
+    border-bottom: 1px solid #fff;
+    background-color: #fff;
+}
+
+li.active a { color: #000; }
+
+#tabbar a {
+    float: left;
+    display: block;
+    color: #666;
+    text-decoration: none;
+    padding: 4px;
+}
+
+#tabbar a:hover { 
+    background: #fff; 
+}
+
+#tabcontents {
+    font: 11px "Courier New", courier;
+}
+.textarea {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 300px;
+}
+.textarea .time {
+    font-weight: bold;
+    color: darkred;
+}
+#tabbat li.active {
+    font-weight: bold;
+}
+</style>
+
+<script language="javascript" src="mootools-release-1.11.js"></script>
+<script language="javascript" src="irc-app.js"></script>
+</head>
+
+<body>
+    <center><h1>comet irc client powered by <a href="http://code.google.com/p/cogen/">cogen</a></h1></center>
+    <div id="connected">
+        <ul id="tabbar">
+            <li id="tab_connect" class="active"><a href="#" onclick="irc.changeTab('connect');">Connect</a></li>
+        </ul>
+        <div id="tabcontents">
+            <div id="cnt_connect">
+                <div id="connecting" style="display:none">
+                    <center><h2>Connecting...</h2></center>
+                </div>
+                
+                <div id="connect">
+                    <form method="POST" id="connect_form">
+                        <label>
+                            <span>Server: </span>
+                            <input id="server_field" name="server" value="localhost"/>
+                        </label>
+                        <label>
+                            <span>Channel: </span>
+                            <input id="channel_field" name="channel" value="#mumu"/>
+                        </label>
+                        <label>
+                            <span>Nick: </span>
+                            <input id="nickname_field" name="nickname" value="Guest"/>
+                        </label>
+                        <br/>
+                        <input type="submit" value="Connect"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
