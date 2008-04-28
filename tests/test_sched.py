@@ -9,7 +9,8 @@ import time
 from cStringIO import StringIO
 
 from cogen.common import *
-from base import PrioMixIn, NoPrioMixIn
+from base import priorities
+from cogen.core.util import priority
 
 class SchedulerTest_MixIn:
     def setUp(self):
@@ -40,7 +41,11 @@ class SchedulerTest_MixIn:
         self.m.add(signalee)
         self.m.add(signaler)
         self.m.run()
-        if self.prio:
+        if self.prio == priority.FIRST:
+            self.assertEqual(self.msgs, [1,2,4,3,6,5])
+        elif self.prio == priority.OP:
+            self.assertEqual(self.msgs, [1,2,3,4,5,6])
+        elif self.prio == priority.CORO:
             self.assertEqual(self.msgs, [1,2,4,3,6,5])
         else:
             self.assertEqual(self.msgs, [1,2,3,4,5,6])
@@ -51,8 +56,8 @@ class SchedulerTest_MixIn:
         @coroutine
         def adder(c):
             self.msgs.append(1)
-            yield events.AddCoro(c, args=(self.prio and 3 or 2,))
-            self.msgs.append(self.prio and 2 or 3)
+            yield events.AddCoro(c, args=(self.prio&priority.CORO and 3 or 2,))
+            self.msgs.append(self.prio&priority.CORO and 2 or 3)
         self.m.add(adder, args=(added,))
         self.m.run()
         self.assertEqual(self.msgs, [1,2,3])
@@ -208,11 +213,12 @@ class SchedulerTest_MixIn:
         self.m.run()
         self.assertAlmostEqual(time.time() - ts, 1.0, 2)
         self.assert_(self.sleept)
-        
-class SchedulerTest_Prio(SchedulerTest_MixIn, PrioMixIn, unittest.TestCase):
-    pass
-class SchedulerTest_NoPrio(SchedulerTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    pass
+
+for prio_mixin in priorities:
+    name = 'SchedulerTest_%s' % prio_mixin.__name__
+    globals()[name] = type(
+        name, (SchedulerTest_MixIn, prio_mixin, unittest.TestCase), {}
+    )
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

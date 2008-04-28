@@ -9,7 +9,8 @@ from cStringIO import StringIO
 
 from cogen.common import *
 from cogen.core import queue
-from base import PrioMixIn, NoPrioMixIn
+from base import priorities
+from cogen.core.util import priority
 
 class QueueTest_MixIn:
     def setUp(self):
@@ -42,8 +43,12 @@ class QueueTest_MixIn:
         self.m.add(signalee)
         self.m.add(second_signalee)
         self.m.run()
-        if self.prio:
+        if self.prio == priority.FIRST:
             self.assertEqual(self.msgs, [1,2,3,4,7,6,5])
+        elif self.prio == priority.OP:
+            self.assertEqual(self.msgs, [1,2,3,4,6,5,7])
+        elif self.prio == priority.CORO:
+            self.assertEqual(self.msgs, [1,2,3,4,7,5,6])
         else:
             self.assertEqual(self.msgs, [1,2,3,4,5,6,7])
     def test_queue(self):
@@ -86,7 +91,7 @@ class QueueTest_MixIn:
         self.m.add(bar)
         
         self.m.run()
-        if self.prio:
+        if self.prio & priority.CORO:
             self.assertEqual(self.msgs, [-1] + range(SIZE+1) + [-2])
         else:
             self.assertEqual(self.msgs, range(SIZE+1) + [-1, -2])
@@ -168,11 +173,12 @@ class QueueTest_MixIn:
             
             self.assertEqual([1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2], self.msgs) 
             self.assertEqual(-self.wlevel, self.blevel)
-            
-class QueueTest_Prio(QueueTest_MixIn, PrioMixIn, unittest.TestCase):
-    pass
-class QueueTest_NoPrio(QueueTest_MixIn, NoPrioMixIn, unittest.TestCase):
-    pass
+
+for prio_mixin in priorities:
+    name = 'QueueTest_%s' % prio_mixin.__name__
+    globals()[name] = type(
+        name, (QueueTest_MixIn, prio_mixin, unittest.TestCase), {}
+    )
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

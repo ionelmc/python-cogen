@@ -16,7 +16,7 @@ from cStringIO import StringIO
 
 from cogen.common import *
 from cogen.core import reactors
-from base import PrioMixIn, NoPrioMixIn
+from base import priorities
 from cogen.core.coroutines import debug_coroutine
 
 class SocketTest_MixIn:
@@ -194,7 +194,7 @@ class SocketTest_MixIn:
             self.failIf("Interrupted from the coroutine, something failed.")
             
 for poller_cls in reactors.available:
-    for prio_mixin in (NoPrioMixIn, PrioMixIn):
+    for prio_mixin in priorities:
         for run_first in (True, False):
             name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
             globals()[name] = type(

@@ -19,7 +19,7 @@ from cogen.core import reactors
 from cogen.core.util import debug
 from cogen.web import wsgi, async
 
-from base import PrioMixIn, NoPrioMixIn
+from base import priorities
 from base_web import WebTest_Base
 
  
@@ -273,7 +273,7 @@ class FileWrapperTest_MixIn:
         
     
 for poller_cls in reactors.available:
-    for prio_mixin in (PrioMixIn, NoPrioMixIn):
+    for prio_mixin in priorities:
         
         name = 'LazyStartResponseTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(
