@@ -44,7 +44,7 @@ Echo server example
 
     from cogen.core import sockets
     from cogen.core import schedulers
-    from cogen.core.coroutine import coroutine
+    from cogen.core.coroutines import coroutine
 
     @coroutine
     def server():

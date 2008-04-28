@@ -7,7 +7,7 @@ except ImportError:
     ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages
-import sys
+import sys, os
 
 from cogen import __version__ as version
 
@@ -59,7 +59,5 @@ setup(
         (["py-kqueue>=2.0"] if 'bsd' in sys.platform else []) +
         (["py-epoll>=1.2"] if 'linux' in sys.platform else []) +\
         (["py-sendfile>=1.2.2"] if ('linux' in sys.platform) or ('bsd' in sys.platform) else []),
-    test_suite='nose.collector',
-    tests_require=['nose', 'coverage']
-    
+    test_suite='tests'
 )
