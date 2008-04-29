@@ -19,7 +19,20 @@ class Client:
         self.dead = False
     @coro
     def watch(self):
-        yield pubsub.subscribe()
+        """This is a coroutine that runs permanently for each participant to the 
+        chat. If the participant has more than 10 unpulled messages this 
+        coroutine will die.
+        
+        `pubsub` is a queue that hosts the messages from all the 
+        participants.
+          * subscribe registers this coro to the queue
+          * fetch pulls the recent messages from the queue or waits if there
+        are no new ones.
+          
+        self.messages is another queue for the frontend comet client (the 
+        pull action from the ChatController will pop messages from this queue)
+        """
+        yield pubsub.subscribe() 
         while 1:
             messages = yield pubsub.fetch()
             try:
@@ -31,12 +44,22 @@ class Client:
 class ChatController(BaseController):
     
     def push(self):
+        """This action puts a message in the global queue that all the clients
+        will get via the 'pull' action."""
         yield request.environ['cogen.call'](pubsub.publish)(
             "%X: %s" % (id(session['client']), request.body)
         )
+        # the request.environ['cogen.*'] objects are the the asynchronous 
+        # wsgi extensions offered by cogen - basicaly they do some magic to 
+        # make the code here work as a coroutine and still work with any
+        # middleware
         yield str(request.environ['cogen.wsgi'].result)
         
     def pull(self):
+        """This action does some state checking (adds a object in the session
+        that will identify this chat participant and adds a coroutine to manage
+        it's state) and gets new messages or bail out in 10 seconds if there are
+        no messages."""
         if not 'client' in session or session['client'].dead:
             client = Client()
             print 'Adding new client:', client
