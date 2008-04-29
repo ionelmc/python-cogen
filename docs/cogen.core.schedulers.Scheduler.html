@@ -31,6 +31,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -59,13 +61,13 @@
                     </li><li>
                         <a href="cogen.core.schedulers.Scheduler.html#method-handle_timeouts">handle_timeouts</a>
                     </li><li>
+                        <a href="cogen.core.schedulers.Scheduler.html#method-iter_run">iter_run</a>
+                    </li><li>
                         <a href="cogen.core.schedulers.Scheduler.html#method-next_timer_delta">next_timer_delta</a>
                     </li><li>
                         <a href="cogen.core.schedulers.Scheduler.html#method-process_op">process_op</a>
                     </li><li>
                         <a href="cogen.core.schedulers.Scheduler.html#method-run">run</a>
-                    </li><li>
-                        <a href="cogen.core.schedulers.Scheduler.html#method-run_timer">run_timer</a>
                     </li><li>
                         <a href="cogen.core.schedulers.Scheduler.html#method-stop">stop</a>
                     </li>
@@ -76,11 +78,11 @@
     <h1>Class: cogen.core.schedulers.Scheduler</h1>
     <div class="docstring plain">Basic deque-based scheduler with timeout support and primitive
 prioritisaiton parameters.<br /><br />Usage:
-<code class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</code><ul><li> reactor: a reactor class to use</li><li> default_priority: a default priority option for operations that do not </li></ul><blockquote>set it. check <a href="Docs_CogenCoreUtilPriority.html">priority</a>.</blockquote><ul><li> default_timeout: a default timedelta or number of seconds to wait for </li></ul><blockquote>the operation, -1 means no timeout.</blockquote></div>
+<code class="codeblock python python python python python python python python python python python python python python python python python python python python python" name="code">Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</code><ul><li> reactor: a reactor class to use</li><li> default_priority: a default priority option for operations that do not </li></ul><blockquote>set it. check <a href="Docs_CogenCoreUtilPriority.html">priority</a>.</blockquote><ul><li> default_timeout: a default timedelta or number of seconds to wait for </li></ul><blockquote>the operation, -1 means no timeout.</blockquote></div>
     <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L65">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L67">View source</a>
     </li>
 </ul>
     <div>
@@ -94,7 +96,7 @@ prioritisaiton parameters.<br /><br />Usage:
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L104">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L105">View source</a>
     </li>
 </ul>
             <h3 id="method-add_timeout">
@@ -105,29 +107,53 @@ prioritisaiton parameters.<br /><br />Usage:
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L135">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L132">View source</a>
     </li>
 </ul>
             <h3 id="method-handle_timeouts">
                 handle_timeouts
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring plain">Handle timeouts. Raise timeouted operations with a OperationTimeout
+in the associated coroutine (if they are still alive and the operation
+hasn't actualy sucessfuly completed) or, if the operation has a
+weak_timeout flag, update the timeout point and add it back in the
+heapq.<br /><br />weak_timeout notes:
+<ul><li> weak_timeout means a last_update attribute is updated with</li></ul><blockquote>a timestamp of the last activity in the operation - for example, amay recieve new data and not complete (not enough data, etc)</blockquote><ul><li> if there was activity since the last time we've cheched this </li></ul><blockquote>timeout we push it back in the heapq with a timeout value we'll check it again</blockquote>
+Also, we call a cleanup on the op, only if cleanup return true we raise
+the timeout (finalized isn't enough to check if the op has completed
+since finalized is set when the operation gets back in the coro - and
+it might still be in the Scheduler.active queue when we get to this
+timeout - well, this is certainly a problem magnet: TODO: fix_finalized)</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L138">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L135">View source</a>
+    </li>
+</ul>
+            <h3 id="method-iter_run">
+                iter_run
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring plain">The actual processing for the main loop is here.<br /><br />Running the main loop as a generator (where a iteration is a full
+sched, reactor and timers/timeouts run) is usefull for interleaving
+the main loop with other applications that have a blocking main loop and
+require cogen to run in the same thread.</div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L195">View source</a>
     </li>
 </ul>
             <h3 id="method-next_timer_delta">
                 next_timer_delta
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring plain">Returns a timevalue that the reactor will wait on.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L121">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L116">View source</a>
     </li>
 </ul>
             <h3 id="method-process_op">
@@ -138,7 +164,7 @@ prioritisaiton parameters.<br /><br />Usage:
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L163">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L179">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
@@ -151,18 +177,7 @@ been called.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L178">View source</a>
-    </li>
-</ul>
-            <h3 id="method-run_timer">
-                run_timer
-                <span class="args">(self)</span>
-            </h3>
-            <div class="docstring plain"></div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L115">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L230">View source</a>
     </li>
 </ul>
             <h3 id="method-stop">
@@ -173,7 +188,7 @@ been called.</div>
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L210">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L238">View source</a>
     </li>
 </ul>
     </div>

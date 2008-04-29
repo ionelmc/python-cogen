@@ -31,6 +31,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -83,7 +85,7 @@
     <div class="docstring plain">cogen.web.wsgi server is asynchronous by default. If you need to run a app that
 uses wsgi.input synchronously you need to wrapp it in
 <code name="code" class="python">SynchronousInputMiddleware</code>.<br /><br />Wsgi asynchronous api only provides a read operation at the moment. Here's a
-example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 buff = StringIO()
 while 1:
     yield environ['cogen.input'].Read(self.buffer_length)
@@ -199,7 +201,7 @@ something more elegant at some point.</div>
         <a href="cogen.web.async.Read.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L125">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L128">View source</a>
     </li>
 </ul>
             <h3>
@@ -213,7 +215,7 @@ things too much at the moment).</div>
         <a href="cogen.web.async.ReadLine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L282">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L285">View source</a>
     </li>
 </ul>
             <h3>
@@ -226,7 +228,7 @@ things too much at the moment).</div>
         <a href="cogen.web.async.SynchronousInputMiddleware.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L92">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L95">View source</a>
     </li>
 </ul>
             <h3>
@@ -239,7 +241,7 @@ things too much at the moment).</div>
         <a href="cogen.web.async.SynchronousInputMiddleware.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L92">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L95">View source</a>
     </li>
 </ul>
     </div>

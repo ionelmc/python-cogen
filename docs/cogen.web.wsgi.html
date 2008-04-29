@@ -31,6 +31,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -70,7 +72,7 @@
 the iterations of the wsgi apps - I could add a threadpool for blocking apps in
 the future.<br /><br />If you don't return iterators from apps and return lists you'll get, at most,
 the performance of a server that processes requests sequentialy.<br /><br />On the other hand this server has coroutine extensions that suppose to support
-use of middleware in your application. <br /><br />Example app with coroutine extensions:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+use of middleware in your application. <br /><br />Example app with coroutine extensions:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 def wait_app(environ, start_response):
   start_response('200 OK', [('Content-type','text/html')])
   yield "I'm waiting for some signal"
@@ -99,7 +101,7 @@ HTTP handling code taken from the CherryPy WSGI server.</div>
         <a href="cogen.web.wsgi.WSGIServer.WSGIConnection.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L134">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L135">View source</a>
     </li>
 </ul>
             <h3>
@@ -112,7 +114,7 @@ HTTP handling code taken from the CherryPy WSGI server.</div>
         <a href="cogen.web.wsgi.WSGIFileWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L86">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L87">View source</a>
     </li>
 </ul>
             <h3>
@@ -126,7 +128,7 @@ HTTP handling code taken from the CherryPy WSGI server.</div>
         <a href="cogen.web.wsgi.WSGIServer.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L528">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L562">View source</a>
     </li>
 </ul>
     </div>

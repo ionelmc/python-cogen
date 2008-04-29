@@ -31,6 +31,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -57,6 +59,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">reactors</a>
@@ -75,14 +79,14 @@
         cogen.core
     </h1>
     <div class="docstring plain">This module holds the essential stuff.<br /><br />Programming with this library should be straghtforward. A coroutine is just
-a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 @coroutine
 def mycoro(bla):
     yield &lt;operation&gt;
     yield &lt;operation&gt;
 </pre>
 <blockquote></blockquote><ul><li> the <code name="code" class="python">operation</code> instructs the scheduler what to do with the </li></ul><blockquote>coroutine: suspend it till someting happens, add another coro in the scheduler, raise a event and so on.</blockquote><ul><li> the <code name="code" class="python">operations</code> are split up in 2 modules: events and sockets<ul><li> the <code name="code" class="python">operations</code> from sockets are related to network, like reading and </li></ul></li></ul><blockquote>writing, and these are done asynchronously but your code in the coroutine will see them as a regular synchronous or blocking call.</blockquote><ul><li> the <code name="code" class="python">operations</code> from events are related to signals and </li></ul><blockquote>coroutine/scheduler management.</blockquote><ul><li> if a <code name="code" class="python">operation</code> has a result associated then the yield will return that </li></ul><blockquote>result (eg. a string or a (connection, address) tuple) otherwise it will return the operation instance.</blockquote>
-Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 import sys, os
 from cogen.common import *
 
@@ -146,6 +150,19 @@ m.run()
     </li>
     <li class="link-to-sourcecode">
         <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L1">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.core.pubsub.html">pubsub</a>
+            </h3>
+            <div class="docstring plain"></div>
+            <ul class="link-bar">
+    <li class="top"><a href="#header">Top</a></li>
+    <li>
+        <a href="cogen.core.pubsub.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L1">View source</a>
     </li>
 </ul>
             <h3>

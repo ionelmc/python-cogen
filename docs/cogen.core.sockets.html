@@ -31,6 +31,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -63,19 +65,13 @@
                     </li><li>
                         <a href="cogen.core.sockets.ReadLine.html">ReadLine</a>
                     </li><li>
-                        <a href="cogen.core.sockets.ReadOperation.html">ReadOperation</a>
-                    </li><li>
                         <a href="cogen.core.sockets.SendFile.html">SendFile</a>
                     </li><li>
                         <a href="cogen.core.sockets.Socket.html">Socket</a>
                     </li><li>
-                        <a href="cogen.core.sockets.SocketOperation.html">SocketOperation</a>
-                    </li><li>
                         <a href="cogen.core.sockets.Write.html">Write</a>
                     </li><li>
                         <a href="cogen.core.sockets.WriteAll.html">WriteAll</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.WriteOperation.html">WriteOperation</a>
                     </li>
                 </ul>
             </div>
@@ -86,16 +82,6 @@
                         <a href="cogen.core.sockets.html#function-getdefaulttimeout">getdefaulttimeout</a>
                     </li><li>
                         <a href="cogen.core.sockets.html#function-setdefaulttimeout">setdefaulttimeout</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="browser-section">
-                <h2>Attributes</h2>
-                <ul>
-                    <li>
-                        <a href="cogen.core.events.html#attribute-getnow">getnow</a>
-                    </li><li>
-                        <a href="cogen.core.coroutines.html#attribute-ident">ident</a>
                     </li>
                 </ul>
             </div>
@@ -125,7 +111,7 @@ the <a href="Docs_CogenCoreSocketsSocket.html">Socket</a> class.</div>
         <a href="cogen.core.sockets.Accept.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L724">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L743">View source</a>
     </li>
 </ul>
             <h3>
@@ -138,7 +124,7 @@ the <a href="Docs_CogenCoreSocketsSocket.html">Socket</a> class.</div>
         <a href="cogen.core.sockets.Connect.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L780">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L799">View source</a>
     </li>
 </ul>
             <h3>
@@ -146,7 +132,7 @@ the <a href="Docs_CogenCoreSocketsSocket.html">Socket</a> class.</div>
             </h3>
             <div class="docstring plain"><code name="code" class="python">len</code> is max read size, BUT, if if there are buffers from ReadLine
 return them first.
-Example usage:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+Example usage:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 yield sockets.Read(socket_object, buffer_length)
 </pre></div>
             <ul class="link-bar">
@@ -155,7 +141,7 @@ yield sockets.Read(socket_object, buffer_length)
         <a href="cogen.core.sockets.Read.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L392">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L398">View source</a>
     </li>
 </ul>
             <h3>
@@ -168,7 +154,7 @@ yield sockets.Read(socket_object, buffer_length)
         <a href="cogen.core.sockets.ReadAll.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L456">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L464">View source</a>
     </li>
 </ul>
             <h3>
@@ -181,20 +167,7 @@ yield sockets.Read(socket_object, buffer_length)
         <a href="cogen.core.sockets.ReadLine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L536">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.sockets.ReadOperation.html">ReadOperation</a>
-            </h3>
-            <div class="docstring plain"></div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.sockets.ReadOperation.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L263">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L546">View source</a>
     </li>
 </ul>
             <h3>
@@ -204,7 +177,7 @@ yield sockets.Read(socket_object, buffer_length)
 there is no sendfile.
 You can use this as a WriteAll if you specify the length.
 Usage:
-<blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+<blockquote></blockquote><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 yield sockets.SendFile(file_object, socket_object, 0) 
     # will send till send operations return 0
     
@@ -223,7 +196,7 @@ yield sockets.SendFile(file_object, socket_object, 0, file_size)
         <a href="cogen.core.sockets.SendFile.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L286">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L292">View source</a>
     </li>
 </ul>
             <h3>
@@ -232,11 +205,11 @@ yield sockets.SendFile(file_object, socket_object, 0, file_size)
             <div class="docstring plain">A wrapper for socket objects, sets nonblocking mode and
 adds some internal bufers and wrappers. Regular calls to the usual
 socket methods return operations for use in a coroutine.<br /><br />So you use this in a coroutine like:
-<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
     sock = Socket(family, type, proto) # just like the builtin socket module
     yield sock.read(1024)
 </pre>Constructor details:
-<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
     Socket([family[, type[, proto]]]) -&gt; socket object
 </pre>
 Open a socket of the given type.  The family argument specifies the
@@ -250,22 +223,7 @@ specifying the default protocol.  Keyword arguments are accepted.<br /><br />A s
         <a href="cogen.core.sockets.Socket.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L43">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.sockets.SocketOperation.html">SocketOperation</a>
-            </h3>
-            <div class="docstring plain">This is a generic class for a operation that involves some socket call.
-<blockquote></blockquote>A socket operation should subclass WriteOperation or ReadOperation, define a
-<code name="code" class="python">run</code> method and call the <i>_init_</i> method of the superclass.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.sockets.SocketOperation.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L184">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L47">View source</a>
     </li>
 </ul>
             <h3>
@@ -278,7 +236,7 @@ specifying the default protocol.  Keyword arguments are accepted.<br /><br />A s
         <a href="cogen.core.sockets.Write.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L641">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L660">View source</a>
     </li>
 </ul>
             <h3>
@@ -291,20 +249,7 @@ specifying the default protocol.  Keyword arguments are accepted.<br /><br />A s
         <a href="cogen.core.sockets.WriteAll.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L681">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.sockets.WriteOperation.html">WriteOperation</a>
-            </h3>
-            <div class="docstring plain"></div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.sockets.WriteOperation.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L278">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L700">View source</a>
     </li>
 </ul>
     </div>
@@ -318,7 +263,7 @@ specifying the default protocol.  Keyword arguments are accepted.<br /><br />A s
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L34">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L38">View source</a>
     </li>
 </ul>
             <h3 id="function-setdefaulttimeout">
@@ -330,30 +275,7 @@ specifying the default protocol.  Keyword arguments are accepted.<br /><br />A s
             <ul class="link-bar">
     <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L37">View source</a>
-    </li>
-</ul>
-    </div>
-    <div>
-        <h2>Attributes</h2>
-            <h3 id="attribute-getnow">getnow</h3>
-            <div class="docstring plain"></div>
-            <h4>Value of getnow</h4>
-            <pre class="code"><code>&lt;built-in method now of type object at 0x1E1CAD88&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-ident">ident</h3>
-            <div class="docstring plain"></div>
-            <h4>Value of ident</h4>
-            <pre class="code"><code>None</code></pre>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L0">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L41">View source</a>
     </li>
 </ul>
     </div>

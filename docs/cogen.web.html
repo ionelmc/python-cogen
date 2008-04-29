@@ -31,6 +31,8 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
@@ -79,7 +81,7 @@
             <div class="docstring plain">cogen.web.wsgi server is asynchronous by default. If you need to run a app that
 uses wsgi.input synchronously you need to wrapp it in
 <code name="code" class="python">SynchronousInputMiddleware</code>.<br /><br />Wsgi asynchronous api only provides a read operation at the moment. Here's a
-example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 buff = StringIO()
 while 1:
     yield environ['cogen.input'].Read(self.buffer_length)
@@ -113,7 +115,7 @@ buff.seek(0)
 the iterations of the wsgi apps - I could add a threadpool for blocking apps in
 the future.<br /><br />If you don't return iterators from apps and return lists you'll get, at most,
 the performance of a server that processes requests sequentialy.<br /><br />On the other hand this server has coroutine extensions that suppose to support
-use of middleware in your application. <br /><br />Example app with coroutine extensions:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+use of middleware in your application. <br /><br />Example app with coroutine extensions:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
 def wait_app(environ, start_response):
   start_response('200 OK', [('Content-type','text/html')])
   yield "I'm waiting for some signal"

@@ -30,6 +30,8 @@
                         <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li class="active">
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
                     </li><li>
@@ -56,14 +58,6 @@
                         <a href="cogen.core.queue.Empty.html">Empty</a>
                     </li><li>
                         <a href="cogen.core.queue.Full.html">Full</a>
-                    </li><li>
-                        <a href="cogen.core.queue.QDone.html">QDone</a>
-                    </li><li>
-                        <a href="cogen.core.queue.QGet.html">QGet</a>
-                    </li><li>
-                        <a href="cogen.core.queue.QJoin.html">QJoin</a>
-                    </li><li>
-                        <a href="cogen.core.queue.QPut.html">QPut</a>
                     </li><li>
                         <a href="cogen.core.queue.Queue.html">Queue</a>
                     </li>
@@ -110,62 +104,10 @@
     </li>
 </ul>
             <h3>
-                <a href="cogen.core.queue.QDone.html">QDone</a>
-            </h3>
-            <div class="docstring plain">A operation for the queue done_task call</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.queue.QDone.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L122">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.queue.QGet.html">QGet</a>
-            </h3>
-            <div class="docstring plain">A operation for the queue get call.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.queue.QGet.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L14">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.queue.QJoin.html">QJoin</a>
-            </h3>
-            <div class="docstring plain">A operation for the queue join call.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.queue.QJoin.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L139">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.queue.QPut.html">QPut</a>
-            </h3>
-            <div class="docstring plain">A operation for the queue put call.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.queue.QPut.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L68">View source</a>
-    </li>
-</ul>
-            <h3>
                 <a href="cogen.core.queue.Queue.html">Queue</a>
             </h3>
             <div class="docstring plain">This class attempts to mimic the exact functionality of the
-python standard library Queue.Queue class, but with a coroutine context:<br /><br /> the queue calls return coroutine operations<br /><br />So, to use this you write someting like:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+python standard library Queue.Queue class, but with a coroutine context:<br /><br /> the queue calls return coroutine operations<br /><br />So, to use this you write someting like:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python" name="code">
 @coroutine
 def foo():
     q = cogen.core.queue.Queue(&lt;size&gt;)
@@ -178,7 +120,7 @@ def foo():
         <a href="cogen.core.queue.Queue.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L154">View source</a>
+        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L162">View source</a>
     </li>
 </ul>
     </div>
