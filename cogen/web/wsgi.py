@@ -72,7 +72,7 @@ import async
 quoted_slash = re.compile("(?i)%2F")
 useless_socket_errors = {}
 for _ in ("EPIPE", "ETIMEDOUT", "ECONNREFUSED", "ECONNRESET",
-      "EHOSTDOWN", "EHOSTUNREACH",
+      "EHOSTDOWN", "EHOSTUNREACH", "ENOTCONN",
       "WSAECONNABORTED", "WSAECONNREFUSED", "WSAECONNRESET",
       "WSAENETRESET", "WSAETIMEDOUT"):
   if _ in dir(errno):
@@ -534,7 +534,7 @@ class WSGIConnection(object):
           # we need to consume any unread input data to read the next 
           #pipelined request
           pass
-    except socket.error, e:
+    except (socket.error, OSError), e:
       errno = e.args[0]
       if errno not in useless_socket_errors:
         yield self.simple_response("500 Internal Server Error",
