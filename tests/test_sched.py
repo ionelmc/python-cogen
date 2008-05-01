@@ -211,7 +211,7 @@ class SchedulerTest_MixIn:
         ts = time.time()
         self.m.add(sleeper)
         self.m.run()
-        self.assertAlmostEqual(time.time() - ts, 1.0, 2)
+        self.assertAlmostEqual(time.time() - ts, 1.0, 1)
         self.assert_(self.sleept)
 
 for prio_mixin in priorities:
