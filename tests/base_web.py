@@ -21,17 +21,19 @@ sys.setcheckinterval(0)
 class WebTest_Base:
     middleware = [wsgiref.validate.validator, async.sync_input]
     def setUp(self):
-        self.local_addr = ('localhost', random.randint(10000,20000))
+        self.local_addr = ('localhost', random.randint(10000,64000))
         #~ print "http://%s:%s/"%self.local_addr
         def run():
             try:
                 app = self.app
                 for wrapper in self.middleware:
                     app = wrapper(app)
-                self.sched = Scheduler(default_priority=self.prio, 
+                self.sched = Scheduler( default_priority=self.prio, 
+                                        reactor_resolution=0.001,
                                         reactor=self.poller) 
-                server = wsgi.WSGIServer(self.local_addr, app, self.sched) 
-                self.sched.add(server.serve)
+                self.wsgi_server = wsgi.WSGIServer(self.local_addr, app, self.sched,
+                            sockoper_timeout=None, sendfile_timeout=None) 
+                self.serve_ref = self.sched.add(self.wsgi_server.serve)
                 self.sched.run()
             except:
                 import traceback
@@ -48,5 +50,6 @@ class WebTest_Base:
         self.conn.close()
         self.sched.stop()
         self.m_run.join()
+        self.wsgi_server.socket.close()
         
         
