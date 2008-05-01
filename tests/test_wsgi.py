@@ -72,7 +72,7 @@ class InputTest_MixIn:
         return f.getvalue()
         
     def test_chunked(self):
-        for PSIZE in [1024, 10*1024, 10000, 5000, 12345]:
+        for PSIZE in [10, 100, 1000, 1024]:
             SIZE = 10
             data = self.make_str(SIZE, PSIZE)
             self.conn.request('GET', '/', data, {"Transfer-Encoding": "chunked"})
@@ -82,7 +82,7 @@ class InputTest_MixIn:
             expectdata = self.make_str(SIZE, PSIZE, chunked=False)
             self.assertEqual(recvdata, expectdata)
     def test_nonchunked(self):
-        for PSIZE in [1024, 10*1024, 10000, 5000, 12345]:
+        for PSIZE in [10, 100, 1000, 1024]:
             SIZE = 10
             data = self.make_str(SIZE, PSIZE, chunked=False)
             self.conn.request('GET', '/', data, {"Content-Length": str(len(data))})
@@ -158,11 +158,11 @@ class AsyncInputTest_MixIn:
         if chunked: f.write("0\r\n")            
         return f.getvalue()
     def test_read(self):
-        for buffer_length in [123, 1234, 10, 1024, 10*1024]:
+        for buffer_length in [10, 100, 400]:
             self.buffer_length = buffer_length
             self.result = None
-            data = self.make_str(10, 4000)
-            expectdata = self.make_str(10, 4000, chunked=False)
+            data = self.make_str(3, 400)
+            expectdata = self.make_str(3, 400, chunked=False)
             self.conn.request('GET', '/read', data, {"Transfer-Encoding": "chunked"})
             resp = self.conn.getresponse()
             recvdata = resp.read()
@@ -191,81 +191,84 @@ class AsyncInputTest_MixIn:
         self.assertEqual(recvdata, 'readline')
 
 class FileWrapperTest_MixIn:
-    val = os.urandom(10240)
+    CKSIZE = 300
+    POS = 100
+    DIFF = CKSIZE-POS
+    val = os.urandom(CKSIZE)
     middleware = []
     def app(self, environ, start_response):
         tfile = tempfile.TemporaryFile()
         tfile.write(self.val)
-        tfile.seek(1024)
+        tfile.seek(self.POS)
         sz, cl = environ['PATH_INFO'].lstrip('/').split('/')
         headers = [('Content-type','application/octet-stream')]
         if cl:
-            headers.append(('Content-length', str(1024*9)))
+            headers.append(('Content-length', str(self.DIFF)))
         start_response('200 OK', headers)
         return environ['wsgi.file_wrapper'](tfile, int(sz))
         
       
     def test_http10_conn_close(self):
-        for sz in [100, 512, 1024]:
+        for sz in [10, 100, 300]:
             self.conn = httplib.HTTPConnection(*self.local_addr)
             self.conn.connect()
             self.conn._http_vsn = 10
             self.conn._http_vsn_str = 'HTTP/1.0'
             self.conn.auto_open = 0
-            self.conn.request('GET', '/1024/')
+            self.conn.request('GET', '/%s/'%sz)
             resp = self.conn.getresponse()
             recvdata = resp.read()
-            self.assertEqual(len(recvdata), 1024*9)
-            self.assert_(recvdata == self.val[1024:])
+            self.assertEqual(len(recvdata), self.DIFF)
+            self.assert_(recvdata == self.val[self.POS:])
             try:
-                self.conn.request('GET', '/1024/', headers={})
+                self.conn.request('GET', '/%s/'%sz, headers={})
             except httplib.NotConnected:
                 pass
             else:
                 self.failIf("Connection not closed!")
     def test_http10_kalive(self):
-        for sz in [100, 512, 1024]:
+        for sz in [10, 100, 300]:
             self.conn._http_vsn = 10
             self.conn._http_vsn_str = 'HTTP/1.0'
             self.conn.auto_open = 0
-            self.conn.request('GET', '/1024/cl', headers={'Connection': 'keep-alive'})
+            self.conn.request('GET', '/%s/cl'%sz, headers={'Connection': 'keep-alive'})
             resp = self.conn.getresponse()
             recvdata = resp.read()
-            self.assertEqual(len(recvdata), 1024*9)
-            self.assert_(recvdata == self.val[1024:])
+            self.assertEqual(len(recvdata), self.DIFF)
+            self.assert_(recvdata == self.val[self.POS:])
         try:
-            self.conn.request('GET', '/1024/', headers={})
+            self.conn.request('GET', '/%s/'%sz, headers={})
         except httplib.NotConnected:
             self.failIf("Connection closed!")
     
     def test_http11_kalive(self):
         # should use chunking
-        for sz in [100, 512, 1024]:
+        for sz in [10, 100, 300]:
             self.conn.auto_open = 0
-            self.conn.request('GET', '/1024/')
+            self.conn.request('GET', '/%s/'%sz)
             resp = self.conn.getresponse()
             self.assertEqual(resp.chunked, 1)
             recvdata = resp.read()
-            self.assertEqual(len(recvdata), 1024*9)
-            self.assert_(recvdata == self.val[1024:])
+            self.assertEqual(len(recvdata), self.DIFF)
+            self.assert_(recvdata == self.val[self.POS:])
         try:
-            self.conn.request('GET', '/1024/', headers={})
+            self.conn.request('GET', '/%s/'%sz, headers={})
         except httplib.NotConnected:
             self.failIf("Connection closed!")
     
     def test_http11_conn_close(self):
-        for sz in [100, 512, 1024]:
+        for sz in [10, 100, 300]:
             self.conn = httplib.HTTPConnection(*self.local_addr)
             self.conn.connect()
             self.conn.auto_open = 0
-            self.conn.request('GET', '/1024/cl', headers={'Connection': 'close'})
+            self.conn.request('GET', '/%s/cl'%sz, headers={'Connection': 'close'})
             resp = self.conn.getresponse()
             self.assertEqual(resp.chunked, 0)
             recvdata = resp.read()
-            self.assertEqual(len(recvdata), 1024*9)
-            self.assert_(recvdata == self.val[1024:])
+            self.assertEqual(len(recvdata), self.DIFF)
+            self.assert_(recvdata == self.val[self.POS:])
             try:
-                self.conn.request('GET', '/1024/', headers={})
+                self.conn.request('GET', '/%s/'%sz, headers={})
             except httplib.NotConnected:
                 pass
             else:
