@@ -34,6 +34,20 @@
         </py:for>
     </div>
 
+    <div py:if="desc.constructor">
+        <h2>Constructor</h2>
+        
+        <h3 id="${desc.constructor.anchor}">
+            <span py:replace="desc.constructor.name" />
+            <span class="args" py:content="desc.constructor.argspec" />
+        </h3>
+        
+        <div class="docstring ${project.renderer_id(desc.constructor)}"
+             py:content="project.render_description(desc.constructor)" />
+        
+        <ul py:replace="link_bar(desc.constructor)" />
+    </div>
+
     <div py:if="desc.methods">
         <h2>Methods</h2>
         

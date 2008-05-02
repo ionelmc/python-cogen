@@ -24,7 +24,6 @@
 </head>
 
 <ul py:def="link_bar(link_desc, details_link=True)" class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li py:if="details_link and link_desc.details">
         <a href="${link_desc.details}">Details</a>
     </li>
@@ -73,6 +72,16 @@
                 </ul>
             </div>
                 
+            <div py:if="desc.constructor" class="browser-section">
+                <h2>Constructor</h2>
+                
+                <ul>
+                    <li>
+                        <a href="${desc.constructor.href}">${desc.constructor.name}</a>
+                    </li>
+                </ul>
+            </div>                
+
             <div py:if="desc.methods" class="browser-section">
                 <h2>Methods</h2>
             
