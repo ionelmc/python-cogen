@@ -20,9 +20,11 @@ from base import priorities
 from cogen.core.coroutines import debug_coroutine
 
 class SocketTest_MixIn:
+    sockets = []
     def setUp(self):
-        self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = Scheduler(default_priority=self.prio, reactor=self.poller)
+        self.local_addr = ('localhost', random.randint(10000,64000))
+        self.m = Scheduler( default_priority=self.prio, reactor=self.poller, 
+                            reactor_resolution=0.01)
         def run():
             try:
                 time.sleep(1)
@@ -33,6 +35,9 @@ class SocketTest_MixIn:
         self.m_run = threading.Thread(target=run)
         
     def tearDown(self):
+        for s in self.sockets:
+            s.close()
+        self.sockets = []
         del self.m
         import gc; gc.collect()
         
@@ -41,9 +46,10 @@ class SocketTest_MixIn:
         @coroutine
         def reader():
             srv = sockets.Socket()
+            self.sockets.append(srv)
             srv.setblocking(0)
-            srv.bind(self.local_addr)
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            srv.bind(self.local_addr)
             srv.listen(0)
             conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first))
             self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_first=self.run_first) 
@@ -73,7 +79,7 @@ class SocketTest_MixIn:
             a2 = yield y2
             a3 = yield y3
             self.recvobj2 = (a1,a2,a3)
-            srv.close()
+            #~ srv.close()
             self.m.stop()
         coro = self.m.add(reader)
         self.m_run.start()
@@ -107,8 +113,9 @@ class SocketTest_MixIn:
         @coroutine
         def reader():
             srv = sockets.Socket()
-            srv.bind(self.local_addr)
+            self.sockets.append(srv)
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            srv.bind(self.local_addr)
             srv.listen(0)
             conn, addr = yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first)
             self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_first=self.run_first)
@@ -123,6 +130,7 @@ class SocketTest_MixIn:
         self.m_run.start()
         time.sleep(1.5)
         sock = socket.socket()
+        self.sockets.append(sock)
         sock.connect(self.local_addr)
         sent = 0
         length = 1024**2
@@ -141,25 +149,26 @@ class SocketTest_MixIn:
         @coroutine
         def writer():
             try:
-                obj = yield sockets.Connect(sockets.Socket(), self.local_addr, timeout=0.5)    
+                cli = sockets.Socket()
+                self.sockets.append(cli)
+                obj = yield sockets.Connect(cli, self.local_addr, timeout=0.5)    
                 self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
                 self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
-                obj.sock.close()
+                self.sockets.append(obj.sock)
             except:
                 traceback.print_exc()
                 thread.interrupt_main()
                 
         try:
             srv = socket.socket()
-            srv.setblocking(0)
-            srv.bind(self.local_addr)
+            self.sockets.append(srv)
+            srv.setblocking(1)
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            srv.bind(self.local_addr)
             srv.listen(0)
             coro = self.m.add(writer)
-            self.m_run.start()
-            time.sleep(1)
+            thread.start_new_thread(lambda: time.sleep(0.3) or self.m_run.start(), ())
             while 1:
-                time.sleep(0.2)
                 try:
                     cli, addr = srv.accept()    
                     break
@@ -168,6 +177,7 @@ class SocketTest_MixIn:
                         continue
                     else:
                         raise
+            self.sockets.append(cli)
                 
             time.sleep(0.2)
             cli.setblocking(1)
@@ -185,7 +195,6 @@ class SocketTest_MixIn:
                         break
                     else:
                         raise
-            srv.close()
             self.assertEqual(self.writeobj+self.writeobj_all, total)
             self.assertEqual(len(self.m.poll), 0)
             self.assertEqual(len(self.m.active), 0)
