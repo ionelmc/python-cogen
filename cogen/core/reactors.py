@@ -607,10 +607,6 @@ class IOCPProactor(ReactorBase):
             #    self.registered_ops[op] = self.run_iocp(op, coro)
             del self.registered_ops[op]
             win32file.CancelIo(op.sock._fd.fileno())
-            import warnings
-            warnings.warn("%s on %r/%r" % (
-                ctypes.FormatError(rc), op, coro), stacklevel=1
-            )
             return events.CoroutineException((
                 events.ConnectionError, events.ConnectionError(
                     (rc, "%s on %r" % (ctypes.FormatError(rc), op))
@@ -621,7 +617,7 @@ class IOCPProactor(ReactorBase):
         for op in self.registered_ops:
             if self.registered_ops[op].object[1] is testcoro:
                 return op
-    #~ @debug(0)
+    
     def remove(self, op, coro):
         if op in self.registered_ops:
             self.registered_ops[op].object = None
@@ -648,10 +644,11 @@ class IOCPProactor(ReactorBase):
                         self.iocp,
                         0 if urgent else ptimeout
                     )
-                except RuntimeError, e:
-                    # this needs some research
-                    print e
-                    sys.exc_clear()
+                except RuntimeError:
+                    # we will get "This overlapped object has lost all its 
+                    # references so was destroyed" when we remove a operation, 
+                    # it is garbage collected and the overlapped completes
+                    # afterwards
                     break 
                     
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo
