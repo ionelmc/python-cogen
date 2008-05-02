@@ -11,19 +11,19 @@ Notable features
 ================
 
 * a WSGI server, HTTP1.1 compliant, with asynchronous extensions
-* epoll, kqueue, select, i/o completion ports behind the scene
-* a Queue with the same interface as the standard library Queue, but 
-  for coroutines
+* epoll, kqueue, select, i/o completion ports, sendfile behind the scenes
+* a couple of usefull classes for putting the coroutine to sleep, wait for 
+signals, queues, timeouts etc 
   
   
 Quick introduction
 ==================
-Programming with `cogen` library should be straightforward, similar with 
-programming threads but without all the problems. A coroutine is just a 
-generator wrapped in a operation handling class:
+A coroutine is just a generator wrapped in a helper class:
 
 ::
-
+    
+    from cogen.core.coroutines import coroutine
+    
     @coroutine
     def mycoro(bla):
         result = yield <operation>
@@ -74,8 +74,6 @@ Echo server example
     m.add(server)
     m.run()
 
-Links
------
 
 Documentation
 =============
