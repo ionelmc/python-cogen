@@ -1,31 +1,35 @@
 """
 cogen.web.wsgi server is asynchronous by default. If you need to run a app that
 uses wsgi.input synchronously you need to wrapp it in 
-`SynchronousInputMiddleware`.
+`SynchronousInputMiddleware <cogen.web.async.SynchronousInputMiddleware.html>`_.
 
 Wsgi asynchronous api only provides a read operation at the moment. Here's a
 example:
 
-{{{
-buff = StringIO()
-while 1:
-    yield environ['cogen.input'].Read(self.buffer_length)
-    result = environ['cogen.wsgi'].result
-    if isinstance(result, Exception):
-        import traceback
-        traceback.print_exception(*environ['cogen.wsgi'].exception)
-        break
-    else:
-        if not result:
-            break
-        buff.write(result)
-buff.seek(0)
-# ...
-# do something with the data
-# ...
-}}}
+.. sourcecode:: python
 
+    buff = StringIO()
+    while 1:
+        yield environ['cogen.input'].Read(self.buffer_length)
+        result = environ['cogen.wsgi'].result
+        if isinstance(result, Exception):
+            import traceback
+            traceback.print_exception(*environ['cogen.wsgi'].exception)
+            break
+        else:
+            if not result:
+                break
+            buff.write(result)
+    buff.seek(0)
+    # ...
+    # do something with the data
+    # ...
 """
+__all__ = [
+    'LazyStartResponseMiddleware', 'SynchronousInputMiddleware', 'Read',
+    'ReadLine'
+]
+
 
 from cogen.core import sockets
 from cogen.core.util import debug
@@ -95,7 +99,7 @@ lazy_sr = LazyStartResponseMiddleware
 
 class SynchronousInputMiddleware:
     """Middleware for providing wsgi.input to the app."""
-    __doc_all__ = ['__init__', '__call__']
+    __doc_all__ = ['__call__']
     def __init__(self, app, global_conf={}, buffer_length=1024):
         self.app = app
         self.buffer_length = int(buffer_length)

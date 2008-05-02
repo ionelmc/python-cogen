@@ -4,7 +4,7 @@ Base events (coroutine operations) and coroutine exceptions.
 __all__ = [
     'CoroutineException', 'ConnectionError', 'ConnectionClosed', 
     'OperationTimeout', 'WaitForSignal', 'Signal', 'Call', 'AddCoro', 
-    'Join', 'Sleep', 
+    'Join', 'Sleep', 'Operation', 'TimedOperation'
 ]
 import datetime
 import heapq
@@ -40,12 +40,13 @@ class Operation(object):
     
     Eg:
     
-    {{{
-    yield Operation(prio=priority.DEFAULT)
-    }}}        
+    .. sourcecode:: python
+        
+        yield Operation(prio=priority.DEFAULT)
+           
     
-      * prio - a priority constant, where the coro is appended on the active 
-        coroutine queue and how the coroutine is runned depend on this.
+    * prio - a priority constant, where the coro is appended on the active 
+      coroutine queue and how the coroutine is runned depend on this.
     
     If you need something that can't be done in a coroutine fashion you 
     probabily need to subclass this and make a custom operation for your
@@ -80,20 +81,20 @@ class TimedOperation(Operation):
     
     Eg:
     
-    {{{
-    yield TimedOperation(
-        timeout=None, 
-        weak_timeout=True,
-        prio=priority.DEFAULT
-    )
-    }}}
+    .. sourcecode:: python
     
-      * timeout - can be a float/int (number of seconds) or a timedelta or a datetime value
-        if it's a datetime the timeout will occur on that moment
-      * weak_timeout - strong timeouts just happen when specified, weak_timeouts
-        get delayed if some action happens (eg: new but not enough data recieved)
+        yield TimedOperation(
+            timeout=None, 
+            weak_timeout=True,
+            prio=priority.DEFAULT
+        )
     
-    See: [Docs_CogenCoreEventsOperation Operation]
+    * timeout - can be a float/int (number of seconds) or a timedelta or a datetime value
+      if it's a datetime the timeout will occur on that moment
+    * weak_timeout - strong timeouts just happen when specified, weak_timeouts
+      get delayed if some action happens (eg: new but not enough data recieved)
+    
+    See: `Operation <cogen.core.events.Operation.html>`_.
     Note: you don't really use this, this is for subclassing for other operations.
     """
     __slots__ = ['_timeout', '__weakref__', 'weak_timeout']
@@ -126,20 +127,24 @@ class WaitForSignal(TimedOperation):
     """The coroutine will resume when the same object is Signaled.
     
     Eg:
-    {{{ 
-    value = yield events.WaitForSignal(
-        name, 
-        timeout=None, 
-        weak_timeout=True,
-        prio=priority.DEFAULT
-    )
-    }}}
     
-      * name - a object to wait on, can use strings for this - string used to 
-        wait is equal to the string used to signal.
-      * value - a object sent with the signal. see: [Docs_CogenCoreEventsSignal Signal]
+    .. sourcecode:: python
+    
+        value = yield events.WaitForSignal(
+            name, 
+            timeout=None, 
+            weak_timeout=True,
+            prio=priority.DEFAULT
+        )
+    
+    
+    * name - a object to wait on, can use strings for this - string used to 
+      wait is equal to the string used to signal.
       
-    See: [Docs_CogenCoreEventsTimedoperation TimedOperation]
+    * value - a object sent with the signal. 
+      See: `Signal <cogen.core.events.Signal.html>`_
+      
+    See: `TimedOperation <cogen.core.events.TimedOperation.html>`_.
     """
         
     __slots__ = ['name', 'result']
@@ -184,19 +189,19 @@ class Signal(Operation):
     
     Usage:
     
-    {{{
-    nr = yield events.Signal(
-        name, 
-        value,
-        prio=priority.DEFAULT
-    )
-    }}}
+    .. sourcecode:: python
     
-      * nr - the number of coroutines woken up
-      * name - object that coroutines wait on, can be a string 
-      * value - object that the waiting coros recieve when they are resumed.
+        nr = yield events.Signal(
+            name, 
+            value,
+            prio=priority.DEFAULT
+        )
+    
+    * nr - the number of coroutines woken up
+    * name - object that coroutines wait on, can be a string 
+    * value - object that the waiting coros recieve when they are resumed.
       
-    See: [Docs_CogenCoreEventsOperation Operation]
+    See: `Operation <cogen.core.events.Operation.html>`_.
     """
     __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
     __doc_all__ = ['__init__']
@@ -241,16 +246,17 @@ class Call(Operation):
     resume the callee when it returns. 
     
     Usage:
-    {{{
-    result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)
-    }}}
+    .. sourcecode:: python
+        
+        result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)
     
-      * mycoro - the coroutine to add.
-      * args, kwargs - params to call the coroutine with
-      * if `prio` is set the new coroutine will be added in the top of the 
+    
+    * mycoro - the coroutine to add.
+    * args, kwargs - params to call the coroutine with
+    * if `prio` is set the new coroutine will be added in the top of the 
       scheduler queue
       
-    See: [Docs_CogenCoreEventsOperation Operation]
+    See: `Operation <cogen.core.events.Operation.html>`_.
     """
     __slots__ = ['coro', 'args', 'kwargs']
     __doc_all__ = ['__init__']
@@ -282,12 +288,12 @@ class AddCoro(Operation):
     A operator for adding a coroutine in the scheduler.
     Example:
     
-    {{{
-    yield events.AddCoro(some_coro, args=(), kwargs={})
-    }}}
-    
+    .. sourcecode:: python
+        
+        yield events.AddCoro(some_coro, args=(), kwargs={})
+        
     This is similar to Call, but it doesn't pause the current coroutine.
-    See: [Docs_CogenCoreEventsOperation Operation]
+    See: `Operation <cogen.core.events.Operation.html>`_.
     """
     __slots__ = ['coro', 'args', 'kwargs', 'result']
     __doc_all__ = ['__init__']
@@ -323,20 +329,20 @@ class Join(TimedOperation):
     A operation for waiting on a coroutine. 
     Example:
     
-    {{{
-    @coroutine
-    def coro_a():
-        return_value = yield events.Join(ref)
-        
-        
-    @coroutine
-    def coro_b():
-        yield "bla"
-        raise StopIteration("some return value")
+    .. sourcecode:: python
     
-    ref = scheduler.add(coro_b)
-    scheduler.add(coro_a)
-    }}}
+        @coroutine
+        def coro_a():
+            return_value = yield events.Join(ref)
+            
+            
+        @coroutine
+        def coro_b():
+            yield "bla"
+            raise StopIteration("some return value")
+        
+        ref = scheduler.add(coro_b)
+        scheduler.add(coro_a)
     
     This will pause the coroutine and resume it when the other coroutine 
     (`ref` in the example) has died.
@@ -368,17 +374,17 @@ class Sleep(TimedOperation):
     
     Usage:
     
-    {{{
-    yield events.Sleep(time_object)
-    }}}
-    
-      * time_object - a datetime or timedelta object, or a number of seconds
+    .. sourcecode:: python
         
-    {{{
-    yield events.Sleep(timestamp=ts)
-    }}}
+        yield events.Sleep(time_object)
     
-      * ts - a timestamp
+    * time_object - a datetime or timedelta object, or a number of seconds
+        
+    .. sourcecode:: python
+    
+        yield events.Sleep(timestamp=ts)
+    
+    * ts - a timestamp
     """
     __slots__ = []
     __doc_all__ = ['__init__']

@@ -168,13 +168,13 @@ class Queue:
     
     So, to use this you write someting like:
     
-    {{{
-    @coroutine
-    def foo():
-        q = cogen.core.queue.Queue(<size>)
-        yield q.put(123)
-        val = yield q.get()
-    }}}
+    .. sourcecode:: python
+    
+        @coroutine
+        def foo():
+            q = cogen.core.queue.Queue(<size>)
+            yield q.put(123)
+            val = yield q.get()
     """
     def __init__(self, maxsize=0):
         self._init(maxsize)

@@ -3,7 +3,7 @@ Scheduling framework.
 
 The scheduler handles the timeouts, run the operations and does very basic 
 management of coroutines. Most of the heavy logic is in each operation class.
-See: [Docs_CogenCoreEvents events] and [Docs_CogenCoreSockets sockets]
+See: `events <cogen.core.events.html>`_ and `sockets <cogen.core.sockets.html>`_.
 Most of those operations work with attributes we set in the scheduler.
 """
 __all__ = ['Scheduler']
@@ -70,13 +70,18 @@ class Scheduler(object):
     prioritisaiton parameters.
     
     Usage:
-    {{{Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)}}}
+    .. sourcecode:: python
+        
+        Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)
     
-      * reactor: a reactor class to use
-      * default_priority: a default priority option for operations that do not 
-      set it. check [Docs_CogenCoreUtilPriority priority].
-      * default_timeout: a default timedelta or number of seconds to wait for 
+    * reactor: a reactor class to use
+    
+    * default_priority: a default priority option for operations that do not 
+      set it. check `priority <cogen.core.util.priority.html>`_.
+      
+    * default_timeout: a default timedelta or number of seconds to wait for 
       the operation, -1 means no timeout.
+    
     """
     def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None, reactor_resolution=.01):
         self.timeouts = [] #heapq
@@ -140,11 +145,12 @@ class Scheduler(object):
         weak_timeout flag, update the timeout point and add it back in the 
         heapq.
         
-        weak_timeout notes:        
-          * weak_timeout means a last_update attribute is updated with
+        weak_timeout notes:
+        
+        * weak_timeout means a last_update attribute is updated with
           a timestamp of the last activity in the operation - for example, a
           may recieve new data and not complete (not enough data, etc)
-          * if there was activity since the last time we've cheched this 
+        * if there was activity since the last time we've cheched this 
           timeout we push it back in the heapq with a timeout value we'll check 
           it again
         

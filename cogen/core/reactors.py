@@ -4,15 +4,21 @@ Network polling code.
 The reactor works in tandem with the socket operations.
 Here's the basic workflow:
 
-  * the coroutine yields a operation
-  * the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)
-    Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method
-    * if run_first is False then the operation is added in the reactor for 
+* the coroutine yields a operation
+
+* the scheduler runs that operation (the `process 
+  <cogen.core.events.Operation.html#method-process>`_ method)
+  Note: all the socket operations share the same `process method
+  <cogen.core.sockets.SocketOperation.html#method-process>`_. 
+  
+  * if run_first is False then the operation is added in the reactor for 
     polling (with the exception that if we have data in out internal buffers
     the operation is runned first)
-    * if run_first is set (it's default) in the operation then in process 
-    method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] 
-    is called with the operation and coroutine
+  
+  * if run_first is set (it's default) in the operation then in process 
+    method the reactor's `run_or_add 
+    <cogen.core.reactors.ReactorBase#method-run_or_add>`_ is called with the 
+    operation and coroutine
 
   
 Note: run_first is a optimization hack really, first it tries to run the
@@ -718,49 +724,57 @@ except ImportError:
 class QtReactor(ReactorBase):
     """ A reator that integrated with the Qt main loop.
     Works roughly the same way as the other reactor, but:
-      * the scheduler is changed to run in a QTimer with the same intervals
+    
+    * the scheduler is changed to run in a QTimer with the same intervals
       as the reactor would usualy run (0 when there are coroutines to run,
       the resolution value if there are pending socket operations or the 
       timespan to the next timeout.
-      * the scheduler's run method is monkey patched (yeah i know it doesn't 
+    
+    * the scheduler's run method is monkey patched (yeah i know it doesn't 
       feel right but you're doing some weird stuff if your putting this in a 
       Qt app so it doesn't really count) to call the QApplication's exec_ 
       method - so roughly works the same way as for the other reactors (blocks
       and runs the coroutines) but actualy runs the Qt app.
-      * the reactor has a extra method _start_ that starts the timer and 
+    
+    * the reactor has a extra method _start_ that starts the timer and 
       runs the first cogen scheduler iteration (wich is called by the 
       scheduler's patched run method.
-      * if there are no more stuff to run (no active coros, no pending 
+      
+    * if there are no more stuff to run (no active coros, no pending 
       operations) the scheduler will die but the Schduler.run method will still
       block - as it is running the Qt app.
       
     To plug this in a qt app you ahve 2 options:
-      * do the usual Scheduler initialisation and call start() on the reactor.
+    
+    *   do the usual Scheduler initialisation and call start() on the reactor.
         Eg:
-        {{{
+        .. sourcecode:: python
+        
             # initialise you QApplication or QCoreApplication
 
             sched = schedulers.Scheduler(reactor=reactors.QtReactor)
             sched.poll.start()
 
             # call your application's exec_() - or whatever options do you have.
-        }}}
+        
       
-      * initialise the scheduler and call run on it.
+    *   initialise the scheduler and call run on it.
         Eg:
-        {{{
+        .. sourcecode:: python
+        
             # initialise you QApplication or QCoreApplication
 
             sched = schedulers.Scheduler(reactor=reactors.QtReactor)
             sched.run() # this will run your application's exec_() for you
-        }}}
+        
         
     Other notes:
-      * Qt can only have one QApplication or QCoreApplication
-      * Qt can only run in the main thread (this saddens me, really)
-      * This reactor will make it's own QApplication if there isn't one - so 
+
+    * Qt can only have one QApplication or QCoreApplication
+    * Qt can only run in the main thread (this saddens me, really)
+    * This reactor will make it's own QApplication if there isn't one - so 
       you'd better initialise the Scheduler after your Qt app.
-      * this reactor isn't well tested.
+    * this reactor isn't well tested.
     """
     def __init__(self, scheduler, res):
         super(self.__class__, self).__init__(scheduler, res)

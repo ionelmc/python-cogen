@@ -1,12 +1,12 @@
 ﻿# -*- coding: utf-8 -*-
 '''
 This is a library for network oriented, coroutine based programming. 
-The interfaces and events/operations aim to mimic thread features. Coroutines 
-work as simple generators, the operations and events work as objects passed in 
-and out of the generator, these objects are managed by the scheduler/network 
-poller. 
+The interfaces and events/operations aim to mimic some of the regular thread 
+and socket features. 
 
-Check each modules for specific help.
+Coroutines work as simple generators, the operations and events work as objects 
+passed in and out of the generator, these objects are managed by the scheduler
+and reactor. 
 '''
 
 __license__ = '''

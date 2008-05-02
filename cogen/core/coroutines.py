@@ -1,7 +1,7 @@
 """ 
 Coroutine related boilerplate and wrappers.
 """
-__all__ = ['local', 'Coroutine', 'coro', 'coroutine']
+__all__ = ['local', 'coroutine']
 
 import types
 import sys
@@ -14,13 +14,14 @@ def coroutine(func):
     A decorator function for generators.
     Example:
     
-    {{{
-    @coroutine
-    def plain_ol_generator():
-        yield bla
-        yield bla
-        ...
-    }}}
+    .. sourcecode:: python
+
+        @coroutine
+        def plain_ol_generator():
+            yield bla
+            yield bla
+            ...
+    
     """
     def make_new_coroutine(*args, **kws):
         return Coroutine(func, *args, **kws)
@@ -49,10 +50,11 @@ class local(object):
     Coroutine.run_op sets the indent before running a step and unsets after.
     
     Example:
-    {{{
-    loc = local() 
-    loc.foo = 1
-    }}}
+    .. sourcecode:: python
+    
+        loc = local() 
+        loc.foo = 1
+
     The *loc* instance's values will be different for separate coroutines.
     """
     def __init__(self):
@@ -157,12 +159,13 @@ class Coroutine(events.Operation):
     def run_op(self, op): 
         """
         Handle the operation:
-          * if coro is in STATE_RUNNING, send or throw the given op
-          * if coro is in STATE_NEED_INIT, call the init function and if it 
+        
+        * if coro is in STATE_RUNNING, send or throw the given op
+        * if coro is in STATE_NEED_INIT, call the init function and if it 
           doesn't return a generator, set STATE_COMPLETED and set the result
           to whatever the function returned. 
-            * if StopIteration is raised, set STATE_COMPLETED and return self.
-            * if any other exception is raised, set STATE_FAILED, handle error
+          * if StopIteration is raised, set STATE_COMPLETED and return self.
+          * if any other exception is raised, set STATE_FAILED, handle error
             or send it to the caller, return self
         
         Return self is used as a optimization. Coroutine is also a Operation 

@@ -1,11 +1,12 @@
 """
 Socket-only coroutine operations and `Socket` wrapper.
 Really - the only thing you need to know for most stuff is 
-the [Docs_CogenCoreSocketsSocket Socket] class.
+the `Socket <cogen.core.sockets.Socket.html>`_ class.
 """
 __all__ = [
     'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Read',
-    'ReadAll', 'ReadLine', 'Write', 'WriteAll','Accept','Connect'
+    'ReadAll', 'ReadLine', 'Write', 'WriteAll','Accept','Connect', 
+    'SocketOperation'
 ]
 
 import socket
@@ -41,7 +42,7 @@ def getdefaulttimeout():
 
 def setdefaulttimeout(timeout):
     """Set the default timeout used by the socket wrapper 
-    ([Docs_CogenCoreSocketsSocket Socket] class)"""
+    (`Socket <cogen.core.sockets.Socket.html>`_ class)"""
     _TIMEOUT = timeout
 
 
@@ -52,15 +53,19 @@ class Socket(object):
     socket methods return operations for use in a coroutine.
     
     So you use this in a coroutine like:
-    {{{
+    
+    .. sourcecode:: python
+    
         sock = Socket(family, type, proto) # just like the builtin socket module
         yield sock.read(1024)
-    }}}
+    
     
     Constructor details:
-    {{{
+    
+    .. sourcecode:: python
+    
         Socket([family[, type[, proto]]]) -> socket object
-    }}}
+    
     Open a socket of the given type.  The family argument specifies the
     address family; it defaults to AF_INET.  The type argument specifies
     whether this is a stream (SOCK_STREAM, this is the default)
@@ -198,7 +203,6 @@ class SocketOperation(events.TimedOperation):
         'len', 'buff', 'addr', 'run_first',
         
     ]
-    __doc_all__ = ['__init__', 'try_run']
     trim = 2000
     def __init__(self, sock, run_first=True, **kws):
         """
@@ -206,10 +210,10 @@ class SocketOperation(events.TimedOperation):
         poller and scheduler interprets:
         
           * timeout - the ammout of time in seconds or timedelta, or the datetime 
-          value till the poller should wait for this operation.
+            value till the poller should wait for this operation.
           * weak_timeout - if this is True the timeout handling code will take 
-          into account the time of last activity (that would be the time of last
-          `try_run` call)
+            into account the time of last activity (that would be the time of last
+            `try_run` call)
           * prio - a flag for the scheduler
         """
         assert isinstance(sock, Socket)
@@ -245,9 +249,8 @@ class SocketOperation(events.TimedOperation):
                 raise
         return self
 
-    #~ @debug(0)
     def process(self, sched, coro):
-        #~ print '>process:', self
+        """Add the operation in the reactor if necessary."""
         super(SocketOperation, self).process(sched, coro)
         if self.run_first or self.pending():
             r = sched.poll.run_or_add(self, coro)
@@ -297,25 +300,24 @@ class SendFile(WriteOperation):
         You can use this as a WriteAll if you specify the length.
         Usage:
             
-        {{{
-        yield sockets.SendFile(file_object, socket_object, 0) 
-            # will send till send operations return 0
-            
-        yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
-            # there will be only one send operation (if successfull)
-            # that meas the whole file will be read in memory if there is 
-            #no sendfile
-            
-        yield sockets.SendFile(file_object, socket_object, 0, file_size)
-            # this will hang if we can't read file_size bytes
-            #from the file
-        }}}
+        .. sourcecode:: python
+            yield sockets.SendFile(file_object, socket_object, 0) 
+                # will send till send operations return 0
+                
+            yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
+                # there will be only one send operation (if successfull)
+                # that meas the whole file will be read in memory if there is 
+                #no sendfile
+                
+            yield sockets.SendFile(file_object, socket_object, 0, file_size)
+                # this will hang if we can't read file_size bytes
+                #from the file
+
     """
     __slots__ = [
         'sent', 'file_handle', 'offset', 
         'position', 'length', 'blocksize'
     ]
-    __doc_all__ = ['__init__', 'run']
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
@@ -402,12 +404,12 @@ class Read(ReadOperation):
     return them first.
     Example usage:
     
-    {{{
-    yield sockets.Read(socket_object, buffer_length)
-    }}}
+    .. sourcecode:: python
+        
+        yield sockets.Read(socket_object, buffer_length)
+    
     """
     __slots__ = []
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, len = 4096, **kws):
         super(Read, self).__init__(sock, **kws)
@@ -467,7 +469,6 @@ class ReadAll(ReadOperation):
     Run this operator till we've read `len` bytes.
     """
     __slots__ = []
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, len = 4096, **kws):
         super(ReadAll, self).__init__(sock, **kws)
@@ -551,7 +552,6 @@ class ReadLine(ReadOperation):
     `len` is the max size for a line
     """
     __slots__ = []
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, len = 4096, **kws):
         super(ReadLine, self).__init__(sock, **kws)
@@ -663,7 +663,6 @@ class Write(WriteOperation):
     Write the buffer to the socket and return the number of bytes written.
     """    
     __slots__ = []
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, buff, **kws):
         super(Write, self).__init__(sock, **kws)
@@ -703,7 +702,6 @@ class WriteAll(WriteOperation):
     Run this operation till all the bytes have been written.
     """
     __slots__ = []
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, buff, **kws):
         super(WriteAll, self).__init__(sock, **kws)
@@ -746,7 +744,6 @@ class Accept(ReadOperation):
     Returns a (conn, addr) tuple when the operation completes.
     """
     __slots__ = ['conn', 'conn_buff']
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, **kws):
         super(Accept, self).__init__(sock, **kws)
@@ -802,7 +799,6 @@ class Connect(WriteOperation):
     Connect to the given `addr` using `sock`.
     """
     __slots__ = ['connect_attempted']
-    __doc_all__ = ['__init__', 'run']
     
     def __init__(self, sock, addr, **kws):
         super(Connect, self).__init__(sock, **kws)

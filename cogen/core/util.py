@@ -72,12 +72,21 @@ class TimeoutDesc(object):
 
 class priority(object):  
     """
-    || Property || Description || 
-    || DEFAULT || Use the default_priority set in the Scheduler || 
-    || LAST, NOPRIO || Allways scheduler the operation/coroutine at the end of the queue ||   
-    || CORO || Favor the coroutine - if it's the case. || 
-    || OP || Favor the operation - if it's the case. || 
-    || FIRST, PRIO || Allways schedule with priority || 
+    ======== ===================================================================
+    Property Description 
+    ======== ===================================================================
+    DEFAULT  Use the default_priority set in the Scheduler
+    -------- -------------------------------------------------------------------
+    LAST, 
+    NOPRIO   Allways scheduler the operation/coroutine at the end of the queue 
+    -------- -------------------------------------------------------------------
+    CORO     Favor the coroutine - if it's the case. 
+    -------- -------------------------------------------------------------------
+    OP       Favor the operation - if it's the case. 
+    -------- -------------------------------------------------------------------
+    FIRST, 
+    PRIO     Allways schedule with priority
+    ======== ===================================================================
     
     """
     __doc_all__ = []
