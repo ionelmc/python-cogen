@@ -13,7 +13,7 @@ Notable features
 * a WSGI server, HTTP1.1 compliant, with asynchronous extensions
 * epoll, kqueue, select, i/o completion ports, sendfile behind the scenes
 * a couple of usefull classes for putting the coroutine to sleep, wait for 
-signals, queues, timeouts etc 
+  signals, queues, timeouts etc.
   
   
 Quick introduction
