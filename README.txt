@@ -2,7 +2,7 @@ Overview
 --------
 This is a library for network oriented, coroutine based programming. 
 
-*cogen*'s goal is to enable writing code in a synchronous and easy 
+*cogen*'s goal is to enable writing code in a seamingly synchronous and easy 
 manner in the form of generators that yield calls and receive the result
 from that yield. These calls translate to asynchronous and fast os calls 
 in *cogen*'s internals.
@@ -77,10 +77,12 @@ Echo server example
 
 Documentation
 =============
-Hosted at: http://code.google.com/p/cogen/wiki/Docs_Cogen
+
+http://cogen.googlecode.com/svn/trunk/docs/cogen.html
 
 Development
 ============
+
 Takes place at: http://code.google.com/p/cogen/
 
 Grab the latest and greatest from trunk with::
