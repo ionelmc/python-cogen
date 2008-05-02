@@ -17,8 +17,9 @@ from base import priorities
 
 class Timer_MixIn:
     def setUp(self):
-        self.local_addr = ('localhost', random.randint(19000,20000))
-        self.m = Scheduler(default_priority=self.prio, reactor=self.poller)
+        self.local_addr = ('localhost', random.randint(10000,64000))
+        self.m = Scheduler( default_priority=self.prio, reactor=self.poller,
+                            reactor_resolution=0.05)
         def run():
             try:
                 time.sleep(1)
