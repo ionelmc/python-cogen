@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.sockets.Socket.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -96,249 +104,263 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.sockets.Socket</h1>
-    <div class="docstring plain">A wrapper for socket objects, sets nonblocking mode and
+    <div class="docstring rst"><p>A wrapper for socket objects, sets nonblocking mode and
 adds some internal bufers and wrappers. Regular calls to the usual
-socket methods return operations for use in a coroutine.<br /><br />So you use this in a coroutine like:
-<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-    sock = Socket(family, type, proto) # just like the builtin socket module
-    yield sock.read(1024)
-</pre>Constructor details:
-<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-    Socket([family[, type[, proto]]]) -&gt; socket object
-</pre>
-Open a socket of the given type.  The family argument specifies the
+socket methods return operations for use in a coroutine.</p>
+<p>So you use this in a coroutine like:</p>
+<div class="source"><pre><span class="n">sock</span> <span class="o">=</span> <span class="n">Socket</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span> <span class="c"># just like the builtin socket module</span>
+<span class="k">yield</span> <span class="n">sock</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">1024</span><span class="p">)</span>
+</pre></div>
+<p>Constructor details:</p>
+<div class="source"><pre><span class="n">Socket</span><span class="p">([</span><span class="n">family</span><span class="p">[,</span> <span class="nb">type</span><span class="p">[,</span> <span class="n">proto</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">socket</span> <span class="nb">object</span>
+</pre></div>
+<p>Open a socket of the given type.  The family argument specifies the
 address family; it defaults to AF_INET.  The type argument specifies
 whether this is a stream (SOCK_STREAM, this is the default)
 or datagram (SOCK_DGRAM) socket.  The protocol argument defaults to 0,
-specifying the default protocol.  Keyword arguments are accepted.<br /><br />A socket object represents one endpoint of a network connection.</div>
+specifying the default protocol.  Keyword arguments are accepted.</p>
+<p>A socket object represents one endpoint of a network connection.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L47">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#48">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, *a, **k)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#77">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="method-accept">
                 accept
                 <span class="args">(self, **kws)</span>
             </h3>
-            <div class="docstring plain">Accept a connection. The socket must be bound to an address and
+            <div class="docstring rst"><p>Accept a connection. The socket must be bound to an address and
 listening for connections. The return value is a pair (conn, address)
 where conn is a new socket object usable to send and receive data on the
 connection, and address is the address bound to the socket on the other
-end of the connection. <br /><br />Example:
-<pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
+end of the connection.</p>
+<p>Example:
+{{{
 conn, address = yield mysock.accept()
-</pre></div>
+}}}</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L111">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#116">View source</a>
     </li>
 </ul>
             <h3 id="method-bind">
                 bind
                 <span class="args">(self, *args)</span>
             </h3>
-            <div class="docstring plain">Bind the socket to <i>address</i>. The socket must not already be bound.
-(The format of <i>address</i> depends on the address family) </div>
+            <div class="docstring rst"><p>Bind the socket to _address_. The socket must not already be bound.
+(The format of _address_ depends on the address family)</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L132">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#137">View source</a>
     </li>
 </ul>
             <h3 id="method-close">
                 close
                 <span class="args">(self, *args)</span>
             </h3>
-            <div class="docstring plain">Close the socket. All future operations on the socket object will
+            <div class="docstring rst"><p>Close the socket. All future operations on the socket object will
 fail. The remote end will receive no more data (after queued data is
-flushed). Sockets are automatically closed when they are garbage-collected. </div>
+flushed). Sockets are automatically closed when they are garbage-collected.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L125">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#130">View source</a>
     </li>
 </ul>
             <h3 id="method-connect">
                 connect
                 <span class="args">(self, address, **kws)</span>
             </h3>
-            <div class="docstring plain">Connect to a remote socket at <i>address</i>. </div>
+            <div class="docstring rst"><p>Connect to a remote socket at _address_.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L138">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#143">View source</a>
     </li>
 </ul>
             <h3 id="method-fileno">
                 fileno
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Return the socket's file descriptor </div>
+            <div class="docstring rst"><p>Return the socket's file descriptor</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L142">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#147">View source</a>
     </li>
 </ul>
             <h3 id="method-getpeername">
                 getpeername
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Return the remote address to which the socket is connected.</div>
+            <div class="docstring rst"><p>Return the remote address to which the socket is connected.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L153">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#158">View source</a>
     </li>
 </ul>
             <h3 id="method-getsockname">
                 getsockname
                 <span class="args">(self, *args)</span>
             </h3>
-            <div class="docstring plain">Return the socket's own address. </div>
+            <div class="docstring rst"><p>Return the socket's own address.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L157">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#162">View source</a>
     </li>
 </ul>
             <h3 id="method-gettimeout">
                 gettimeout
                 <span class="args">(self, *args)</span>
             </h3>
-            <div class="docstring plain">Return the associated timeout value. </div>
+            <div class="docstring rst"><p>Return the associated timeout value.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L167">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#172">View source</a>
     </li>
 </ul>
             <h3 id="method-listen">
                 listen
                 <span class="args">(self, backlog)</span>
             </h3>
-            <div class="docstring plain">Listen for connections made to the socket. The <i>backlog</i> argument
+            <div class="docstring rst"><p>Listen for connections made to the socket. The _backlog_ argument
 specifies the maximum number of queued connections and should be at
-least 1; the maximum value is system-dependent (usually 5). </div>
+least 1; the maximum value is system-dependent (usually 5).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L146">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#151">View source</a>
     </li>
 </ul>
             <h3 id="method-read">
                 read
                 <span class="args">(self, bufsize, **kws)</span>
             </h3>
-            <div class="docstring plain">Receive data from the socket. The return value is a string
+            <div class="docstring rst"><p>Receive data from the socket. The return value is a string
 representing the data received. The amount of data may be less than the
-ammount specified by <i>bufsize</i>. </div>
+ammount specified by _bufsize_.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L81">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#86">View source</a>
     </li>
 </ul>
             <h3 id="method-readall">
                 readall
                 <span class="args">(self, bufsize, **kws)</span>
             </h3>
-            <div class="docstring plain">Receive data from the socket. The return value is a string
+            <div class="docstring rst"><p>Receive data from the socket. The return value is a string
 representing the data received. The amount of data will be the exact
-ammount specified by <i>bufsize</i>. </div>
+ammount specified by _bufsize_.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L87">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#92">View source</a>
     </li>
 </ul>
             <h3 id="method-readline">
                 readline
                 <span class="args">(self, size, **kws)</span>
             </h3>
-            <div class="docstring plain">Receive one line of data from the socket. The return value is a string
+            <div class="docstring rst"><p>Receive one line of data from the socket. The return value is a string
 representing the data received. The amount of data will at most
-ammount specified by <i>size</i>. If no line separator has been found and the
-ammount received has reached <i>size</i> an OverflowException will be raised.</div>
+ammount specified by _size_. If no line separator has been found and the
+ammount received has reached _size_ an OverflowException will be raised.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L93">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#98">View source</a>
     </li>
 </ul>
             <h3 id="method-setblocking">
                 setblocking
                 <span class="args">(self, val)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L176">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#181">View source</a>
     </li>
 </ul>
             <h3 id="method-setsockopt">
                 setsockopt
                 <span class="args">(self, *args)</span>
             </h3>
-            <div class="docstring plain">Set the value of the given socket option. Same as the usual socket
-method.</div>
+            <div class="docstring rst"><p>Set the value of the given socket option. Same as the usual socket
+method.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L179">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#184">View source</a>
     </li>
 </ul>
             <h3 id="method-settimeout">
                 settimeout
                 <span class="args">(self, to)</span>
             </h3>
-            <div class="docstring plain">Set a timeout on blocking socket operations. The value argument can
-be a nonnegative float expressing seconds, timedelta or None. </div>
+            <div class="docstring rst"><p>Set a timeout on blocking socket operations. The value argument can
+be a nonnegative float expressing seconds, timedelta or None.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L161">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#166">View source</a>
     </li>
 </ul>
             <h3 id="method-shutdown">
                 shutdown
                 <span class="args">(self, *args)</span>
             </h3>
-            <div class="docstring plain">Shut down one or both halves of the connection. Same as the usual
-socket method.</div>
+            <div class="docstring rst"><p>Shut down one or both halves of the connection. Same as the usual
+socket method.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L171">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#176">View source</a>
     </li>
 </ul>
             <h3 id="method-write">
                 write
                 <span class="args">(self, data, **kws)</span>
             </h3>
-            <div class="docstring plain">Send data to the socket. The socket must be connected to a remote
-socket. Ammount sent may be less than the data provided.</div>
+            <div class="docstring rst"><p>Send data to the socket. The socket must be connected to a remote
+socket. Ammount sent may be less than the data provided.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L101">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#106">View source</a>
     </li>
 </ul>
             <h3 id="method-writeall">
                 writeall
                 <span class="args">(self, data, **kws)</span>
             </h3>
-            <div class="docstring plain">Send data to the socket. The socket must be connected to a remote
-socket. All the data is guaranteed to be sent.</div>
+            <div class="docstring rst"><p>Send data to the socket. The socket must be connected to a remote
+socket. All the data is guaranteed to be sent.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L106">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#111">View source</a>
     </li>
 </ul>
     </div>

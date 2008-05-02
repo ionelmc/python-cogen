@@ -52,53 +52,331 @@
                 </ul>
             </div>
             <div class="browser-section">
-                <h2>Methods</h2>
+                <h2>Constructor</h2>
                 <ul>
                     <li>
                         <a href="cogen.web.async.ReadLine.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Methods</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.web.async.ReadLine.html#method-check_overflow">check_overflow</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-cleanup">cleanup</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-iocp">iocp</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-iocp_done">iocp_done</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-pending">pending</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-process">process</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#method-run">run</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-try_run">try_run</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-addr">addr</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-buff">buff</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-fileno">fileno</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-iocp_buff">iocp_buff</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-last_update">last_update</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-len">len</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-prio">prio</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-req">req</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-run_first">run_first</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-sock">sock</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-state">state</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-temp_buff">temp_buff</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-trim">trim</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-weak_timeout">weak_timeout</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Class: cogen.web.async.ReadLine</h1>
-    <div class="docstring plain">Same a async.Read but doesn't work with chunked input (it would complicate
-things too much at the moment).</div>
+    <div class="docstring rst"><p>Same a async.Read but doesn't work with chunked input (it would complicate
+things too much at the moment).</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L285">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#289">View source</a>
     </li>
 </ul>
     <div>
-        <h2>Methods</h2>
-            <h3 id="constructor">
-                __init__
-                <span class="args">(self, conn, req, len=4096, **kws)</span>
-            </h3>
-            <div class="docstring plain">Initial <code name="code" class="python">req</code> object holds the state of the operations involving
-reading the input and it requires to have these attributes:<br /><br /><b> read_chunked = &lt;bool&gt;
-</b> content_length = &lt;int&gt;
-<b> read_count = 0
-</b> state = async.Read.NEED_SIZE<br /><br />These have to be initialized in the request.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, conn, req, len=4096, **kws)</span>
+        </h3>
+        <div class="docstring rst"><p>Initial <cite>req</cite> object holds the state of the operations involving
+reading the input and it requires to have these attributes:</p>
+<ul class="simple">
+<li>read_chunked = &lt;bool&gt;</li>
+<li>content_length = &lt;int&gt;</li>
+<li>read_count = 0</li>
+<li>state = async.Read.NEED_SIZE</li>
+</ul>
+<p>These have to be initialized in the request.</p>
+</div>
+        <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L291">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#295">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Methods</h2>
+            <h3 id="method-check_overflow">
+                check_overflow
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#560">View source</a>
+    </li>
+</ul>
+            <h3 id="method-cleanup">
+                cleanup
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#267">View source</a>
+    </li>
+</ul>
+            <h3 id="method-finalize">
+                finalize
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#521">View source</a>
+    </li>
+</ul>
+            <h3 id="method-iocp">
+                iocp
+                <span class="args">(self, overlap)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#278">View source</a>
+    </li>
+</ul>
+            <h3 id="method-iocp_done">
+                iocp_done
+                <span class="args">(self, rc, nbytes)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#284">View source</a>
+    </li>
+</ul>
+            <h3 id="method-pending">
+                pending
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#265">View source</a>
+    </li>
+</ul>
+            <h3 id="method-process">
+                process
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>Add the operation in the reactor if necessary.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#251">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
                 run
                 <span class="args">(self, reactor=True)</span>
             </h3>
-            <div class="docstring plain">~ @debug(0)
+            <div class="docstring rst"><p>~ @debug(0)</p>
 </div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\async.py#L311">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#315">View source</a>
+    </li>
+</ul>
+            <h3 id="method-try_run">
+                try_run
+                <span class="args">(self, reactor)</span>
+            </h3>
+            <div class="docstring rst"><p>This method will return a None value or raise a exception if the
+operation can't complete at this time.</p>
+<p>The socket poller will run this method if the socket is
+readable/writeable.</p>
+<p>If this returns a value that evaluates to False, the poller will try to
+run this at a later time (when the socket is readable/writeable again).</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#224">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-addr">addr</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of addr</h4>
+            <pre class="code"><code>&lt;member 'addr' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-buff">buff</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of buff</h4>
+            <pre class="code"><code>&lt;member 'buff' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-fileno">fileno</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of fileno</h4>
+            <pre class="code"><code>&lt;member 'fileno' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-iocp_buff">iocp_buff</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of iocp_buff</h4>
+            <pre class="code"><code>&lt;member 'iocp_buff' of 'ReadOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-last_update">last_update</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of last_update</h4>
+            <pre class="code"><code>&lt;member 'last_update' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-len">len</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of len</h4>
+            <pre class="code"><code>&lt;member 'len' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-prio">prio</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of prio</h4>
+            <pre class="code"><code>&lt;member 'prio' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-req">req</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of req</h4>
+            <pre class="code"><code>&lt;member 'req' of 'ReadLine' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-run_first">run_first</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of run_first</h4>
+            <pre class="code"><code>&lt;member 'run_first' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-sock">sock</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of sock</h4>
+            <pre class="code"><code>&lt;member 'sock' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-state">state</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of state</h4>
+            <pre class="code"><code>&lt;member 'state' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-temp_buff">temp_buff</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of temp_buff</h4>
+            <pre class="code"><code>&lt;member 'temp_buff' of 'ReadOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-trim">trim</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of trim</h4>
+            <pre class="code"><code>2000</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-weak_timeout">weak_timeout</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of weak_timeout</h4>
+            <pre class="code"><code>&lt;member 'weak_timeout' of 'TimedOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
     </div>

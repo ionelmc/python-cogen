@@ -70,17 +70,31 @@
     <h1>Module:
         cogen.core.reactors
     </h1>
-    <div class="docstring plain">Network polling code.<br /><br />The reactor works in tandem with the socket operations.
-Here's the basic workflow:<br /><br /><ul><li> the coroutine yields a operation</li><li> the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)</li></ul><blockquote>Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method</blockquote><ul><li> if run_first is False then the operation is added in the reactor for </li></ul><blockquote>polling (with the exception that if we have data in out internal buffersthe operation is runned first)</blockquote><ul><li> if run_first is set (it's default) in the operation then in process </li></ul><blockquote>method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] is called with the operation and coroutine</blockquote>
-<blockquote></blockquote>Note: run_first is a optimization hack really, first it tries to run the
+    <div class="docstring rst"><p>Network polling code.</p>
+<p>The reactor works in tandem with the socket operations.
+Here's the basic workflow:</p>
+<ul class="simple">
+<li>the coroutine yields a operation</li>
+<li>the scheduler runs that operation (the <a class="reference" href="cogen.core.events.Operation.html#method-process">process</a> method)
+Note: all the socket operations share the same <a class="reference" href="cogen.core.sockets.SocketOperation.html#method-process">process method</a>.<ul>
+<li>if run_first is False then the operation is added in the reactor for
+polling (with the exception that if we have data in out internal buffers
+the operation is runned first)</li>
+<li>if run_first is set (it's default) in the operation then in process
+method the reactor's <a class="reference" href="cogen.core.reactors.ReactorBase#method-run_or_add">run_or_add</a> is called with the
+operation and coroutine</li>
+</ul>
+</li>
+</ul>
+<p>Note: run_first is a optimization hack really, first it tries to run the
 operation (this asumes the sockets are usualy ready) and if it raises any
 exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling
 (via select, epoll, kqueue etc) then the run method will be called only when
-select, epoll, kqueue says that the socket is ready.</div>
+select, epoll, kqueue says that the socket is ready.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#1">View source</a>
     </li>
 </ul>
     <div>
@@ -88,54 +102,50 @@ select, epoll, kqueue says that the socket is ready.</div>
             <h3>
                 <a href="cogen.core.reactors.EpollReactor.html">EpollReactor</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.reactors.EpollReactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L435">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#441">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.reactors.KQueueReactor.html">KQueueReactor</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.reactors.KQueueReactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L224">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#230">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.reactors.ReactorBase.html">ReactorBase</a>
             </h3>
-            <div class="docstring plain">A reactor just checks if there are ready-sockets for the operations.
-The operations are not done here, they are done in the socket ops instances.</div>
+            <div class="docstring rst"><p>A reactor just checks if there are ready-sockets for the operations.
+The operations are not done here, they are done in the socket ops instances.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.reactors.ReactorBase.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L68">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#74">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.reactors.SelectReactor.html">SelectReactor</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.reactors.SelectReactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L164">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#170">View source</a>
     </li>
 </ul>
     </div>

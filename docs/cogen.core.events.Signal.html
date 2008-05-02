@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.Signal.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -62,31 +70,53 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Signal</h1>
-    <div class="docstring plain">This will resume the coroutines that where paused with WaitForSignal.<br /><br />Usage:<br /><br /><pre class="codeblock python python python python python python python python" name="code">
-nr = yield events.Signal(
-    name, 
-    value,
-    prio=priority.DEFAULT
-)
-</pre><ul><li> nr - the number of coroutines woken up</li><li> name - object that coroutines wait on, can be a string </li><li> value - object that the waiting coros recieve when they are resumed.</li></ul><blockquote></blockquote>See: <a href="Docs_CogenCoreEventsOperation.html">Operation</a></div>
+    <div class="docstring rst"><p>This will resume the coroutines that where paused with WaitForSignal.</p>
+<p>Usage:</p>
+<div class="source"><pre><span class="n">nr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span>
+    <span class="n">value</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>nr - the number of coroutines woken up</li>
+<li>name - object that coroutines wait on, can be a string</li>
+<li>value - object that the waiting coros recieve when they are resumed.</li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L180">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#185">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, name, value=None, recipients=0, **kws)</span>
+        </h3>
+        <div class="docstring rst"><p>All the coroutines waiting for this object will be added back in the
+active coroutine queue.</p>
+</div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#208">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="constructor">
                 __init__
                 <span class="args">(self, name, value=None, recipients=0, **kws)</span>
             </h3>
-            <div class="docstring plain">All the coroutines waiting for this object will be added back in the
-active coroutine queue.</div>
+            <div class="docstring rst"><p>All the coroutines waiting for this object will be added back in the
+active coroutine queue.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L203">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#208">View source</a>
     </li>
 </ul>
     </div>

@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.Join.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -62,39 +70,52 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Join</h1>
-    <div class="docstring plain">A operation for waiting on a coroutine.
-Example:<br /><br /><pre class="codeblock python python python python python python python" name="code">
-@coroutine
-def coro_a():
-    return_value = yield events.Join(ref)
-    
-    
-@coroutine
-def coro_b():
-    yield "bla"
-    raise StopIteration("some return value")
+    <div class="docstring rst"><p>A operation for waiting on a coroutine.
+Example:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">coro_a</span><span class="p">():</span>
+    <span class="n">return_value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Join</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
 
-ref = scheduler.add(coro_b)
-scheduler.add(coro_a)
-</pre>This will pause the coroutine and resume it when the other coroutine
-(<code name="code" class="python">ref</code> in the example) has died.</div>
+
+<span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">coro_b</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="s">"bla"</span>
+    <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">(</span><span class="s">"some return value"</span><span class="p">)</span>
+
+<span class="n">ref</span> <span class="o">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_b</span><span class="p">)</span>
+<span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_a</span><span class="p">)</span>
+</pre></div>
+<p>This will pause the coroutine and resume it when the other coroutine
+(<cite>ref</cite> in the example) has died.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L320">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#326">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, coro, **kws)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#351">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="constructor">
                 __init__
                 <span class="args">(self, coro, **kws)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L345">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#351">View source</a>
     </li>
 </ul>
     </div>

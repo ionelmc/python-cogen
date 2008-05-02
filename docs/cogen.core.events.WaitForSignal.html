@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.WaitForSignal.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -62,32 +70,51 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.WaitForSignal</h1>
-    <div class="docstring plain">The coroutine will resume when the same object is Signaled.<br /><br />Eg:
-<pre class="codeblock python python python python python python python python python python python" name="code"> 
-value = yield events.WaitForSignal(
-    name, 
-    timeout=None, 
-    weak_timeout=True,
-    prio=priority.DEFAULT
-)
-</pre><ul><li> name - a object to wait on, can use strings for this - string used to </li></ul><blockquote>wait is equal to the string used to signal.</blockquote><ul><li> value - a object sent with the signal. see: <a href="Docs_CogenCoreEventsSignal.html">Signal</a></li></ul><blockquote></blockquote>See: <a href="Docs_CogenCoreEventsTimedoperation.html">TimedOperation</a></div>
+    <div class="docstring rst"><p>The coroutine will resume when the same object is Signaled.</p>
+<p>Eg:</p>
+<div class="source"><pre><span class="n">value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">weak_timeout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>name - a object to wait on, can use strings for this - string used to
+wait is equal to the string used to signal.</li>
+<li>value - a object sent with the signal.
+See: <a class="reference" href="cogen.core.events.Signal.html">Signal</a></li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.TimedOperation.html">TimedOperation</a>.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L124">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#125">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, name, **kws)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#152">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="constructor">
                 __init__
                 <span class="args">(self, name, **kws)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L147">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#152">View source</a>
     </li>
 </ul>
     </div>

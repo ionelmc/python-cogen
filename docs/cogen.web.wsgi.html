@@ -68,25 +68,39 @@
     <h1>Module:
         cogen.web.wsgi
     </h1>
-    <div class="docstring plain">This wsgi server is a single threaded, single process server that interleaves
+    <div class="docstring rst"><p>This wsgi server is a single threaded, single process server that interleaves
 the iterations of the wsgi apps - I could add a threadpool for blocking apps in
-the future.<br /><br />If you don't return iterators from apps and return lists you'll get, at most,
-the performance of a server that processes requests sequentialy.<br /><br />On the other hand this server has coroutine extensions that suppose to support
-use of middleware in your application. <br /><br />Example app with coroutine extensions:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-def wait_app(environ, start_response):
-  start_response('200 OK', [('Content-type','text/html')])
-  yield "I'm waiting for some signal"
-  yield environ['cogen'].core.events.WaitForSignal("abc", timeout=1)
-  if isinstance(environ['cogen'].result, Exception):
-    yield "Your time is up !"
-  else:
-    yield "Someone signaled me: %s" % environ['cogen'].result
-</pre><ul><li> <code name="code" class="python">environ['cogen'].core</code> is actualy a wrapper that sets </li></ul><blockquote><code name="code" class="python">environ['cogen'].operation</code> with the called object and returns a empty string. This should penetrate most of the middleware - according to the wsgi spec, middleware should pass a empty string if it doesn't have anything to return on that specific iteration point, or, in other words, the length of theapp iter returned by middleware should be at least that of the app.</blockquote><ul><li> the wsigi server will set <code name="code" class="python">environ['cogen'].result</code> with the result of the </li></ul><blockquote>operation and <code name="code" class="python">environ['cogen'].exception</code> with the details of the exception - if any: <code name="code" class="python">(exc_type, exc_value, traceback_object)</code>.</blockquote>
-HTTP handling code taken from the CherryPy WSGI server.</div>
+the future.</p>
+<p>If you don't return iterators from apps and return lists you'll get, at most,
+the performance of a server that processes requests sequentialy.</p>
+<p>On the other hand this server has coroutine extensions that suppose to support
+use of middleware in your application.</p>
+<p>Example app with coroutine extensions:</p>
+<div class="source"><pre><span class="k">def</span> <span class="nf">wait_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+  <span class="n">start_response</span><span class="p">(</span><span class="s">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s">'Content-type'</span><span class="p">,</span><span class="s">'text/html'</span><span class="p">)])</span>
+  <span class="k">yield</span> <span class="s">"I'm waiting for some signal"</span>
+  <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">"abc"</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">yield</span> <span class="s">"Your time is up !"</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">yield</span> <span class="s">"Someone signaled me: </span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">'cogen'</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+</pre></div>
+<ul class="simple">
+<li><cite>environ['cogen'].core</cite> is actualy a wrapper that sets
+<cite>environ['cogen'].operation</cite> with the called object and returns a empty
+string. This should penetrate most of the middleware - according to the wsgi
+spec, middleware should pass a empty string if it doesn't have anything to
+return on that specific iteration point, or, in other words, the length of the
+app iter returned by middleware should be at least that of the app.</li>
+<li>the wsigi server will set <cite>environ['cogen'].result</cite> with the result of the
+operation and <cite>environ['cogen'].exception</cite> with the details of the
+exception - if any: <cite>(exc_type, exc_value, traceback_object)</cite>.</li>
+</ul>
+<p>HTTP handling code taken from the CherryPy WSGI server.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#1">View source</a>
     </li>
 </ul>
     <div>
@@ -94,41 +108,37 @@ HTTP handling code taken from the CherryPy WSGI server.</div>
             <h3>
                 <a href="cogen.web.wsgi.WSGIServer.WSGIConnection.html">WSGIConnection</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.wsgi.WSGIServer.WSGIConnection.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L135">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#135">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.wsgi.WSGIFileWrapper.html">WSGIFileWrapper</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.wsgi.WSGIFileWrapper.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L87">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#87">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.wsgi.WSGIServer.html">WSGIServer</a>
             </h3>
-            <div class="docstring plain">An HTTP server for WSGI.
-<table><tr><td style="border: 1px solid #aaa; padding: 5px;"> Option </td><td style="border: 1px solid #aaa; padding: 5px;"> Description </td></tr><tr><td style="border: 1px solid #aaa; padding: 5px;"> bind_addr </td><td style="border: 1px solid #aaa; padding: 5px;"> The interface on which to listen for connections. For TCP sockets, a (host, port) tuple. Host values may be any IPv4 or IPv6 address, or any valid hostname. The string 'localhost' is a synonym for '127.0.0.1' (or '::1', if your hosts file prefers IPv6). The string '0.0.0.0' is a special IPv4 entry meaning "any active interface" (INADDR_ANY), and '::' is the similar IN6ADDR_ANY for IPv6. The empty string or None are not allowed.  For UNIX sockets, supply the filename as a string. </td></tr><tr><td style="border: 1px solid #aaa; padding: 5px;"> wsgi_app </td><td style="border: 1px solid #aaa; padding: 5px;"> the WSGI 'application callable'; multiple WSGI applications may be passed as (path_prefix, app) pairs. </td></tr><tr><td style="border: 1px solid #aaa; padding: 5px;"> server_name </td><td style="border: 1px solid #aaa; padding: 5px;"> the string to set for WSGI's SERVER_NAME environ entry. Defaults to socket.gethostname(). </td></tr><tr><td style="border: 1px solid #aaa; padding: 5px;"> request_queue_size </td><td style="border: 1px solid #aaa; padding: 5px;"> the 'backlog' argument to socket.listen() specifies the maximum number of queued connections (default 5). </td></tr><tr><td style="border: 1px solid #aaa; padding: 5px;"> protocol </td><td style="border: 1px solid #aaa; padding: 5px;"> the version string to write in the Status-Line of all HTTP responses. For example, "HTTP/1.1" (the default). This also limits the supported features used in the response. </td></tr></table></div>
+            <div class="docstring rst"><p>An HTTP server for WSGI.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.wsgi.WSGIServer.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\wsgi.py#L562">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#558">View source</a>
     </li>
 </ul>
     </div>

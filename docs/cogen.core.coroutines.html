@@ -55,8 +55,6 @@
                 <h2>Classes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.coroutines.Coroutine.html">Coroutine</a>
-                    </li><li>
                         <a href="cogen.core.coroutines.local.html">local</a>
                     </li>
                 </ul>
@@ -66,8 +64,6 @@
                 <ul>
                     <li>
                         <a href="cogen.core.coroutines.html#function-coroutine">coroutine</a>
-                    </li><li>
-                        <a href="cogen.core.coroutines.html#function-coroutine">coroutine</a>
                     </li>
                 </ul>
             </div>
@@ -76,47 +72,26 @@
     <h1>Module:
         cogen.core.coroutines
     </h1>
-    <div class="docstring plain">Coroutine related boilerplate and wrappers.</div>
+    <div class="docstring rst"><p>Coroutine related boilerplate and wrappers.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#1">View source</a>
     </li>
 </ul>
     <div>
         <h2>Classes</h2>
             <h3>
-                <a href="cogen.core.coroutines.Coroutine.html">Coroutine</a>
-            </h3>
-            <div class="docstring plain">We need a coroutine wrapper for generators and function alike because
-we want to run functions that don't return generators just like a
-coroutine.</div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li>
-        <a href="cogen.core.coroutines.Coroutine.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L76">View source</a>
-    </li>
-</ul>
-            <h3>
                 <a href="cogen.core.coroutines.local.html">local</a>
             </h3>
-            <div class="docstring plain">A threadlocal-like object that works in the context of coroutines.
-That means, the current running coroutine has the <i>ident</i>.<br /><br />Coroutine.run_op sets the indent before running a step and unsets after.<br /><br />Example:
-<pre class="codeblock python python" name="code">
-loc = local() 
-loc.foo = 1
-</pre>
-The <b>loc</b> instance's values will be different for separate coroutines.</div>
+            <div class="docstring rst"><p>A threadlocal-like object that works in the context of coroutines.
+That means, the current running coroutine has the _ident_.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.coroutines.local.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L44">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#45">View source</a>
     </li>
 </ul>
     </div>
@@ -126,36 +101,18 @@ The <b>loc</b> instance's values will be different for separate coroutines.</div
                 coroutine
                 <span class="args">(func)</span>
             </h3>
-            <div class="docstring plain">A decorator function for generators.
-Example:<br /><br /><pre class="codeblock python python python" name="code">
-@coroutine
-def plain_ol_generator():
-    yield bla
-    yield bla
-    ...
+            <div class="docstring rst"><p>A decorator function for generators.
+Example:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">plain_ol_generator</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="o">...</span>
 </pre></div>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L11">View source</a>
-    </li>
-</ul>
-            <h3 id="function-coroutine">
-                coroutine
-                <span class="args">(func)</span>
-            </h3>
-            <div class="docstring plain">A decorator function for generators.
-Example:<br /><br /><pre class="codeblock python python python python" name="code">
-@coroutine
-def plain_ol_generator():
-    yield bla
-    yield bla
-    ...
-</pre></div>
-            <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
-    <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L11">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#11">View source</a>
     </li>
 </ul>
     </div>

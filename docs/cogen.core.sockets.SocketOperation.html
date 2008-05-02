@@ -7,7 +7,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
-        - Class: SendFile</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+        - Class: SocketOperation</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
     <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
     <link rel="stylesheet" href="css/apydia.css" type="text/css" />
     <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
@@ -55,7 +55,7 @@
                 <h2>Constructor</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.sockets.SendFile.html#constructor">__init__</a>
+                        <a href="cogen.core.sockets.SocketOperation.html#constructor">__init__</a>
                     </li>
                 </ul>
             </div>
@@ -67,19 +67,11 @@
                     </li><li>
                         <a href="cogen.core.sockets.SocketOperation.html#method-finalize">finalize</a>
                     </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#method-iocp">iocp</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#method-iocp_done">iocp_done</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#method-iocp_send">iocp_send</a>
-                    </li><li>
                         <a href="cogen.web.async.ReadLine.html#method-pending">pending</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#method-process">process</a>
                     </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#method-run">run</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#method-send">send</a>
+                        <a href="cogen.core.sockets.SocketOperation.html#method-run">run</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#method-try_run">try_run</a>
                     </li>
@@ -91,11 +83,7 @@
                     <li>
                         <a href="cogen.web.async.ReadLine.html#attribute-addr">addr</a>
                     </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-blocksize">blocksize</a>
-                    </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-buff">buff</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-file_handle">file_handle</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-fileno">fileno</a>
                     </li><li>
@@ -103,17 +91,9 @@
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-len">len</a>
                     </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-length">length</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-offset">offset</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-position">position</a>
-                    </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-prio">prio</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-run_first">run_first</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.SendFile.html#attribute-sent">sent</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-sock">sock</a>
                     </li><li>
@@ -127,36 +107,38 @@
             </div>
         </div>
         <div id="content">
-    <h1>Class: cogen.core.sockets.SendFile</h1>
-    <div class="docstring rst"><p>Uses underling OS sendfile call or a regular memory copy operation if
-there is no sendfile.
-You can use this as a WriteAll if you specify the length.
-Usage:</p>
-<div class="source"><pre>yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
-    # there will be only one send operation (if successfull)
-    # that meas the whole file will be read in memory if there is
-    #no sendfile
-
-yield sockets.SendFile(file_object, socket_object, 0, file_size)
-    # this will hang if we can't read file_size bytes
-    #from the file
-</pre></div>
+    <h1>Class: cogen.core.sockets.SocketOperation</h1>
+    <div class="docstring rst"><p>This is a generic class for a operation that involves some socket call.</p>
+<p>A socket operation should subclass WriteOperation or ReadOperation, define a
+<cite>run</cite> method and call the __init__ method of the superclass.</p>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#295">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#193">View source</a>
     </li>
 </ul>
     <div>
         <h2>Constructor</h2>
         <h3 id="constructor">
             __init__
-            <span class="args">(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws)</span>
+            <span class="args">(self, sock, run_first=True, **kws)</span>
         </h3>
-        <div class="docstring rst"></div>
+        <div class="docstring rst"><p>All the socket operations have these generic properties that the
+poller and scheduler interprets:</p>
+<blockquote>
+<ul class="simple">
+<li>timeout - the ammout of time in seconds or timedelta, or the datetime
+value till the poller should wait for this operation.</li>
+<li>weak_timeout - if this is True the timeout handling code will take
+into account the time of last activity (that would be the time of last
+<cite>try_run</cite> call)</li>
+<li>prio - a flag for the scheduler</li>
+</ul>
+</blockquote>
+</div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#320">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#206">View source</a>
     </li>
 </ul>
     </div>
@@ -183,36 +165,6 @@ generator.</p>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#70">View source</a>
-    </li>
-</ul>
-            <h3 id="method-iocp">
-                iocp
-                <span class="args">(self, overlap)</span>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#344">View source</a>
-    </li>
-</ul>
-            <h3 id="method-iocp_done">
-                iocp_done
-                <span class="args">(self, rc, nbytes)</span>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#357">View source</a>
-    </li>
-</ul>
-            <h3 id="method-iocp_send">
-                iocp_send
-                <span class="args">(self, offset, length, overlap)</span>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#340">View source</a>
     </li>
 </ul>
             <h3 id="method-pending">
@@ -243,17 +195,7 @@ generator.</p>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#360">View source</a>
-    </li>
-</ul>
-            <h3 id="method-send">
-                send
-                <span class="args">(self, offset, length)</span>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#327">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#269">View source</a>
     </li>
 </ul>
             <h3 id="method-try_run">
@@ -284,28 +226,10 @@ run this at a later time (when the socket is readable/writeable again).</p>
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
-            <h3 id="attribute-blocksize">blocksize</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of blocksize</h4>
-            <pre class="code"><code>&lt;member 'blocksize' of 'SendFile' objects&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
             <h3 id="attribute-buff">buff</h3>
             <div class="docstring rst"></div>
             <h4>Value of buff</h4>
             <pre class="code"><code>&lt;member 'buff' of 'SocketOperation' objects&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-file_handle">file_handle</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of file_handle</h4>
-            <pre class="code"><code>&lt;member 'file_handle' of 'SendFile' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
@@ -338,33 +262,6 @@ run this at a later time (when the socket is readable/writeable again).</p>
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
-            <h3 id="attribute-length">length</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of length</h4>
-            <pre class="code"><code>&lt;member 'length' of 'SendFile' objects&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-offset">offset</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of offset</h4>
-            <pre class="code"><code>&lt;member 'offset' of 'SendFile' objects&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-position">position</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of position</h4>
-            <pre class="code"><code>&lt;member 'position' of 'SendFile' objects&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
             <h3 id="attribute-prio">prio</h3>
             <div class="docstring rst"></div>
             <h4>Value of prio</h4>
@@ -378,15 +275,6 @@ run this at a later time (when the socket is readable/writeable again).</p>
             <div class="docstring rst"></div>
             <h4>Value of run_first</h4>
             <pre class="code"><code>&lt;member 'run_first' of 'SocketOperation' objects&gt;</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-sent">sent</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of sent</h4>
-            <pre class="code"><code>&lt;member 'sent' of 'SendFile' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>

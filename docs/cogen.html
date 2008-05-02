@@ -68,15 +68,65 @@
     <h1>Module:
         cogen
     </h1>
-    <div class="docstring plain">This is a library for network oriented, coroutine based programming.
-The interfaces and events/operations aim to mimic thread features. Coroutines
-work as simple generators, the operations and events work as objects passed in
-and out of the generator, these objects are managed by the scheduler/network
-poller. <br /><br />Check each modules for specific help.</div>
+    <div class="docstring rst"><p>This is a library for network oriented, coroutine based programming.
+The interfaces and events/operations aim to mimic some of the regular thread
+and socket features.</p>
+<p>cogen uses the <a class="reference" href="http://www.python.org/dev/peps/pep-0342/">enhanced generators</a>
+in python 2.5. These generators are bidirectional: they allow to pass values in
+and out of the generator. The whole framework is based on this.</p>
+<p>The generator yields a <cite>Operation</cite> instance and will receive the result from
+that yield when the operation is ready.</p>
+<pre class="literal-block">
+Roughly the cogen internals works like this:
+
++------------------------+
+| @coroutine             |
+| def foo():             |
+|     ...                |             op.process(sched, coro)
+|  +-&gt;result = yield op--|----------------+------------+
+|  |  ...                |                |            |
++--|---------------------+    +---------------+  +---------------------+
+   |                          | the operation |  | the operation can't |
+  result = op.finalize()      | is ready      |  | complete right now  |
+   |                          +------|--------+  +----------|----------+
+  scheduler runs foo                 |                      |
+   |                                 |                      |
+  foo gets in the active             |                      |
+  coroutines queue                   |                      |
+   |                                 |                      |
+   +----------------------&lt;----------+                      |
+   |                                                    depening on the op
+  op.run()                                               +---------+
+   |      socket is ready               add it in        |         |
+   +-------------&lt;------------  ......  the reactor   &lt;--+         |
+   |                         later                                 |
+   +------&lt;-------------------  ......  add it in some other     &lt;-+
+    some event decides                  queue for later run
+    this op is ready
+
+
+The scheduler basicaly does 3 things:
+ - runs active (coroutine,operations) pairs (calls process on the op)
+ - runs the reactor
+ - checks for timeouts
+
+The reactor basicaly does 2 things:
+ - calls the system to check what descriptors are ready
+ - runs the operations that have ready descriptors
+
+The operation does most of the work (via the process, finalize, cleanup,
+run methods):
+ - adds itself in the reactor (if it's a socket operation)
+ - adds itself in some structure to be activated later by some other event
+ - adds itself and the coro in the scheduler's active coroutines queue
+
+The coroutine decorator wrappes foo in a Coroutine class that does some
+niceties like exception handling, getting the result from finalize() etc.
+</pre>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\__init__.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/__init__.py#1">View source</a>
     </li>
 </ul>
     <div>
@@ -84,80 +134,38 @@ poller. <br /><br />Check each modules for specific help.</div>
             <h3>
                 <a href="cogen.common.html">common</a>
             </h3>
-            <div class="docstring plain">A module for quick importing the essential core stuff.
-(coroutine, Scheduler, events, sockets, priority)</div>
+            <div class="docstring rst"><p>A module for quick importing the essential core stuff.
+(coroutine, Scheduler, events, sockets, priority)</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.common.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\common.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/common.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.html">core</a>
             </h3>
-            <div class="docstring plain">This module holds the essential stuff.<br /><br />Programming with this library should be straghtforward. A coroutine is just
-a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-@coroutine
-def mycoro(bla):
-    yield &lt;operation&gt;
-    yield &lt;operation&gt;
-</pre>
-<blockquote></blockquote><ul><li> the <code name="code" class="python">operation</code> instructs the scheduler what to do with the </li></ul><blockquote>coroutine: suspend it till someting happens, add another coro in the scheduler, raise a event and so on.</blockquote><ul><li> the <code name="code" class="python">operations</code> are split up in 2 modules: events and sockets<ul><li> the <code name="code" class="python">operations</code> from sockets are related to network, like reading and </li></ul></li></ul><blockquote>writing, and these are done asynchronously but your code in the coroutine will see them as a regular synchronous or blocking call.</blockquote><ul><li> the <code name="code" class="python">operations</code> from events are related to signals and </li></ul><blockquote>coroutine/scheduler management.</blockquote><ul><li> if a <code name="code" class="python">operation</code> has a result associated then the yield will return that </li></ul><blockquote>result (eg. a string or a (connection, address) tuple) otherwise it will return the operation instance.</blockquote>
-Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-import sys, os
-from cogen.common import *
-
-@coroutine
-def server():
-    srv = sockets.Socket()
-    srv.setblocking(0)
-    srv.bind(('localhost',777))
-    srv.listen(10)
-    while 1:
-        print "Listening..."
-        conn, addr = yield sockets.Accept(srv)
-        print "Connection from %s:%s" % addr
-        m.add(handler, conn, addr)
-        
-@coroutine
-def handler(sock, addr):
-    yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
-    while 1:
-        line = yield sockets.ReadLine(sock, 8192)
-        if line.strip() == 'exit':
-            yield sockets.Write(sock, "GOOD BYE")
-            sock.close()
-            return
-            
-        yield sockets.Write(sock, line)
-        
-m = Scheduler()
-m.add(server)
-m.run()
-</pre></div>
+            <div class="docstring rst"><p>This module holds the essential stuff.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\__init__.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/__init__.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.html">web</a>
             </h3>
-            <div class="docstring plain">This module holds a wsgi server and future web-related code.</div>
+            <div class="docstring rst"><p>This module holds a wsgi server and future web-related code.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.web.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\web\__init__.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/__init__.py#1">View source</a>
     </li>
 </ul>
     </div>

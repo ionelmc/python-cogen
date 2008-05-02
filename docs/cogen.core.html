@@ -78,50 +78,66 @@
     <h1>Module:
         cogen.core
     </h1>
-    <div class="docstring plain">This module holds the essential stuff.<br /><br />Programming with this library should be straghtforward. A coroutine is just
-a generator wrapped in a operation handling class:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-@coroutine
-def mycoro(bla):
-    yield &lt;operation&gt;
-    yield &lt;operation&gt;
-</pre>
-<blockquote></blockquote><ul><li> the <code name="code" class="python">operation</code> instructs the scheduler what to do with the </li></ul><blockquote>coroutine: suspend it till someting happens, add another coro in the scheduler, raise a event and so on.</blockquote><ul><li> the <code name="code" class="python">operations</code> are split up in 2 modules: events and sockets<ul><li> the <code name="code" class="python">operations</code> from sockets are related to network, like reading and </li></ul></li></ul><blockquote>writing, and these are done asynchronously but your code in the coroutine will see them as a regular synchronous or blocking call.</blockquote><ul><li> the <code name="code" class="python">operations</code> from events are related to signals and </li></ul><blockquote>coroutine/scheduler management.</blockquote><ul><li> if a <code name="code" class="python">operation</code> has a result associated then the yield will return that </li></ul><blockquote>result (eg. a string or a (connection, address) tuple) otherwise it will return the operation instance.</blockquote>
-Typical example:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python python" name="code">
-import sys, os
-from cogen.common import *
-
-@coroutine
-def server():
-    srv = sockets.Socket()
-    srv.setblocking(0)
-    srv.bind(('localhost',777))
-    srv.listen(10)
-    while 1:
-        print "Listening..."
-        conn, addr = yield sockets.Accept(srv)
-        print "Connection from %s:%s" % addr
-        m.add(handler, conn, addr)
-        
-@coroutine
-def handler(sock, addr):
-    yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\r\n")
-    while 1:
-        line = yield sockets.ReadLine(sock, 8192)
-        if line.strip() == 'exit':
-            yield sockets.Write(sock, "GOOD BYE")
-            sock.close()
-            return
-            
-        yield sockets.Write(sock, line)
-        
-m = Scheduler()
-m.add(server)
-m.run()
+    <div class="docstring rst"><p>This module holds the essential stuff.</p>
+<p>Programming with this library should be straghtforward. A coroutine is just
+a generator wrapped in a operation handling class:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">mycoro</span><span class="p">(</span><span class="n">bla</span><span class="p">):</span>
+    <span class="k">yield</span> <span class="o">&lt;</span><span class="n">operation</span><span class="o">&gt;</span>
+    <span class="k">yield</span> <span class="o">&lt;</span><span class="n">operation</span><span class="o">&gt;</span>
 </pre></div>
+<ul class="simple">
+<li>the <cite>operation</cite> instructs the scheduler what to do with the
+coroutine: suspend it till someting happens, add another coro in
+the scheduler, raise a event and so on.</li>
+<li>the <cite>operations</cite> are split up in 2 modules: events and sockets<ul>
+<li>the <cite>operations</cite> from sockets are related to network, like reading and
+writing, and these are done asynchronously but your code in the
+coroutine will see them as a regular synchronous or blocking call.</li>
+<li>the <cite>operations</cite> from events are related to signals and
+coroutine/scheduler management.</li>
+</ul>
+</li>
+<li>if a <cite>operation</cite> has a result associated then the yield will return that
+result (eg. a string or a (connection, address) tuple) otherwise it will
+return the operation instance.</li>
+</ul>
+<p>Typical example:</p>
+<div class="source"><pre><span class="k">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="k">from</span> <span class="nn">cogen.common</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">server</span><span class="p">():</span>
+    <span class="n">srv</span> <span class="o">=</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Socket</span><span class="p">()</span>
+    <span class="n">srv</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span>
+    <span class="n">srv</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s">'localhost'</span><span class="p">,</span><span class="mf">777</span><span class="p">))</span>
+    <span class="n">srv</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mf">10</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">"Listening..."</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Accept</span><span class="p">(</span><span class="n">srv</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">"Connection from </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">"</span> <span class="o">%</span> <span class="n">addr</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span><span class="p">)</span>
+
+<span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">addr</span><span class="p">):</span>
+    <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="s">"WELCOME TO ECHO SERVER !</span><span class="se">\r\n</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">ReadLine</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="mf">8192</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s">'exit'</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="s">"GOOD BYE"</span><span class="p">)</span>
+            <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">()</span>
+<span class="n">m</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">server</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\__init__.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/__init__.py#1">View source</a>
     </li>
 </ul>
     <div>
@@ -129,116 +145,99 @@ m.run()
             <h3>
                 <a href="cogen.core.coroutines.html">coroutines</a>
             </h3>
-            <div class="docstring plain">Coroutine related boilerplate and wrappers.</div>
+            <div class="docstring rst"><p>Coroutine related boilerplate and wrappers.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.coroutines.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.events.html">events</a>
             </h3>
-            <div class="docstring plain">Base events (coroutine operations) and coroutine exceptions.</div>
+            <div class="docstring rst"><p>Base events (coroutine operations) and coroutine exceptions.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.events.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.pubsub.html">pubsub</a>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.pubsub.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.queue.html">queue</a>
             </h3>
-            <div class="docstring plain">Port of Queue.Queue from the python standard library.</div>
+            <div class="docstring rst"><p>Port of Queue.Queue from the python standard library.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.queue.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.reactors.html">reactors</a>
             </h3>
-            <div class="docstring plain">Network polling code.<br /><br />The reactor works in tandem with the socket operations.
-Here's the basic workflow:<br /><br /><ul><li> the coroutine yields a operation</li><li> the scheduler runs that operation (the [Docs_CogenCoreEventsOperation#process process] method)</li></ul><blockquote>Note: all the socket operations share the same [Docs_CogenCoreSocketsSocketoperation#process process] method</blockquote><ul><li> if run_first is False then the operation is added in the reactor for </li></ul><blockquote>polling (with the exception that if we have data in out internal buffersthe operation is runned first)</blockquote><ul><li> if run_first is set (it's default) in the operation then in process </li></ul><blockquote>method the reactor's [Docs_CogenCoreReactorsReactorbase#run_or_add run_or_add] is called with the operation and coroutine</blockquote>
-<blockquote></blockquote>Note: run_first is a optimization hack really, first it tries to run the
-operation (this asumes the sockets are usualy ready) and if it raises any
-exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling
-(via select, epoll, kqueue etc) then the run method will be called only when
-select, epoll, kqueue says that the socket is ready.</div>
+            <div class="docstring rst"><p>Network polling code.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.reactors.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\reactors.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.schedulers.html">schedulers</a>
             </h3>
-            <div class="docstring plain">Scheduling framework.<br /><br />The scheduler handles the timeouts, run the operations and does very basic
-management of coroutines. Most of the heavy logic is in each operation class.
-See: <a href="Docs_CogenCoreEvents.html">events</a> and <a href="Docs_CogenCoreSockets.html">sockets</a>
-Most of those operations work with attributes we set in the scheduler.</div>
+            <div class="docstring rst"><p>Scheduling framework.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.schedulers.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.sockets.html">sockets</a>
             </h3>
-            <div class="docstring plain">Socket-only coroutine operations and <code name="code" class="python">Socket</code> wrapper.
+            <div class="docstring rst"><p>Socket-only coroutine operations and <cite>Socket</cite> wrapper.
 Really - the only thing you need to know for most stuff is
-the <a href="Docs_CogenCoreSocketsSocket.html">Socket</a> class.</div>
+the <a class="reference" href="cogen.core.sockets.Socket.html">Socket</a> class.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.sockets.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\sockets.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#1">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.core.util.html">util</a>
             </h3>
-            <div class="docstring plain">Mischelaneous or common.</div>
+            <div class="docstring rst"><p>Mischelaneous or common.</p></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li>
         <a href="cogen.core.util.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\util.py#L1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/util.py#1">View source</a>
     </li>
 </ul>
     </div>

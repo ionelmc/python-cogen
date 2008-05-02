@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.Call.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -62,28 +70,48 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.events.Call</h1>
-    <div class="docstring plain">This will pause the current coroutine, add a new coro in the scheduler and
-resume the callee when it returns. <br /><br />Usage:
-<pre class="codeblock python python python python python python" name="code">
-result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)
-</pre><ul><li> mycoro - the coroutine to add.</li><li> args, kwargs - params to call the coroutine with</li><li> if <code name="code" class="python">prio</code> is set the new coroutine will be added in the top of the </li></ul><blockquote>scheduler queue</blockquote>See: <a href="Docs_CogenCoreEventsOperation.html">Operation</a></div>
+    <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
+resume the callee when it returns.</p>
+<p>Usage:
+.. sourcecode:: python</p>
+<blockquote>
+result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)</blockquote>
+<ul class="simple">
+<li>mycoro - the coroutine to add.</li>
+<li>args, kwargs - params to call the coroutine with</li>
+<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the
+scheduler queue</li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L237">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#242">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, coro, args=None, kwargs=None, **kws)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#263">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="constructor">
                 __init__
                 <span class="args">(self, coro, args=None, kwargs=None, **kws)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\events.py#L257">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#263">View source</a>
     </li>
 </ul>
     </div>

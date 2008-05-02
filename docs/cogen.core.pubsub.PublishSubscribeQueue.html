@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.pubsub.PublishSubscribeQueue.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -68,65 +76,78 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.pubsub.PublishSubscribeQueue</h1>
-    <div class="docstring plain">A more robust replacement for the signal operations.
+    <div class="docstring rst"><p>A more robust replacement for the signal operations.
 A coroutine subscribes itself to a PublishSubscribeQueue and get new
-published messages with <i>fetch</i> method.</div>
+published messages with _fetch_ method.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L74">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#74">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#79">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="method-compact">
                 compact
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Compacts the queue: removes all the messages from the queue that
+            <div class="docstring rst"><p>Compacts the queue: removes all the messages from the queue that
 have been fetched by all the subscribed coroutines.
-Returns the number of messages that have been removed.</div>
+Returns the number of messages that have been removed.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L100">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#100">View source</a>
     </li>
 </ul>
             <h3 id="method-fetch">
                 fetch
                 <span class="args">(self, **kws)</span>
             </h3>
-            <div class="docstring plain">Get all the new messages since the last fetch. Returns a list
-of messages. <b>works as a coroutine operation</b></div>
+            <div class="docstring rst"><p>Get all the new messages since the last fetch. Returns a list
+of messages. <em>works as a coroutine operation</em></p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L95">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#95">View source</a>
     </li>
 </ul>
             <h3 id="method-publish">
                 publish
                 <span class="args">(self, message, **kws)</span>
             </h3>
-            <div class="docstring plain">Put a message in the queue and updates any coroutine wating with
-fetch. <b>works as a coroutine operation</b></div>
+            <div class="docstring rst"><p>Put a message in the queue and updates any coroutine wating with
+fetch. <em>works as a coroutine operation</em></p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L84">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#84">View source</a>
     </li>
 </ul>
             <h3 id="method-subscribe">
                 subscribe
                 <span class="args">(self, **kws)</span>
             </h3>
-            <div class="docstring plain">Registers the calling coroutine to the queue. Sets the update index
+            <div class="docstring rst"><p>Registers the calling coroutine to the queue. Sets the update index
 to 0 - on fetch, that coroutine will get all the messages from the
-queue. <b>works as a coroutine operation</b></div>
+queue. <em>works as a coroutine operation</em></p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\pubsub.py#L89">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/pubsub.py#89">View source</a>
     </li>
 </ul>
     </div>

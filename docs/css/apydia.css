@@ -235,7 +235,6 @@ ul.buttons {
 
 #content {
     margin: 0 190px 0 0;
-    padding: 0;
 }
 
 #content .source {
@@ -318,7 +317,6 @@ ul.buttons {
     border: 1px solid #EEE;
     border-radius: 8px;
     background: #FFF;
-    padding: 0 0.5em;
     margin: 0.5em 0 1em 1em;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
@@ -349,4 +347,7 @@ th, td {
 }
 #content ul.link-bar li {
     background:none !important;
+}
+.system-message-title {
+	background: red;
 }

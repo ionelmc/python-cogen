@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.queue.Queue.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -78,140 +86,166 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.queue.Queue</h1>
-    <div class="docstring plain">This class attempts to mimic the exact functionality of the
-python standard library Queue.Queue class, but with a coroutine context:<br /><br /> the queue calls return coroutine operations<br /><br />So, to use this you write someting like:<br /><br /><pre class="codeblock python python python python python python python python python python python python python python python python python python python" name="code">
-@coroutine
-def foo():
-    q = cogen.core.queue.Queue(&lt;size&gt;)
-    yield q.put(123)
-    val = yield q.get()
+    <div class="docstring rst"><p>This class attempts to mimic the exact functionality of the
+python standard library Queue.Queue class, but with a coroutine context:</p>
+<ul class="simple">
+<li>the queue calls return coroutine operations</li>
+</ul>
+<p>So, to use this you write someting like:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">cogen</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="o">&lt;</span><span class="n">size</span><span class="o">&gt;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mf">123</span><span class="p">)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 </pre></div>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L162">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#162">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, maxsize=0)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#178">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="method-empty">
                 empty
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Return True if the queue is empty, False otherwise (not reliable!).</div>
+            <div class="docstring rst"><p>Return True if the queue is empty, False otherwise (not reliable!).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L232">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#232">View source</a>
     </li>
 </ul>
             <h3 id="method-full">
                 full
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Return True if the queue is full, False otherwise (not reliable!).</div>
+            <div class="docstring rst"><p>Return True if the queue is full, False otherwise (not reliable!).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L236">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#236">View source</a>
     </li>
 </ul>
             <h3 id="method-get">
                 get
                 <span class="args">(self, block=True, **kws)</span>
             </h3>
-            <div class="docstring plain">Remove and return an item from the queue.<br /><br />If optional args 'block' is true and 'timeout' is None (the default),
+            <div class="docstring rst"><p>Remove and return an item from the queue.</p>
+<p>If optional args 'block' is true and 'timeout' is None (the default),
 block if necessary until an item is available. If 'timeout' is
 a positive number, it blocks at most 'timeout' seconds and raises
 the Empty exception if no item was available within that time.
 Otherwise ('block' is false), return an item if one is immediately
 available, else raise the Empty exception ('timeout' is ignored
-in that case).</div>
+in that case).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L261">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#261">View source</a>
     </li>
 </ul>
             <h3 id="method-get_nowait">
                 get_nowait
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Remove and return an item from the queue without blocking.<br /><br />Only get an item if one is immediately available. Otherwise
-raise the Empty exception.</div>
+            <div class="docstring rst"><p>Remove and return an item from the queue without blocking.</p>
+<p>Only get an item if one is immediately available. Otherwise
+raise the Empty exception.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L274">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#274">View source</a>
     </li>
 </ul>
             <h3 id="method-join">
                 join
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Blocks until all items in the Queue have been gotten and processed.<br /><br />The count of unfinished tasks goes up whenever an item is added to the
+            <div class="docstring rst"><p>Blocks until all items in the Queue have been gotten and processed.</p>
+<p>The count of unfinished tasks goes up whenever an item is added to the
 queue. The count goes down whenever a consumer thread calls task_done()
-to indicate the item was retrieved and all work on it is complete.<br /><br />When the count of unfinished tasks drops to zero, join() unblocks.</div>
+to indicate the item was retrieved and all work on it is complete.</p>
+<p>When the count of unfinished tasks drops to zero, join() unblocks.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L216">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#216">View source</a>
     </li>
 </ul>
             <h3 id="method-put">
                 put
                 <span class="args">(self, item, block=True, **kws)</span>
             </h3>
-            <div class="docstring plain">Put an item into the queue.<br /><br />If optional args 'block' is true and 'timeout' is None (the default),
+            <div class="docstring rst"><p>Put an item into the queue.</p>
+<p>If optional args 'block' is true and 'timeout' is None (the default),
 block if necessary until a free slot is available. If 'timeout' is
 a positive number, it blocks at most 'timeout' seconds and raises
 the Full exception if no free slot was available within that time.
 Otherwise ('block' is false), put an item on the queue if a free slot
 is immediately available, else raise the Full exception ('timeout'
-is ignored in that case).</div>
+is ignored in that case).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L240">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#240">View source</a>
     </li>
 </ul>
             <h3 id="method-put_nowait">
                 put_nowait
                 <span class="args">(self, item)</span>
             </h3>
-            <div class="docstring plain">Put an item into the queue without blocking.<br /><br />Only enqueue the item if a free slot is immediately available.
-Otherwise raise the Full exception.</div>
+            <div class="docstring rst"><p>Put an item into the queue without blocking.</p>
+<p>Only enqueue the item if a free slot is immediately available.
+Otherwise raise the Full exception.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L253">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#253">View source</a>
     </li>
 </ul>
             <h3 id="method-qsize">
                 qsize
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Return the approximate size of the queue (not reliable!).</div>
+            <div class="docstring rst"><p>Return the approximate size of the queue (not reliable!).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L228">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#228">View source</a>
     </li>
 </ul>
             <h3 id="method-task_done">
                 task_done
                 <span class="args">(self, **kws)</span>
             </h3>
-            <div class="docstring plain">Indicate that a formerly enqueued task is complete.<br /><br />Used by Queue consumer threads.  For each get() used to fetch a task,
+            <div class="docstring rst"><p>Indicate that a formerly enqueued task is complete.</p>
+<p>Used by Queue consumer threads.  For each get() used to fetch a task,
 a subsequent call to task_done() tells the queue that the processing
-on the task is complete.<br /><br />If a join() is currently blocking, it will resume when all items
+on the task is complete.</p>
+<p>If a join() is currently blocking, it will resume when all items
 have been processed (meaning that a task_done() call was received
-for every item that had been put() into the queue).<br /><br />Raises a ValueError if called more times than there were items
-placed in the queue.</div>
+for every item that had been put() into the queue).</p>
+<p>Raises a ValueError if called more times than there were items
+placed in the queue.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\queue.py#L193">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/queue.py#193">View source</a>
     </li>
 </ul>
     </div>

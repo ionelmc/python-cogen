@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.schedulers.Scheduler.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -76,119 +84,149 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.schedulers.Scheduler</h1>
-    <div class="docstring plain">Basic deque-based scheduler with timeout support and primitive
-prioritisaiton parameters.<br /><br />Usage:
-<code class="codeblock python python python python python python python python python python python python python python python python python python python python python" name="code">Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</code><ul><li> reactor: a reactor class to use</li><li> default_priority: a default priority option for operations that do not </li></ul><blockquote>set it. check <a href="Docs_CogenCoreUtilPriority.html">priority</a>.</blockquote><ul><li> default_timeout: a default timedelta or number of seconds to wait for </li></ul><blockquote>the operation, -1 means no timeout.</blockquote></div>
+    <div class="docstring rst"><p>Basic deque-based scheduler with timeout support and primitive
+prioritisaiton parameters.</p>
+<p>Usage:
+.. sourcecode:: python</p>
+<blockquote>
+Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)</blockquote>
+<ul class="simple">
+<li>reactor: a reactor class to use</li>
+<li>default_priority: a default priority option for operations that do not
+set it. check <a class="reference" href="cogen.core.util.priority.html">priority</a>.</li>
+<li>default_timeout: a default timedelta or number of seconds to wait for
+the operation, -1 means no timeout.</li>
+</ul>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L67">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#67">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, reactor=&lt;class 'cogen.core.reactors.IOCPProactor'&gt;, default_priority=0, default_timeout=None, reactor_resolution=0.01)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#85">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="method-add">
                 add
                 <span class="args">(self, coro, args=(), kwargs={}, first=True)</span>
             </h3>
-            <div class="docstring plain">Add a coroutine in the scheduler. You can add arguments
-(<i>args</i>, <i>kwargs</i>) to init the coroutine with.</div>
+            <div class="docstring rst"><p>Add a coroutine in the scheduler. You can add arguments
+(_args_, _kwargs_) to init the coroutine with.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L105">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#110">View source</a>
     </li>
 </ul>
             <h3 id="method-add_timeout">
                 add_timeout
                 <span class="args">(self, op, coro, weak_timeout)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L132">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#137">View source</a>
     </li>
 </ul>
             <h3 id="method-handle_timeouts">
                 handle_timeouts
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Handle timeouts. Raise timeouted operations with a OperationTimeout
+            <div class="docstring rst"><p>Handle timeouts. Raise timeouted operations with a OperationTimeout
 in the associated coroutine (if they are still alive and the operation
 hasn't actualy sucessfuly completed) or, if the operation has a
 weak_timeout flag, update the timeout point and add it back in the
-heapq.<br /><br />weak_timeout notes:
-<ul><li> weak_timeout means a last_update attribute is updated with</li></ul><blockquote>a timestamp of the last activity in the operation - for example, amay recieve new data and not complete (not enough data, etc)</blockquote><ul><li> if there was activity since the last time we've cheched this </li></ul><blockquote>timeout we push it back in the heapq with a timeout value we'll check it again</blockquote>
-Also, we call a cleanup on the op, only if cleanup return true we raise
+heapq.</p>
+<p>weak_timeout notes:</p>
+<ul class="simple">
+<li>weak_timeout means a last_update attribute is updated with
+a timestamp of the last activity in the operation - for example, a
+may recieve new data and not complete (not enough data, etc)</li>
+<li>if there was activity since the last time we've cheched this
+timeout we push it back in the heapq with a timeout value we'll check
+it again</li>
+</ul>
+<p>Also, we call a cleanup on the op, only if cleanup return true we raise
 the timeout (finalized isn't enough to check if the op has completed
 since finalized is set when the operation gets back in the coro - and
 it might still be in the Scheduler.active queue when we get to this
-timeout - well, this is certainly a problem magnet: TODO: fix_finalized)</div>
+timeout - well, this is certainly a problem magnet: TODO: fix_finalized)</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L135">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#140">View source</a>
     </li>
 </ul>
             <h3 id="method-iter_run">
                 iter_run
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">The actual processing for the main loop is here.<br /><br />Running the main loop as a generator (where a iteration is a full
+            <div class="docstring rst"><p>The actual processing for the main loop is here.</p>
+<p>Running the main loop as a generator (where a iteration is a full
 sched, reactor and timers/timeouts run) is usefull for interleaving
 the main loop with other applications that have a blocking main loop and
-require cogen to run in the same thread.</div>
+require cogen to run in the same thread.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L195">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#201">View source</a>
     </li>
 </ul>
             <h3 id="method-next_timer_delta">
                 next_timer_delta
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">Returns a timevalue that the reactor will wait on.</div>
+            <div class="docstring rst"><p>Returns a timevalue that the reactor will wait on.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L116">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#121">View source</a>
     </li>
 </ul>
             <h3 id="method-process_op">
                 process_op
                 <span class="args">(self, op, coro)</span>
             </h3>
-            <div class="docstring plain">Process a (op, coro) pair and return another pair. Handles exceptions.</div>
+            <div class="docstring rst"><p>Process a (op, coro) pair and return another pair. Handles exceptions.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L179">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#185">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
                 run
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain">This is the main loop.
+            <div class="docstring rst"><p>This is the main loop.
 This loop will exit when there are no more coroutines to run or stop has
-been called.</div>
+been called.</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L230">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#236">View source</a>
     </li>
 </ul>
             <h3 id="method-stop">
                 stop
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\schedulers.py#L238">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#244">View source</a>
     </li>
 </ul>
     </div>

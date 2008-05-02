@@ -52,6 +52,14 @@
                 </ul>
             </div>
             <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.coroutines.Coroutine.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
                 <h2>Methods</h2>
                 <ul>
                     <li>
@@ -73,15 +81,15 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_COMPLETED">STATE_COMPLETED</a>
+                        <a href="cogen.web.async.Read.html#attribute-STATE_COMPLETED">STATE_COMPLETED</a>
                     </li><li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_FAILED">STATE_FAILED</a>
+                        <a href="cogen.web.async.Read.html#attribute-STATE_FAILED">STATE_FAILED</a>
                     </li><li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_FINALIZED">STATE_FINALIZED</a>
+                        <a href="cogen.web.async.Read.html#attribute-STATE_FINALIZED">STATE_FINALIZED</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-STATE_NEED_INIT">STATE_NEED_INIT</a>
                     </li><li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_RUNNING">STATE_RUNNING</a>
+                        <a href="cogen.web.async.Read.html#attribute-STATE_RUNNING">STATE_RUNNING</a>
                     </li><li>
                         <a href="cogen.core.coroutines.Coroutine.html#attribute-caller">caller</a>
                     </li><li>
@@ -114,267 +122,273 @@
         </div>
         <div id="content">
     <h1>Class: cogen.core.coroutines.Coroutine</h1>
-    <div class="docstring plain">We need a coroutine wrapper for generators and function alike because
+    <div class="docstring rst"><p>We need a coroutine wrapper for generators and function alike because
 we want to run functions that don't return generators just like a
-coroutine.</div>
+coroutine.</p>
+</div>
     <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L76">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#78">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, coro, *args, **kws)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#95">View source</a>
+    </li>
+</ul>
+    </div>
     <div>
         <h2>Methods</h2>
             <h3 id="method-add_waiter">
                 add_waiter
                 <span class="args">(self, coro)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L112">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#114">View source</a>
     </li>
 </ul>
             <h3 id="method-finalize">
                 finalize
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L130">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#132">View source</a>
     </li>
 </ul>
             <h3 id="method-handle_error">
                 handle_error
                 <span class="args">(self)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L236">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#239">View source</a>
     </li>
 </ul>
             <h3 id="method-process">
                 process
                 <span class="args">(self, sched, coro)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L134">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#136">View source</a>
     </li>
 </ul>
             <h3 id="method-remove_waiter">
                 remove_waiter
                 <span class="args">(self, coro)</span>
             </h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L117">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#119">View source</a>
     </li>
 </ul>
             <h3 id="method-run_op">
                 run_op
                 <span class="args">(self, op)</span>
             </h3>
-            <div class="docstring plain">Handle the operation:
-<ul><li> if coro is in STATE_RUNNING, send or throw the given op</li><li> if coro is in STATE_NEED_INIT, call the init function and if it </li></ul><blockquote>doesn't return a generator, set STATE_COMPLETED and set the resultto whatever the function returned. </blockquote><ul><li> if StopIteration is raised, set STATE_COMPLETED and return self.</li><li> if any other exception is raised, set STATE_FAILED, handle error</li></ul><blockquote>or send it to the caller, return self</blockquote>
-Return self is used as a optimization. Coroutine is also a Operation
-which handles it's own completion (resuming the caller and the waiters).</div>
+            <div class="docstring rst"><p>Handle the operation:</p>
+<ul>
+<li><p class="first">if coro is in STATE_RUNNING, send or throw the given op</p>
+</li>
+<li><p class="first">if coro is in STATE_NEED_INIT, call the init function and if it
+doesn't return a generator, set STATE_COMPLETED and set the result
+to whatever the function returned.
+* if StopIteration is raised, set STATE_COMPLETED and return self.
+* if any other exception is raised, set STATE_FAILED, handle error</p>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">&lt;string&gt;</tt>, line 9)</p>
+<p>Unexpected indentation.</p>
+</div>
+<blockquote>
+<p>or send it to the caller, return self</p>
+</blockquote>
+</li>
+</ul>
+<p>Return self is used as a optimization. Coroutine is also a Operation
+which handles it's own completion (resuming the caller and the waiters).</p>
+</div>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen\cogen\core\coroutines.py#L156">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#158">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Attributes</h2>
             <h3 id="attribute-STATE_COMPLETED">STATE_COMPLETED</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of STATE_COMPLETED</h4>
             <pre class="code"><code>2</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-STATE_FAILED">STATE_FAILED</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of STATE_FAILED</h4>
             <pre class="code"><code>3</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-STATE_FINALIZED">STATE_FINALIZED</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of STATE_FINALIZED</h4>
             <pre class="code"><code>4</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-STATE_NEED_INIT">STATE_NEED_INIT</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of STATE_NEED_INIT</h4>
             <pre class="code"><code>0</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-STATE_RUNNING">STATE_RUNNING</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of STATE_RUNNING</h4>
             <pre class="code"><code>1</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-caller">caller</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of caller</h4>
             <pre class="code"><code>&lt;member 'caller' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-coro">coro</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of coro</h4>
             <pre class="code"><code>&lt;member 'coro' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-debug">debug</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of debug</h4>
             <pre class="code"><code>&lt;member 'debug' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-exception">exception</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of exception</h4>
             <pre class="code"><code>&lt;member 'exception' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-f_args">f_args</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of f_args</h4>
             <pre class="code"><code>&lt;member 'f_args' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-f_kws">f_kws</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of f_kws</h4>
             <pre class="code"><code>&lt;member 'f_kws' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-lastop">lastop</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of lastop</h4>
             <pre class="code"><code>&lt;member 'lastop' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-name">name</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of name</h4>
             <pre class="code"><code>&lt;member 'name' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-prio">prio</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of prio</h4>
             <pre class="code"><code>&lt;member 'prio' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-result">result</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of result</h4>
             <pre class="code"><code>&lt;member 'result' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-running">running</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of running</h4>
-            <pre class="code"><code>&lt;property object at 0x00E0CB48&gt;</code></pre>
+            <pre class="code"><code>&lt;property object at 0x00E0DA08&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-state">state</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of state</h4>
             <pre class="code"><code>&lt;member 'state' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-waiters">waiters</h3>
-            <div class="docstring plain"></div>
+            <div class="docstring rst"></div>
             <h4>Value of waiters</h4>
             <pre class="code"><code>&lt;member 'waiters' of 'Coroutine' objects&gt;</code></pre>
             <ul class="link-bar">
-    <li class="top"><a href="#header">Top</a></li>
     <li class="link-to-sourcecode">
-        <a href="http://cogen.googlecode.com/svn/trunk/cogen#L0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
     </div>
