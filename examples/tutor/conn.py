@@ -1,4 +1,4 @@
-from cogen.core.coroutine import coroutine
+from cogen.core.coroutines import coroutine
 from cogen.core.schedulers import Scheduler
 from cogen.core.sockets import Socket
 from cogen.core.reactors import SelectReactor

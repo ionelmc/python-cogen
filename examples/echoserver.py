@@ -1,6 +1,6 @@
 from cogen.core import sockets
 from cogen.core import schedulers
-from cogen.core.coroutine import coroutine
+from cogen.core.coroutines import coroutine
 from cogen.core import reactors
 import sys
 
@@ -8,7 +8,7 @@ import sys
 def server():
     srv = sockets.Socket()
     print type(srv)
-    srv.bind(('0.0.0.0', int(sys.argv[1])))
+    srv.bind(('0.0.0.0', len(sys.argv)>1 and int(sys.argv[1]) or 1200))
     srv.listen(10)
     while 1:
         print "Listening..."
