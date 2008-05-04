@@ -18,7 +18,6 @@ RUNNING, FINALIZED, ERRORED = range(3)
 class CoroutineException(Exception):
     """This is used intenally to carry exception state in the poller and 
     scheduler."""
-    __doc_all__ = []
     prio = priority.DEFAULT
     def __init__(self, *args):
         super(CoroutineException, self).__init__(*args)
@@ -63,7 +62,8 @@ class Operation(object):
     def process(self, sched, coro):
         """This is called when the operation is to be processed by the 
         scheduler. Code here works modifies the scheduler and it's usualy 
-        very crafty."""
+        very crafty. Subclasses usualy overwrite this method and call it from
+        the superclass."""
         
         if self.prio == priority.DEFAULT:
             self.prio = sched.default_priority
@@ -71,7 +71,8 @@ class Operation(object):
     def finalize(self):
         """Called just before the Coroutine wrapper passes the operation back
         in the generator. Return value is the value actualy sent in the 
-        generator."""
+        generator. Subclasses might overwrite this method and call it from
+        the superclass."""
         self.state = FINALIZED
         return self
             
@@ -109,6 +110,7 @@ class TimedOperation(Operation):
         self.weak_timeout = weak_timeout
         
     def process(self, sched, coro):
+        """Add the timeout in the scheduler, check for defaults."""
         super(TimedOperation, self).process(sched, coro)
         
         if sched.default_timeout and not self.timeout:
@@ -123,6 +125,7 @@ class TimedOperation(Operation):
         the coroutine.
         """
         return True
+        
 class WaitForSignal(TimedOperation):
     """The coroutine will resume when the same object is Signaled.
     
@@ -148,13 +151,13 @@ class WaitForSignal(TimedOperation):
     """
         
     __slots__ = ['name', 'result']
-    __doc_all__ = ['__init__']
     
     def __init__(self, name, **kws):
         super(WaitForSignal, self).__init__(**kws)
         self.name = name
     
     def process(self, sched, coro):
+        """Add the calling coro in a waiting for signal queue."""
         super(WaitForSignal, self).process(sched, coro)
         waitlist = sched.sigwait[self.name]
         waitlist.append((self, coro))
@@ -170,11 +173,13 @@ class WaitForSignal(TimedOperation):
         return self.result
         
     def cleanup(self, sched, coro):
+        """Remove this coro from the waiting for signal queue."""
         try:
             sched.sigwait[self.name].remove((self, coro))
         except ValueError:
             pass
         return True
+        
     def __repr__(self):
         return "<%s at 0x%X name:%s timeout:%s prio:%s>" % (
             self.__class__, 
@@ -204,7 +209,6 @@ class Signal(Operation):
     See: `Operation <cogen.core.events.Operation.html>`_.
     """
     __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
-    __doc_all__ = ['__init__']
     
     def __init__(self, name, value=None, recipients=0, **kws):
         """All the coroutines waiting for this object will be added back in the
@@ -219,6 +223,9 @@ class Signal(Operation):
         return self.result
             
     def process(self, sched, coro):
+        """If there aren't enough coroutines waiting for the signal as the 
+        recipicient param add the calling coro in another queue to be activated
+        later, otherwise activate the waiting coroutines."""
         super(Signal, self).process(sched, coro)
         self.result = len(sched.sigwait[self.name])
         if self.result < self.recipients:
@@ -246,6 +253,7 @@ class Call(Operation):
     resume the callee when it returns. 
     
     Usage:
+    
     .. sourcecode:: python
         
         result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)
@@ -259,8 +267,7 @@ class Call(Operation):
     See: `Operation <cogen.core.events.Operation.html>`_.
     """
     __slots__ = ['coro', 'args', 'kwargs']
-    __doc_all__ = ['__init__']
-
+    
     def __init__(self, coro, args=None, kwargs=None, **kws):
         super(Call, self).__init__(**kws)
         self.coro = coro
@@ -268,6 +275,9 @@ class Call(Operation):
         self.kwargs = kwargs or {}
     
     def process(self, sched, coro):
+        """Add the called coro in the sched and set the calling coroutine as
+        the caller in the called coro (the called coro will activate the calling
+        coro when it dies)."""
         super(Call, self).process(sched, coro)
         callee = sched.add(self.coro, self.args, self.kwargs, self.prio) 
         callee.caller = coro
@@ -285,7 +295,8 @@ class Call(Operation):
     
 class AddCoro(Operation):
     """
-    A operator for adding a coroutine in the scheduler.
+    A operation for adding a coroutine in the scheduler.
+    
     Example:
     
     .. sourcecode:: python
@@ -296,7 +307,6 @@ class AddCoro(Operation):
     See: `Operation <cogen.core.events.Operation.html>`_.
     """
     __slots__ = ['coro', 'args', 'kwargs', 'result']
-    __doc_all__ = ['__init__']
     def __init__(self, coro, args=None, kwargs=None, **kws):
         super(AddCoro, self).__init__(**kws)
         self.coro = coro
@@ -304,10 +314,12 @@ class AddCoro(Operation):
         self.kwargs = kwargs or {}
     
     def finalize(self):
+        """Return a reference to the instance of the newly added coroutine."""
         super(AddCoro, self).finalize()
         return self.result
     
     def process(self, sched, coro):
+        """Add the given coroutine in the scheduler."""
         super(AddCoro, self).process(sched, coro)
         self.result = sched.add(self.coro, self.args, self.kwargs, self.prio & priority.OP)
         if self.prio & priority.CORO:
@@ -327,6 +339,7 @@ class AddCoro(Operation):
 class Join(TimedOperation):
     """
     A operation for waiting on a coroutine. 
+    
     Example:
     
     .. sourcecode:: python
@@ -348,15 +361,19 @@ class Join(TimedOperation):
     (`ref` in the example) has died.
     """
     __slots__ = ['coro']
-    __doc_all__ = ['__init__']
     def __init__(self, coro, **kws):
         super(Join, self).__init__(**kws)
         self.coro = coro
+        
     def process(self, sched, coro):
+        """Add the calling coroutine as a waiter in the coro we want to join.
+        Also, doesn't keep the called active (we'll be activated back when the
+        joined coro dies)."""
         super(Join, self).process(sched, coro)
         self.coro.add_waiter(coro)
     
     def cleanup(self, sched, coro):
+        """Remove the calling coro from the waiting list."""
         self.coro.remove_waiter(coro)
         return True
         
@@ -387,7 +404,6 @@ class Sleep(TimedOperation):
     * ts - a timestamp
     """
     __slots__ = []
-    __doc_all__ = ['__init__']
     def __init__(self, val):
         super(Sleep, self).__init__(timeout=val)
         

@@ -1,7 +1,7 @@
 """ 
 Coroutine related boilerplate and wrappers.
 """
-__all__ = ['local', 'coroutine']
+__all__ = ['local', 'coroutine', 'Coroutine']
 
 import types
 import sys
@@ -78,9 +78,9 @@ class local(object):
 
 class Coroutine(events.Operation):
     ''' 
-    We need a coroutine wrapper for generators and function alike because
+    We need a coroutine wrapper for generators and functions alike because
     we want to run functions that don't return generators just like a
-    coroutine.
+    coroutine, also, we do some exception handling here.
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, \
         STATE_FAILED, STATE_FINALIZED = range(5)
@@ -155,16 +155,18 @@ class Coroutine(events.Operation):
             finally:
                 self.caller = None
 
-    #~ @debug(0)
     def run_op(self, op): 
         """
         Handle the operation:
         
         * if coro is in STATE_RUNNING, send or throw the given op
+        
         * if coro is in STATE_NEED_INIT, call the init function and if it 
           doesn't return a generator, set STATE_COMPLETED and set the result
           to whatever the function returned. 
+          
           * if StopIteration is raised, set STATE_COMPLETED and return self.
+          
           * if any other exception is raised, set STATE_FAILED, handle error
             or send it to the caller, return self
         
