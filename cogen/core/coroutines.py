@@ -50,6 +50,7 @@ class local(object):
     Coroutine.run_op sets the indent before running a step and unsets after.
     
     Example:
+    
     .. sourcecode:: python
     
         loc = local() 

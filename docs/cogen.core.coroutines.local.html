@@ -75,11 +75,10 @@
     <div class="docstring rst"><p>A threadlocal-like object that works in the context of coroutines.
 That means, the current running coroutine has the _ident_.</p>
 <p>Coroutine.run_op sets the indent before running a step and unsets after.</p>
-<p>Example:
-.. sourcecode:: python</p>
-<blockquote>
-loc = local()
-loc.foo = 1</blockquote>
+<p>Example:</p>
+<div class="source"><pre><span class="n">loc</span> <span class="o">=</span> <span class="n">local</span><span class="p">()</span>
+<span class="n">loc</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mf">1</span>
+</pre></div>
 <p>The <em>loc</em> instance's values will be different for separate coroutines.</p>
 </div>
     <ul class="link-bar">
@@ -96,7 +95,7 @@ loc.foo = 1</blockquote>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#59">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#60">View source</a>
     </li>
 </ul>
     </div>
