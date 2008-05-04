@@ -8,11 +8,11 @@ import sys
 
                 
 def debug(trace=True, backtrace=1, other=None):
+    """A decorator for debugging purposes. Shows the call arguments, result
+    and instructions as they are runned."""
     from pprint import pprint
     import traceback
     def debugdeco(func):
-        """A decorator for debugging purposes. Shows the call arguments, result
-        and instructions as they are runned."""
         def tracer(frame, event, arg):
             print '--- Tracer: %s, %r' % (event, arg)
             traceback.print_stack(frame, 1)
@@ -46,15 +46,6 @@ def debug(trace=True, backtrace=1, other=None):
         return wrapped
     return debugdeco
 
-#~ @debug(0)
-#~ def test1():
-    #~ test2()
-
-#~ @debug(0)
-#~ def test2():
-    #~ print 1
-
-#~ test1()
     
 class TimeoutDesc(object):
     __doc_all__ = []
@@ -72,6 +63,9 @@ class TimeoutDesc(object):
 
 class priority(object):  
     """
+    How these priority flags are interpreted depends largely on the operation 
+    (since that's where these are checked).
+    
     ======== ===================================================================
     Property Description 
     ======== ===================================================================

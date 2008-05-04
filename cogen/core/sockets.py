@@ -27,7 +27,6 @@ import events
 from util import debug, TimeoutDesc, priority, fmt_list
 import reactors
 
-#~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
 try:
@@ -384,7 +383,9 @@ class SendFile(WriteOperation):
             self.sent += sent
             if not sent:
                 return self
-                
+        #TODO: test this some more with bad usage cases
+        
+        
     def __repr__(self):
         return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (
             self.__class__.__name__, 
@@ -400,14 +401,14 @@ class SendFile(WriteOperation):
 
 class Read(ReadOperation):
     """
-    `len` is max read size, BUT, if if there are buffers from ReadLine 
-    return them first.
     Example usage:
     
     .. sourcecode:: python
         
         yield sockets.Read(socket_object, buffer_length)
     
+    `buffer_length` is max read size, BUT, if if there are buffers from ReadLine 
+    return them first.    
     """
     __slots__ = []
     
@@ -466,7 +467,7 @@ class Read(ReadOperation):
         
 class ReadAll(ReadOperation):
     """
-    Run this operator till we've read `len` bytes.
+    Run this operation till we've read `len` bytes.
     """
     __slots__ = []
     
@@ -547,13 +548,13 @@ class ReadAll(ReadOperation):
         
 class ReadLine(ReadOperation):
     """
-    Run this operator till we read a newline (\\n) or we have a overflow.
+    Run this operation till we read a newline (\\n) or we have a overflow.
     
-    `len` is the max size for a line
     """
     __slots__ = []
     
     def __init__(self, sock, len = 4096, **kws):
+        """`len` is the max size for a line"""
         super(ReadLine, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
@@ -575,7 +576,7 @@ class ReadLine(ReadOperation):
                     self.sock._rl_list_sz
                 )
             )
-    #~ @debug(0)
+
     def run(self, reactor):
         if self.sock._rl_pending:
             nl = self.sock._rl_pending.find("\n")
@@ -796,11 +797,14 @@ class Accept(ReadOperation):
              
 class Connect(WriteOperation):
     """
-    Connect to the given `addr` using `sock`.
+    
     """
     __slots__ = ['connect_attempted']
     
     def __init__(self, sock, addr, **kws):
+        """
+        Connect to the given `addr` using `sock`.
+        """
         super(Connect, self).__init__(sock, **kws)
         self.addr = addr
         self.connect_attempted = False # this is a shield against multiple 

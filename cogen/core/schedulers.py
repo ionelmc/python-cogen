@@ -70,9 +70,11 @@ class Scheduler(object):
     prioritisaiton parameters.
     
     Usage:
+    
     .. sourcecode:: python
         
-        Scheduler(reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None)
+        mysched = Scheduler(reactor=DefaultReactor, 
+                default_priority=priority.LAST, default_timeout=None)
     
     * reactor: a reactor class to use
     
