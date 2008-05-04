@@ -86,13 +86,49 @@
             <h3>
                 <a href="cogen.core.util.priority.html">priority</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>How these priority flags are interpreted depends largely on the operation
+(since that's where these are checked).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Property</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>DEFAULT</td>
+<td>Use the default_priority set in the Scheduler</td>
+</tr>
+<tr><td>LAST,</td>
+<td> </td>
+</tr>
+<tr><td>NOPRIO</td>
+<td>Allways scheduler the operation/coroutine at the end of the queue</td>
+</tr>
+<tr><td>CORO</td>
+<td>Favor the coroutine - if it's the case.</td>
+</tr>
+<tr><td>OP</td>
+<td>Favor the operation - if it's the case.</td>
+</tr>
+<tr><td>FIRST,</td>
+<td> </td>
+</tr>
+<tr><td>PRIO</td>
+<td>Allways schedule with priority</td>
+</tr>
+</tbody>
+</table>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.util.priority.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/util.py#72">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/util.py#63">View source</a>
     </li>
 </ul>
     </div>
@@ -102,7 +138,9 @@
                 debug
                 <span class="args">(trace=True, backtrace=1, other=None)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>A decorator for debugging purposes. Shows the call arguments, result
+and instructions as they are runned.</p>
+</div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/util.py#9">View source</a>
@@ -115,7 +153,7 @@
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/util.py#98">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/util.py#92">View source</a>
     </li>
 </ul>
     </div>

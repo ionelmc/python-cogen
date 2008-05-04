@@ -98,7 +98,13 @@
             <h3>
                 <a href="cogen.core.events.AddCoro.html">AddCoro</a>
             </h3>
-            <div class="docstring rst"><p>A operation for adding a coroutine in the scheduler.</p></div>
+            <div class="docstring rst"><p>A operation for adding a coroutine in the scheduler.</p>
+<p>Example:</p>
+<div class="source"><pre><span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">AddCoro</span><span class="p">(</span><span class="n">some_coro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{})</span>
+</pre></div>
+<p>This is similar to Call, but it doesn't pause the current coroutine.
+See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.AddCoro.html">Details</a>
@@ -111,7 +117,18 @@
                 <a href="cogen.core.events.Call.html">Call</a>
             </h3>
             <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
-resume the callee when it returns.</p></div>
+resume the callee when it returns.</p>
+<p>Usage:</p>
+<div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>mycoro - the coroutine to add.</li>
+<li>args, kwargs - params to call the coroutine with</li>
+<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the
+scheduler queue</li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.Call.html">Details</a>
@@ -123,7 +140,8 @@ resume the callee when it returns.</p></div>
             <h3>
                 <a href="cogen.core.events.ConnectionClosed.html">ConnectionClosed</a>
             </h3>
-            <div class="docstring rst"><p>Raised when the other peer has closed connection.</p></div>
+            <div class="docstring rst"><p>Raised when the other peer has closed connection.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.ConnectionClosed.html">Details</a>
@@ -135,7 +153,8 @@ resume the callee when it returns.</p></div>
             <h3>
                 <a href="cogen.core.events.ConnectionError.html">ConnectionError</a>
             </h3>
-            <div class="docstring rst"><p>Raised when a socket has a error flag (in epoll or select)</p></div>
+            <div class="docstring rst"><p>Raised when a socket has a error flag (in epoll or select)</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.ConnectionError.html">Details</a>
@@ -148,7 +167,8 @@ resume the callee when it returns.</p></div>
                 <a href="cogen.core.events.CoroutineException.html">CoroutineException</a>
             </h3>
             <div class="docstring rst"><p>This is used intenally to carry exception state in the poller and
-scheduler.</p></div>
+scheduler.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.CoroutineException.html">Details</a>
@@ -160,7 +180,24 @@ scheduler.</p></div>
             <h3>
                 <a href="cogen.core.events.Join.html">Join</a>
             </h3>
-            <div class="docstring rst"><p>A operation for waiting on a coroutine.</p></div>
+            <div class="docstring rst"><p>A operation for waiting on a coroutine.</p>
+<p>Example:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">coro_a</span><span class="p">():</span>
+    <span class="n">return_value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Join</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+
+
+<span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">coro_b</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="s">"bla"</span>
+    <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">(</span><span class="s">"some return value"</span><span class="p">)</span>
+
+<span class="n">ref</span> <span class="o">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_b</span><span class="p">)</span>
+<span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_a</span><span class="p">)</span>
+</pre></div>
+<p>This will pause the coroutine and resume it when the other coroutine
+(<cite>ref</cite> in the example) has died.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.Join.html">Details</a>
@@ -173,7 +210,19 @@ scheduler.</p></div>
                 <a href="cogen.core.events.Operation.html">Operation</a>
             </h3>
             <div class="docstring rst"><p>All operations derive from this. This base class handles
-the priority flag.</p></div>
+the priority flag.</p>
+<p>Eg:</p>
+<div class="source"><pre><span class="k">yield</span> <span class="n">Operation</span><span class="p">(</span><span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>prio - a priority constant, where the coro is appended on the active
+coroutine queue and how the coroutine is runned depend on this.</li>
+</ul>
+<p>If you need something that can't be done in a coroutine fashion you
+probabily need to subclass this and make a custom operation for your
+issue.</p>
+<p>Note: you don't really use this, this is for subclassing for other operations.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.Operation.html">Details</a>
@@ -186,7 +235,8 @@ the priority flag.</p></div>
                 <a href="cogen.core.events.OperationTimeout.html">OperationTimeout</a>
             </h3>
             <div class="docstring rst"><p>Raised when the timeout for a operation expires. The exception
-message will be the operation</p></div>
+message will be the operation</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.OperationTimeout.html">Details</a>
@@ -198,7 +248,21 @@ message will be the operation</p></div>
             <h3>
                 <a href="cogen.core.events.Signal.html">Signal</a>
             </h3>
-            <div class="docstring rst"><p>This will resume the coroutines that where paused with WaitForSignal.</p></div>
+            <div class="docstring rst"><p>This will resume the coroutines that where paused with WaitForSignal.</p>
+<p>Usage:</p>
+<div class="source"><pre><span class="n">nr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span>
+    <span class="n">value</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>nr - the number of coroutines woken up</li>
+<li>name - object that coroutines wait on, can be a string</li>
+<li>value - object that the waiting coros recieve when they are resumed.</li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.Signal.html">Details</a>
@@ -210,7 +274,19 @@ message will be the operation</p></div>
             <h3>
                 <a href="cogen.core.events.Sleep.html">Sleep</a>
             </h3>
-            <div class="docstring rst"><p>A operation to pausing the coroutine for a specified amount of time.</p></div>
+            <div class="docstring rst"><p>A operation to pausing the coroutine for a specified amount of time.</p>
+<p>Usage:</p>
+<div class="source"><pre><span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">time_object</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>time_object - a datetime or timedelta object, or a number of seconds</li>
+</ul>
+<div class="source"><pre><span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">timestamp</span><span class="o">=</span><span class="n">ts</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>ts - a timestamp</li>
+</ul>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.Sleep.html">Details</a>
@@ -222,7 +298,23 @@ message will be the operation</p></div>
             <h3>
                 <a href="cogen.core.events.TimedOperation.html">TimedOperation</a>
             </h3>
-            <div class="docstring rst"><p>Operations that have a timeout derive from this.</p></div>
+            <div class="docstring rst"><p>Operations that have a timeout derive from this.</p>
+<p>Eg:</p>
+<div class="source"><pre><span class="k">yield</span> <span class="n">TimedOperation</span><span class="p">(</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">weak_timeout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>timeout - can be a float/int (number of seconds) or a timedelta or a datetime value
+if it's a datetime the timeout will occur on that moment</li>
+<li>weak_timeout - strong timeouts just happen when specified, weak_timeouts
+get delayed if some action happens (eg: new but not enough data recieved)</li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.
+Note: you don't really use this, this is for subclassing for other operations.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.TimedOperation.html">Details</a>
@@ -234,7 +326,23 @@ message will be the operation</p></div>
             <h3>
                 <a href="cogen.core.events.WaitForSignal.html">WaitForSignal</a>
             </h3>
-            <div class="docstring rst"><p>The coroutine will resume when the same object is Signaled.</p></div>
+            <div class="docstring rst"><p>The coroutine will resume when the same object is Signaled.</p>
+<p>Eg:</p>
+<div class="source"><pre><span class="n">value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">weak_timeout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>name - a object to wait on, can use strings for this - string used to
+wait is equal to the string used to signal.</li>
+<li>value - a object sent with the signal.
+See: <a class="reference" href="cogen.core.events.Signal.html">Signal</a></li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.TimedOperation.html">TimedOperation</a>.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.WaitForSignal.html">Details</a>

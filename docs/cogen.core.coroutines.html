@@ -88,7 +88,8 @@
             </h3>
             <div class="docstring rst"><p>We need a coroutine wrapper for generators and functions alike because
 we want to run functions that don't return generators just like a
-coroutine, also, we do some exception handling here.</p></div>
+coroutine, also, we do some exception handling here.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.coroutines.Coroutine.html">Details</a>
@@ -101,7 +102,15 @@ coroutine, also, we do some exception handling here.</p></div>
                 <a href="cogen.core.coroutines.local.html">local</a>
             </h3>
             <div class="docstring rst"><p>A threadlocal-like object that works in the context of coroutines.
-That means, the current running coroutine has the _ident_.</p></div>
+That means, the current running coroutine has the _ident_.</p>
+<p>Coroutine.run_op sets the indent before running a step and unsets after.</p>
+<p>Example:
+.. sourcecode:: python</p>
+<blockquote>
+loc = local()
+loc.foo = 1</blockquote>
+<p>The <em>loc</em> instance's values will be different for separate coroutines.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.coroutines.local.html">Details</a>

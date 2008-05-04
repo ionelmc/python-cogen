@@ -145,7 +145,8 @@ return the operation instance.</li>
             <h3>
                 <a href="cogen.core.coroutines.html">coroutines</a>
             </h3>
-            <div class="docstring rst"><p>Coroutine related boilerplate and wrappers.</p></div>
+            <div class="docstring rst"><p>Coroutine related boilerplate and wrappers.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.coroutines.html">Details</a>
@@ -157,7 +158,8 @@ return the operation instance.</li>
             <h3>
                 <a href="cogen.core.events.html">events</a>
             </h3>
-            <div class="docstring rst"><p>Base events (coroutine operations) and coroutine exceptions.</p></div>
+            <div class="docstring rst"><p>Base events (coroutine operations) and coroutine exceptions.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.events.html">Details</a>
@@ -181,7 +183,8 @@ return the operation instance.</li>
             <h3>
                 <a href="cogen.core.queue.html">queue</a>
             </h3>
-            <div class="docstring rst"><p>Port of Queue.Queue from the python standard library.</p></div>
+            <div class="docstring rst"><p>Port of Queue.Queue from the python standard library.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.queue.html">Details</a>
@@ -193,7 +196,28 @@ return the operation instance.</li>
             <h3>
                 <a href="cogen.core.reactors.html">reactors</a>
             </h3>
-            <div class="docstring rst"><p>Network polling code.</p></div>
+            <div class="docstring rst"><p>Network polling code.</p>
+<p>The reactor works in tandem with the socket operations.
+Here's the basic workflow:</p>
+<ul class="simple">
+<li>the coroutine yields a operation</li>
+<li>the scheduler runs that operation (the <a class="reference" href="cogen.core.events.Operation.html#method-process">process</a> method)
+Note: all the socket operations share the same <a class="reference" href="cogen.core.sockets.SocketOperation.html#method-process">process method</a>.<ul>
+<li>if run_first is False then the operation is added in the reactor for
+polling (with the exception that if we have data in out internal buffers
+the operation is runned first)</li>
+<li>if run_first is set (it's default) in the operation then in process
+method the reactor's <a class="reference" href="cogen.core.reactors.ReactorBase#method-run_or_add">run_or_add</a> is called with the
+operation and coroutine</li>
+</ul>
+</li>
+</ul>
+<p>Note: run_first is a optimization hack really, first it tries to run the
+operation (this asumes the sockets are usualy ready) and if it raises any
+exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling
+(via select, epoll, kqueue etc) then the run method will be called only when
+select, epoll, kqueue says that the socket is ready.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.reactors.html">Details</a>
@@ -205,7 +229,12 @@ return the operation instance.</li>
             <h3>
                 <a href="cogen.core.schedulers.html">schedulers</a>
             </h3>
-            <div class="docstring rst"><p>Scheduling framework.</p></div>
+            <div class="docstring rst"><p>Scheduling framework.</p>
+<p>The scheduler handles the timeouts, run the operations and does very basic
+management of coroutines. Most of the heavy logic is in each operation class.
+See: <a class="reference" href="cogen.core.events.html">events</a> and <a class="reference" href="cogen.core.sockets.html">sockets</a>.
+Most of those operations work with attributes we set in the scheduler.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.schedulers.html">Details</a>
@@ -219,7 +248,8 @@ return the operation instance.</li>
             </h3>
             <div class="docstring rst"><p>Socket-only coroutine operations and <cite>Socket</cite> wrapper.
 Really - the only thing you need to know for most stuff is
-the <a class="reference" href="cogen.core.sockets.Socket.html">Socket</a> class.</p></div>
+the <a class="reference" href="cogen.core.sockets.Socket.html">Socket</a> class.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.sockets.html">Details</a>
@@ -231,7 +261,8 @@ the <a class="reference" href="cogen.core.sockets.Socket.html">Socket</a> class.
             <h3>
                 <a href="cogen.core.util.html">util</a>
             </h3>
-            <div class="docstring rst"><p>Mischelaneous or common.</p></div>
+            <div class="docstring rst"><p>Mischelaneous or common.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.util.html">Details</a>

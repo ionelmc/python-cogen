@@ -132,7 +132,53 @@ exception - if any: <cite>(exc_type, exc_value, traceback_object)</cite>.</li>
             <h3>
                 <a href="cogen.web.wsgi.WSGIServer.html">WSGIServer</a>
             </h3>
-            <div class="docstring rst"><p>An HTTP server for WSGI.</p></div>
+            <div class="docstring rst"><p>An HTTP server for WSGI.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>bind_addr</td>
+<td><p class="first">The interface on which to listen for connections.
+For TCP sockets, a (host, port) tuple. Host values may
+be any IPv4 or IPv6 address, or any valid hostname.
+The string 'localhost' is a synonym for '127.0.0.1' (or
+'::1', if your hosts file prefers IPv6).
+The string '0.0.0.0' is a special IPv4 entry meaning
+"any active interface" (INADDR_ANY), and '::' is the
+similar IN6ADDR_ANY for IPv6. The empty string or None
+are not allowed.</p>
+<p class="last">For UNIX sockets, supply the filename as a string.</p>
+</td>
+</tr>
+<tr><td>wsgi_app</td>
+<td>the WSGI 'application callable'; multiple WSGI
+applications may be passed as (path_prefix, app) pairs.</td>
+</tr>
+<tr><td>server_name</td>
+<td>the string to set for WSGI's SERVER_NAME environ entry.
+Defaults to socket.gethostname().</td>
+</tr>
+<tr><td>request_queue_size</td>
+<td>the 'backlog' argument to socket.listen();
+specifies the maximum number of queued connections
+(default 5).</td>
+</tr>
+<tr><td>protocol</td>
+<td>the version string to write in the Status-Line of all
+HTTP responses. For example, "HTTP/1.1" (the default).
+This also limits the supported features used in the
+response.</td>
+</tr>
+</tbody>
+</table>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.web.wsgi.WSGIServer.html">Details</a>

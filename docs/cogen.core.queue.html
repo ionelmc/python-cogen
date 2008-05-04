@@ -105,7 +105,18 @@
                 <a href="cogen.core.queue.Queue.html">Queue</a>
             </h3>
             <div class="docstring rst"><p>This class attempts to mimic the exact functionality of the
-python standard library Queue.Queue class, but with a coroutine context:</p></div>
+python standard library Queue.Queue class, but with a coroutine context:</p>
+<ul class="simple">
+<li>the queue calls return coroutine operations</li>
+</ul>
+<p>So, to use this you write someting like:</p>
+<div class="source"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">cogen</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="o">&lt;</span><span class="n">size</span><span class="o">&gt;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mf">123</span><span class="p">)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+</pre></div>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.queue.Queue.html">Details</a>

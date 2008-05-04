@@ -81,7 +81,19 @@ Most of those operations work with attributes we set in the scheduler.</p>
                 <a href="cogen.core.schedulers.Scheduler.html">Scheduler</a>
             </h3>
             <div class="docstring rst"><p>Basic deque-based scheduler with timeout support and primitive
-prioritisaiton parameters.</p></div>
+prioritisaiton parameters.</p>
+<p>Usage:</p>
+<div class="source"><pre><span class="n">mysched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">reactor</span><span class="o">=</span><span class="n">DefaultReactor</span><span class="p">,</span>
+        <span class="n">default_priority</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">LAST</span><span class="p">,</span> <span class="n">default_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>reactor: a reactor class to use</li>
+<li>default_priority: a default priority option for operations that do not
+set it. check <a class="reference" href="cogen.core.util.priority.html">priority</a>.</li>
+<li>default_timeout: a default timedelta or number of seconds to wait for
+the operation, -1 means no timeout.</li>
+</ul>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.core.schedulers.Scheduler.html">Details</a>
