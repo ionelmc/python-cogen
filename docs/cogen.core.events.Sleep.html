@@ -63,7 +63,23 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.Sleep.html#constructor">__init__</a>
+                        <a href="cogen.core.events.Sleep.html#method-cleanup">cleanup</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.SocketOperation.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.core.events.Sleep.html#method-process">process</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-prio">prio</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-state">state</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-weak_timeout">weak_timeout</a>
                     </li>
                 </ul>
             </div>
@@ -85,7 +101,7 @@
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#370">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#387">View source</a>
     </li>
 </ul>
     <div>
@@ -97,20 +113,74 @@
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#390">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#406">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Methods</h2>
-            <h3 id="constructor">
-                __init__
-                <span class="args">(self, val)</span>
+            <h3 id="method-cleanup">
+                cleanup
+                <span class="args">(self, sched, coro)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#390">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#412">View source</a>
+    </li>
+</ul>
+            <h3 id="method-finalize">
+                finalize
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring rst"><p>Called just before the Coroutine wrapper passes the operation back
+in the generator. Return value is the value actualy sent in the
+generator. Subclasses might overwrite this method and call it from
+the superclass.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#70">View source</a>
+    </li>
+</ul>
+            <h3 id="method-process">
+                process
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#409">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-prio">prio</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of prio</h4>
+            <pre class="code"><code>&lt;member 'prio' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-state">state</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of state</h4>
+            <pre class="code"><code>&lt;member 'state' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-weak_timeout">weak_timeout</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of weak_timeout</h4>
+            <pre class="code"><code>&lt;member 'weak_timeout' of 'TimedOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
     </div>

@@ -160,7 +160,8 @@ into account the time of last activity (that would be the time of last
             </h3>
             <div class="docstring rst"><p>Called just before the Coroutine wrapper passes the operation back
 in the generator. Return value is the value actualy sent in the
-generator.</p>
+generator. Subclasses might overwrite this method and call it from
+the superclass.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">

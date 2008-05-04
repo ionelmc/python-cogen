@@ -105,7 +105,7 @@ Note: you don't really use this, this is for subclassing for other operations.</
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#78">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#79">View source</a>
     </li>
 </ul>
     <div>
@@ -117,7 +117,7 @@ Note: you don't really use this, this is for subclassing for other operations.</
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#102">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#103">View source</a>
     </li>
 </ul>
     </div>
@@ -133,7 +133,7 @@ the coroutine.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#118">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#120">View source</a>
     </li>
 </ul>
             <h3 id="method-finalize">
@@ -142,7 +142,8 @@ the coroutine.</p>
             </h3>
             <div class="docstring rst"><p>Called just before the Coroutine wrapper passes the operation back
 in the generator. Return value is the value actualy sent in the
-generator.</p>
+generator. Subclasses might overwrite this method and call it from
+the superclass.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
@@ -153,10 +154,11 @@ generator.</p>
                 process
                 <span class="args">(self, sched, coro)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>Add the timeout in the scheduler, check for defaults.</p>
+</div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#110">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#111">View source</a>
     </li>
 </ul>
     </div>

@@ -63,7 +63,27 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.WaitForSignal.html#constructor">__init__</a>
+                        <a href="cogen.core.events.WaitForSignal.html#method-cleanup">cleanup</a>
+                    </li><li>
+                        <a href="cogen.core.events.WaitForSignal.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.core.events.WaitForSignal.html#method-process">process</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.WaitForSignal.html#attribute-name">name</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-prio">prio</a>
+                    </li><li>
+                        <a href="cogen.core.events.WaitForSignal.html#attribute-result">result</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-state">state</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-weak_timeout">weak_timeout</a>
                     </li>
                 </ul>
             </div>
@@ -89,7 +109,7 @@ See: <a class="reference" href="cogen.core.events.Signal.html">Signal</a></li>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#125">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#128">View source</a>
     </li>
 </ul>
     <div>
@@ -101,20 +121,90 @@ See: <a class="reference" href="cogen.core.events.Signal.html">Signal</a></li>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#152">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#154">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Methods</h2>
-            <h3 id="constructor">
-                __init__
-                <span class="args">(self, name, **kws)</span>
+            <h3 id="method-cleanup">
+                cleanup
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>Remove this coro from the waiting for signal queue.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#174">View source</a>
+    </li>
+</ul>
+            <h3 id="method-finalize">
+                finalize
+                <span class="args">(self)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#152">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#170">View source</a>
+    </li>
+</ul>
+            <h3 id="method-process">
+                process
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>Add the calling coro in a waiting for signal queue.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#158">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-name">name</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of name</h4>
+            <pre class="code"><code>&lt;member 'name' of 'WaitForSignal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-prio">prio</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of prio</h4>
+            <pre class="code"><code>&lt;member 'prio' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-result">result</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of result</h4>
+            <pre class="code"><code>&lt;member 'result' of 'WaitForSignal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-state">state</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of state</h4>
+            <pre class="code"><code>&lt;member 'state' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-weak_timeout">weak_timeout</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of weak_timeout</h4>
+            <pre class="code"><code>&lt;member 'weak_timeout' of 'TimedOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
     </div>

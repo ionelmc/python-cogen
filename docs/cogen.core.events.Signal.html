@@ -63,7 +63,31 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.Signal.html#constructor">__init__</a>
+                        <a href="cogen.core.events.Signal.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#method-process">process</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.Signal.html#attribute-coro">coro</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#attribute-len">len</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#attribute-name">name</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#attribute-prio">prio</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#attribute-recipients">recipients</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#attribute-result">result</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-state">state</a>
+                    </li><li>
+                        <a href="cogen.core.events.Signal.html#attribute-value">value</a>
                     </li>
                 </ul>
             </div>
@@ -87,7 +111,7 @@
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#185">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#190">View source</a>
     </li>
 </ul>
     <div>
@@ -101,22 +125,108 @@ active coroutine queue.</p>
 </div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#208">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#212">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Methods</h2>
-            <h3 id="constructor">
-                __init__
-                <span class="args">(self, name, value=None, recipients=0, **kws)</span>
+            <h3 id="method-finalize">
+                finalize
+                <span class="args">(self)</span>
             </h3>
-            <div class="docstring rst"><p>All the coroutines waiting for this object will be added back in the
-active coroutine queue.</p>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#220">View source</a>
+    </li>
+</ul>
+            <h3 id="method-process">
+                process
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>If there aren't enough coroutines waiting for the signal as the
+recipicient param add the calling coro in another queue to be activated
+later, otherwise activate the waiting coroutines.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#208">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#224">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-coro">coro</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of coro</h4>
+            <pre class="code"><code>&lt;member 'coro' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-len">len</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of len</h4>
+            <pre class="code"><code>&lt;member 'len' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-name">name</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of name</h4>
+            <pre class="code"><code>&lt;member 'name' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-prio">prio</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of prio</h4>
+            <pre class="code"><code>&lt;member 'prio' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-recipients">recipients</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of recipients</h4>
+            <pre class="code"><code>&lt;member 'recipients' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-result">result</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of result</h4>
+            <pre class="code"><code>&lt;member 'result' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-state">state</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of state</h4>
+            <pre class="code"><code>&lt;member 'state' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-value">value</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of value</h4>
+            <pre class="code"><code>&lt;member 'value' of 'Signal' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
     </div>

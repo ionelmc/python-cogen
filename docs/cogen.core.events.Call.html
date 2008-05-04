@@ -63,7 +63,25 @@
                 <h2>Methods</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.events.Call.html#constructor">__init__</a>
+                        <a href="cogen.core.sockets.SocketOperation.html#method-finalize">finalize</a>
+                    </li><li>
+                        <a href="cogen.core.events.Call.html#method-process">process</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Attributes</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.Call.html#attribute-args">args</a>
+                    </li><li>
+                        <a href="cogen.core.events.Call.html#attribute-coro">coro</a>
+                    </li><li>
+                        <a href="cogen.core.events.Call.html#attribute-kwargs">kwargs</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-prio">prio</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-state">state</a>
                     </li>
                 </ul>
             </div>
@@ -72,10 +90,9 @@
     <h1>Class: cogen.core.events.Call</h1>
     <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
 resume the callee when it returns.</p>
-<p>Usage:
-.. sourcecode:: python</p>
-<blockquote>
-result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)</blockquote>
+<p>Usage:</p>
+<div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+</pre></div>
 <ul class="simple">
 <li>mycoro - the coroutine to add.</li>
 <li>args, kwargs - params to call the coroutine with</li>
@@ -86,7 +103,7 @@ scheduler queue</li>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#242">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#249">View source</a>
     </li>
 </ul>
     <div>
@@ -98,20 +115,85 @@ scheduler queue</li>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#263">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#270">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Methods</h2>
-            <h3 id="constructor">
-                __init__
-                <span class="args">(self, coro, args=None, kwargs=None, **kws)</span>
+            <h3 id="method-finalize">
+                finalize
+                <span class="args">(self)</span>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>Called just before the Coroutine wrapper passes the operation back
+in the generator. Return value is the value actualy sent in the
+generator. Subclasses might overwrite this method and call it from
+the superclass.</p>
+</div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#263">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#70">View source</a>
+    </li>
+</ul>
+            <h3 id="method-process">
+                process
+                <span class="args">(self, sched, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>Add the called coro in the sched and set the calling coroutine as
+the caller in the called coro (the called coro will activate the calling
+coro when it dies).</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#276">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Attributes</h2>
+            <h3 id="attribute-args">args</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of args</h4>
+            <pre class="code"><code>&lt;member 'args' of 'Call' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-coro">coro</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of coro</h4>
+            <pre class="code"><code>&lt;member 'coro' of 'Call' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-kwargs">kwargs</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of kwargs</h4>
+            <pre class="code"><code>&lt;member 'kwargs' of 'Call' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-prio">prio</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of prio</h4>
+            <pre class="code"><code>&lt;member 'prio' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-state">state</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of state</h4>
+            <pre class="code"><code>&lt;member 'state' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
     </div>

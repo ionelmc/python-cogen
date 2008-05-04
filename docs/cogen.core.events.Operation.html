@@ -98,7 +98,7 @@ issue.</p>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#36">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#35">View source</a>
     </li>
 </ul>
     <div>
@@ -110,7 +110,7 @@ issue.</p>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#58">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#57">View source</a>
     </li>
 </ul>
     </div>
@@ -122,7 +122,8 @@ issue.</p>
             </h3>
             <div class="docstring rst"><p>Called just before the Coroutine wrapper passes the operation back
 in the generator. Return value is the value actualy sent in the
-generator.</p>
+generator. Subclasses might overwrite this method and call it from
+the superclass.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
@@ -135,11 +136,12 @@ generator.</p>
             </h3>
             <div class="docstring rst"><p>This is called when the operation is to be processed by the
 scheduler. Code here works modifies the scheduler and it's usualy
-very crafty.</p>
+very crafty. Subclasses usualy overwrite this method and call it from
+the superclass.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#62">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#61">View source</a>
     </li>
 </ul>
     </div>
