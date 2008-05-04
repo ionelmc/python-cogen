@@ -227,10 +227,12 @@ ul.buttons {
 
 #browser li.active a {
     color: #E85833;
+    background: none !important;
 }
 
 #browser li a:hover {
     color: #ADD5CF;
+    background: none !important;
 }
 
 #content {
