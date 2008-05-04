@@ -51,6 +51,16 @@
                 </ul>
             </div>
             
+            <div py:if="desc.represents=='Class' and desc.parent" class="browser-section">
+                <h2>${desc.parent.pathname}</h2>
+                <ul>
+                    <li py:for="member in desc.parent.classes"
+                        class="${(member is desc) and 'active' or None}">
+                        <a href="${member.href}">${member.name}</a>
+                    </li>
+                </ul>
+            </div>
+            
             <div py:if="desc.modules" class="browser-section">
                 <h2>Submodules</h2>
             

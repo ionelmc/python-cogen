@@ -31,7 +31,7 @@
             </h3>
             
             <div class="docstring ${project.renderer_id(module)}"
-                 py:content="project.render_short_desc(module)" />
+                 py:content="project.render_description(module)" />
             
             <ul py:replace="link_bar(module)" />
         </py:for>
@@ -46,7 +46,7 @@
             </h3>
             
             <div class="docstring ${project.renderer_id(class_)}"
-                 py:content="project.render_short_desc(class_)" />
+                 py:content="project.render_description(class_)" />
             
             <ul py:replace="link_bar(class_)" />
         </py:for>
