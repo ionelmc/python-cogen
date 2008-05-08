@@ -70,6 +70,11 @@ class COGENProxy:
         return repr(self.__dict__)
 
 class LazyStartResponseMiddleware:
+    """This is a evil piece of middleware that proxyes the start_response
+    call and delays it till the appiter yields a non-empty string.
+    Also, this returns a fake write callable that buffers the strings passed
+    though it.
+    """
     def __init__(self, app, global_conf={}):
         self.app = app
         self.sr_called = False
@@ -98,7 +103,10 @@ class LazyStartResponseMiddleware:
 lazy_sr = LazyStartResponseMiddleware
 
 class SynchronousInputMiddleware:
-    """Middleware for providing wsgi.input to the app."""
+    """Middleware for providing a regular synchronous wsgi.input to the app.
+    Note that it reads the whole input in memory so you sould rather use the
+    async input (environ['cogen.input']) for large requests.
+    """
     __doc_all__ = ['__call__']
     def __init__(self, app, global_conf={}, buffer_length=1024):
         self.app = app
