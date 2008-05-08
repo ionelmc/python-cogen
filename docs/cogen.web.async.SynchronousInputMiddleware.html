@@ -84,11 +84,13 @@
         </div>
         <div id="content">
     <h1>Class: cogen.web.async.SynchronousInputMiddleware</h1>
-    <div class="docstring rst"><p>Middleware for providing wsgi.input to the app.</p>
+    <div class="docstring rst"><p>Middleware for providing a regular synchronous wsgi.input to the app.
+Note that it reads the whole input in memory so you sould rather use the
+async input (environ['cogen.input']) for large requests.</p>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#99">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#104">View source</a>
     </li>
 </ul>
     <div>
@@ -100,7 +102,7 @@
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#102">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#110">View source</a>
     </li>
 </ul>
     </div>
@@ -113,7 +115,7 @@
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#106">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#114">View source</a>
     </li>
 </ul>
     </div>

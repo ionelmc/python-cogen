@@ -103,7 +103,11 @@ example:</p>
             <h3>
                 <a href="cogen.web.async.LazyStartResponseMiddleware.html">LazyStartResponseMiddleware</a>
             </h3>
-            <div class="docstring rst"></div>
+            <div class="docstring rst"><p>This is a evil piece of middleware that proxyes the start_response
+call and delays it till the appiter yields a non-empty string.
+Also, this returns a fake write callable that buffers the strings passed
+though it.</p>
+</div>
             <ul class="link-bar">
     <li>
         <a href="cogen.web.async.LazyStartResponseMiddleware.html">Details</a>
@@ -124,7 +128,7 @@ something more elegant at some point.</p>
         <a href="cogen.web.async.Read.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#132">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#140">View source</a>
     </li>
 </ul>
             <h3>
@@ -138,20 +142,22 @@ things too much at the moment).</p>
         <a href="cogen.web.async.ReadLine.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#289">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#297">View source</a>
     </li>
 </ul>
             <h3>
                 <a href="cogen.web.async.SynchronousInputMiddleware.html">SynchronousInputMiddleware</a>
             </h3>
-            <div class="docstring rst"><p>Middleware for providing wsgi.input to the app.</p>
+            <div class="docstring rst"><p>Middleware for providing a regular synchronous wsgi.input to the app.
+Note that it reads the whole input in memory so you sould rather use the
+async input (environ['cogen.input']) for large requests.</p>
 </div>
             <ul class="link-bar">
     <li>
         <a href="cogen.web.async.SynchronousInputMiddleware.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#99">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#104">View source</a>
     </li>
 </ul>
     </div>

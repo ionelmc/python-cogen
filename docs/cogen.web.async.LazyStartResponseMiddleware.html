@@ -84,7 +84,11 @@
         </div>
         <div id="content">
     <h1>Class: cogen.web.async.LazyStartResponseMiddleware</h1>
-    <div class="docstring rst"></div>
+    <div class="docstring rst"><p>This is a evil piece of middleware that proxyes the start_response
+call and delays it till the appiter yields a non-empty string.
+Also, this returns a fake write callable that buffers the strings passed
+though it.</p>
+</div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#71">View source</a>
@@ -99,7 +103,7 @@
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#72">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#77">View source</a>
     </li>
 </ul>
     </div>
@@ -112,7 +116,7 @@
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#76">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/async.py#81">View source</a>
     </li>
 </ul>
     </div>
