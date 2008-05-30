@@ -867,6 +867,7 @@ class Connect(WriteOperation):
                 if exc[0] not in (errno.EAGAIN, errno.EWOULDBLOCK, 
                                 errno.EINPROGRESS, errno.ENOTCONN):
                     raise
+                    #TODO, getsockopt(SO_ERROR)
             return self
         #~ print 'self.sock._fd.connect_ex(self.addr)'
         #~ raise Exception, reactor
