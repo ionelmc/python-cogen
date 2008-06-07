@@ -4,7 +4,7 @@ Base events (coroutine operations) and coroutine exceptions.
 __all__ = [
     'CoroutineException', 'ConnectionError', 'ConnectionClosed', 
     'OperationTimeout', 'WaitForSignal', 'Signal', 'Call', 'AddCoro', 
-    'Join', 'Sleep', 'Operation', 'TimedOperation'
+    'Join', 'Sleep', 'Operation', 'TimedOperation', 'OldCall'
 ]
 import datetime
 import heapq
