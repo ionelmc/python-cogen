@@ -246,8 +246,26 @@ class Signal(Operation):
             sched.active.append((None, coro))
             
         del sched.sigwait[self.name]        
+    
+def Call(coro, args=None, kwargs=None, **kws):
+    """
+    You don't need to use this. You can just yield the called coroutine:
+    
+    .. sourcecode:: python
         
-class Call(Operation):
+        result = yield mycoro( [arguments] )
+    
+    
+    Compared to `OldCall <cogen.core.events.OldCall.html>`_, 
+    instead of returning an Operation object it returns the 
+    new Coroutine directly that will act as a Call operation in it's pre-init 
+    state. This is faster for 2 reasons: avoids one Operation instatiation and 
+    avoids pushing and poping the new coroutine on the active coros queue.
+    """
+    
+    return coro(*(args or ()), **(kwargs or {}))
+    
+class OldCall(Operation):
     """
     This will pause the current coroutine, add a new coro in the scheduler and 
     resume the callee when it returns. 

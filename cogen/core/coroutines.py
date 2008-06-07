@@ -141,20 +141,25 @@ class Coroutine(events.Operation):
                 self, 
                 self._state_names[self.STATE_FINALIZED]
             )
-        if self.waiters:    
-            if sched.default_priority:
-                sched.active.extendleft(self.waiters)
-            else:
-                sched.active.extend(self.waiters)
-        self.waiters = []
-        if self.caller:
-            try:
-                if self.exception:
-                    return events.CoroutineException(self.exception), self.caller
-                else:                
-                    return self, self.caller
-            finally:
-                self.caller = None
+        if self.state == self.STATE_NEED_INIT:
+            self.caller = coro
+            return None, self
+
+        else:
+            if self.waiters:    
+                if sched.default_priority:
+                    sched.active.extendleft(self.waiters)
+                else:
+                    sched.active.extend(self.waiters)
+            self.waiters = []
+            if self.caller:
+                try:
+                    if self.exception:
+                        return events.CoroutineException(self.exception), self.caller
+                    else:                
+                        return self, self.caller
+                finally:
+                    self.caller = None
 
     def run_op(self, op): 
         """

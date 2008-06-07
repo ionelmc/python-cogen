@@ -5,6 +5,15 @@ The scheduler handles the timeouts, run the operations and does very basic
 management of coroutines. Most of the heavy logic is in each operation class.
 See: `events <cogen.core.events.html>`_ and `sockets <cogen.core.sockets.html>`_.
 Most of those operations work with attributes we set in the scheduler.
+
+`cogen` is multi-state. All the state related to coroutines and network is in 
+the scheduler and it's associated reactor. That means you could run several 
+cogen schedulers in the same process/thread/whatever.
+
+There is just one thing that uses global objects - the threadlocal-like local 
+object in the coroutines module.  It was actually aded for the wsgiserver 
+factory that monkey patches the threadlocal module in order to make pylons run
+correctly (pylons relies heavily on threadlocals). 
 """
 __all__ = ['Scheduler']
 import collections
@@ -67,7 +76,7 @@ class Timeout(object):
 
 class Scheduler(object):
     """Basic deque-based scheduler with timeout support and primitive 
-    prioritisaiton parameters.
+    prioritisaiton parameters. 
     
     Usage:
     
