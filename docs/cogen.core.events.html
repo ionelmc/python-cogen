@@ -57,8 +57,6 @@
                     <li>
                         <a href="cogen.core.events.AddCoro.html">AddCoro</a>
                     </li><li>
-                        <a href="cogen.core.events.Call.html">Call</a>
-                    </li><li>
                         <a href="cogen.core.events.ConnectionClosed.html">ConnectionClosed</a>
                     </li><li>
                         <a href="cogen.core.events.ConnectionError.html">ConnectionError</a>
@@ -66,6 +64,8 @@
                         <a href="cogen.core.events.CoroutineException.html">CoroutineException</a>
                     </li><li>
                         <a href="cogen.core.events.Join.html">Join</a>
+                    </li><li>
+                        <a href="cogen.core.events.OldCall.html">OldCall</a>
                     </li><li>
                         <a href="cogen.core.events.Operation.html">Operation</a>
                     </li><li>
@@ -78,6 +78,14 @@
                         <a href="cogen.core.events.TimedOperation.html">TimedOperation</a>
                     </li><li>
                         <a href="cogen.core.events.WaitForSignal.html">WaitForSignal</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Functions</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.events.html#function-Call">Call</a>
                     </li>
                 </ul>
             </div>
@@ -110,31 +118,7 @@ See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.
         <a href="cogen.core.events.AddCoro.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#295">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.events.Call.html">Call</a>
-            </h3>
-            <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
-resume the callee when it returns.</p>
-<p>Usage:</p>
-<div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
-</pre></div>
-<ul class="simple">
-<li>mycoro - the coroutine to add.</li>
-<li>args, kwargs - params to call the coroutine with</li>
-<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the
-scheduler queue</li>
-</ul>
-<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
-</div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.events.Call.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#249">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#313">View source</a>
     </li>
 </ul>
             <h3>
@@ -203,7 +187,31 @@ scheduler.</p>
         <a href="cogen.core.events.Join.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#338">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#356">View source</a>
+    </li>
+</ul>
+            <h3>
+                <a href="cogen.core.events.OldCall.html">OldCall</a>
+            </h3>
+            <div class="docstring rst"><p>This will pause the current coroutine, add a new coro in the scheduler and
+resume the callee when it returns.</p>
+<p>Usage:</p>
+<div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>mycoro - the coroutine to add.</li>
+<li>args, kwargs - params to call the coroutine with</li>
+<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the
+scheduler queue</li>
+</ul>
+<p>See: <a class="reference" href="cogen.core.events.Operation.html">Operation</a>.</p>
+</div>
+            <ul class="link-bar">
+    <li>
+        <a href="cogen.core.events.OldCall.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#267">View source</a>
     </li>
 </ul>
             <h3>
@@ -292,7 +300,7 @@ message will be the operation</p>
         <a href="cogen.core.events.Sleep.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#387">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#405">View source</a>
     </li>
 </ul>
             <h3>
@@ -349,6 +357,27 @@ See: <a class="reference" href="cogen.core.events.Signal.html">Signal</a></li>
     </li>
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#128">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Functions</h2>
+            <h3 id="function-Call">
+                Call
+                <span class="args">(coro, args=None, kwargs=None, **kws)</span>
+            </h3>
+            <div class="docstring rst"><p>You don't need to use this. You can just yield the called coroutine:</p>
+<div class="source"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">mycoro</span><span class="p">(</span> <span class="p">[</span><span class="n">arguments</span><span class="p">]</span> <span class="p">)</span>
+</pre></div>
+<p>Compared to <a class="reference" href="cogen.core.events.OldCall.html">OldCall</a>,
+instead of returning an Operation object it returns the
+new Coroutine directly that will act as a Call operation in it's pre-init
+state. This is faster for 2 reasons: avoids one Operation instatiation and
+avoids pushing and poping the new coroutine on the active coros queue.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#249">View source</a>
     </li>
 </ul>
     </div>

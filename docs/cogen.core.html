@@ -234,6 +234,13 @@ select, epoll, kqueue says that the socket is ready.</p>
 management of coroutines. Most of the heavy logic is in each operation class.
 See: <a class="reference" href="cogen.core.events.html">events</a> and <a class="reference" href="cogen.core.sockets.html">sockets</a>.
 Most of those operations work with attributes we set in the scheduler.</p>
+<p><cite>cogen</cite> is multi-state. All the state related to coroutines and network is in
+the scheduler and it's associated reactor. That means you could run several
+cogen schedulers in the same process/thread/whatever.</p>
+<p>There is just one thing that uses global objects - the threadlocal-like local
+object in the coroutines module.  It was actually aded for the wsgiserver
+factory that monkey patches the threadlocal module in order to make pylons run
+correctly (pylons relies heavily on threadlocals).</p>
 </div>
             <ul class="link-bar">
     <li>
