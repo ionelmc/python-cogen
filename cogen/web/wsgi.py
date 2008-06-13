@@ -600,13 +600,15 @@ class WSGIServer(object):
             request_queue_size=64,
             sockoper_run_first=True,
             sockoper_timeout=15,
-            sendfile_timeout=-1
+            sendfile_timeout=-1,
+            sockaccept_greedy=False
         ):
     self.request_queue_size = int(request_queue_size)
     self.sockoper_run_first = sockoper_run_first
     self.sendfile_timeout = sendfile_timeout
     self.sockoper_timeout = sockoper_timeout
     self.scheduler = scheduler
+    self.sockaccept_greedy = sockaccept_greedy
     self.environ['cogen.sched'] = self.scheduler
           
     self.version = "cogen.web/%s %s" % (__version__, scheduler.poll.__class__.__name__)
@@ -737,9 +739,8 @@ class WSGIServer(object):
         
         conn = self.ConnectionClass(s, self.wsgi_app, environ, 
           self.sockoper_run_first, self.sockoper_timeout, self.sendfile_timeout)
-        yield events.AddCoro(conn.run, prio=priority.FIRST)
-        #TODO: how scheduling ?
-
+        yield events.AddCoro(conn.run, prio=priority.LAST if
+                                     self.sockaccept_greedy else priority.FIRST)
    
   def bind(self, family, type, proto=0):
     """Create (or recreate) the actual socket object."""
@@ -778,7 +779,7 @@ def server_factory(global_conf, host, port, **options):
     * sendfile_timeout: float (default: 300) - same as sockoper_timeout, 
       only applied to sendfile operations (wich might need a much higher timeout 
       value)
-    
+    * sockaccept_greedy: bool
   """
   port = int(port)
 
@@ -804,6 +805,7 @@ def server_factory(global_conf, host, port, **options):
       sockoper_run_first=asbool(options.get('sockoper_run_first', 'true')),
       sockoper_timeout=float(options.get('sockoper_timeout', 15)),
       sendfile_timeout=float(options.get('sendfile_timeout', 300)),
+      sockaccept_greedy=asbool(options.get('sockoper_run_first', 'false')),
     )
     sched.add(server.serve)
     sched.run()
