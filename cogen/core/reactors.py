@@ -520,20 +520,25 @@ class EpollReactor(ReactorBase):
                     
                     #~ epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_DEL, fd, 0)
                     # no longer necesary because of EPOLLONESHOT
-                    
-                    if nr == nr_events:
-                        return op, coro
-                        
-                    if op.prio & priority.OP:
-                        op, coro = self.scheduler.process_op(
-                            coro.run_op(op), 
-                            coro
-                        )
-                    if coro:
-                        if op.prio & priority.CORO:
-                            self.scheduler.active.appendleft( (op, coro) )
-                        else:
-                            self.scheduler.active.append( (op, coro) )    
+                    if self.scheduler.ops_greedy:
+                        while True:
+                            op, coro = self.scheduler.process_op(coro.run_op(op), coro)
+                            if not op and not coro:
+                                break  
+                    else:
+                        if nr == nr_events:
+                            return op, coro
+                            
+                        if op.prio & priority.OP:
+                            op, coro = self.scheduler.process_op(
+                                coro.run_op(op), 
+                                coro
+                            )
+                        if coro:
+                            if op.prio & priority.CORO:
+                                self.scheduler.active.appendleft( (op, coro) )
+                            else:
+                                self.scheduler.active.append( (op, coro) )    
                 else:
                     epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_MOD, fd, ev | epoll.EPOLLONESHOT)
         else:
