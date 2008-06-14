@@ -94,8 +94,10 @@ class Scheduler(object):
       the operation, -1 means no timeout.
     
     """
-    def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, default_timeout=None, reactor_resolution=.01):
-        self.timeouts = [] #heapq
+    def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, 
+            default_timeout=None, reactor_resolution=.01, reactor_greedy=True,
+            ops_greedy=False):
+        self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
         self.signals = collections.defaultdict(collections.deque)
@@ -103,6 +105,8 @@ class Scheduler(object):
         self.default_priority = default_priority
         self.default_timeout = default_timeout
         self.running = False
+        self.reactor_greedy = reactor_greedy
+        self.ops_greedy = ops_greedy
     def __repr__(self):
         return "<%s@0x%X active:%s sigwait:%s timeouts:%s poller:%s default_priority:%s default_timeout:%s>" % (
             self.__class__.__name__, 
@@ -229,8 +233,8 @@ class Scheduler(object):
                     op, coro = self.process_op(coro.run_op(op), coro)
                     if not op and not coro:
                         break  
-                    
-            if self.poll:
+            
+            if (self.reactor_greedy or not self.active) and self.poll:
                 try:
                     urgent = self.poll.run(timeout = self.next_timer_delta())
                 except (OSError, select.error), exc:
