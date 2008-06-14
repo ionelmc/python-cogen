@@ -9,7 +9,7 @@ __all__ = [
 import datetime
 import heapq
 
-from cogen.core.util import debug, TimeoutDesc, priority
+from cogen.core.util import debug, priority
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
@@ -98,15 +98,24 @@ class TimedOperation(Operation):
     See: `Operation <cogen.core.events.Operation.html>`_.
     Note: you don't really use this, this is for subclassing for other operations.
     """
-    __slots__ = ['_timeout', '__weakref__', 'weak_timeout']
-    timeout = TimeoutDesc()
+    __slots__ = ['timeout', 'coro', 'weak_timeout', 'delta', 'last_checkpoint']
+    
+    def set_timeout(self, val):
+        if val and val != -1 and not isinstance(val, datetime.datetime):
+            now = datetime.datetime.now()
+            if isinstance(val, datetime.timedelta):
+                val = now+val
+            else:
+                val = now+datetime.timedelta(seconds=val)
+        self.timeout = val
+    def __cmp__(self, other):
+        return cmp(self.timeout, other.timeout)    
+    
+
     
     def __init__(self, timeout=None, weak_timeout=True, **kws):
         super(TimedOperation, self).__init__(**kws)
-        if timeout:
-            self.timeout = timeout
-        else:
-            self._timeout = None
+        self.set_timeout(timeout)
         self.weak_timeout = weak_timeout
         
     def process(self, sched, coro):
@@ -114,9 +123,17 @@ class TimedOperation(Operation):
         super(TimedOperation, self).process(sched, coro)
         
         if sched.default_timeout and not self.timeout:
-            self.timeout = sched.default_timeout
-        if self._timeout and self._timeout != -1:
-            sched.add_timeout(self, coro, False)
+            self.set_timeout(sched.default_timeout)
+        if self.timeout and self.timeout != -1:
+            self.coro = coro
+
+            if self.weak_timeout:
+                self.last_checkpoint = getnow()
+                self.delta = self.timeout - self.last_checkpoint
+            else:
+                self.last_checkpoint = self.delta = None
+        
+            heapq.heappush(sched.timeouts, self)
             
     def cleanup(self, sched, coro):
         """
@@ -434,6 +451,4 @@ class Sleep(TimedOperation):
         #we manualy add the coro back in the sched and don't return the cleanup
         #as valid (valid cleanup means return true in cleanup)
         
-    def __cmp__(self, other):
-        return cmp(self.wake_time, other.wake_time)
         

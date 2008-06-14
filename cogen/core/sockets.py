@@ -24,7 +24,7 @@ except:
     pass
 
 import events
-from util import debug, TimeoutDesc, priority, fmt_list
+from util import debug, priority, fmt_list
 import reactors
 
 getnow = datetime.datetime.now
@@ -234,7 +234,7 @@ class SocketOperation(events.TimedOperation):
         """
         try:
             result = self.run(reactor)
-            if self._timeout and self._timeout != -1 and self.weak_timeout:
+            if self.timeout and self.timeout != -1 and self.weak_timeout:
                 self.last_update = getnow()
             if result:
                 self.state = events.FINALIZED

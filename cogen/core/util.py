@@ -47,20 +47,6 @@ def debug(trace=True, backtrace=1, other=None):
     return debugdeco
 
     
-class TimeoutDesc(object):
-    __doc_all__ = []
-    __slots__ = ['field']
-    def __get__(self, instance, owner):
-        return instance._timeout
-    def __set__(self, instance, val):
-        if val and val != -1 and not isinstance(val, datetime.datetime):
-            now = datetime.datetime.now()
-            if isinstance(val, datetime.timedelta):
-                val = now+val
-            else:
-                val = now+datetime.timedelta(seconds=val)
-        instance._timeout = val
-
 class priority(object):  
     """
     How these priority flags are interpreted depends largely on the operation 

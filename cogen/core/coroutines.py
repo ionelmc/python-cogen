@@ -7,7 +7,7 @@ import types
 import sys
 
 from cogen.core import events
-from cogen.core.util import debug, TimeoutDesc, priority
+from cogen.core.util import debug, priority
 
 def coroutine(func):
     """ 

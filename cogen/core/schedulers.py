@@ -27,7 +27,7 @@ import select
 from cogen.core.reactors import DefaultReactor
 from cogen.core import events
 from cogen.core import sockets
-from cogen.core.util import debug, TimeoutDesc, priority
+from cogen.core.util import debug, priority
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
@@ -40,39 +40,6 @@ class DebugginWrapper:
             return debug(0)(getattr(self.obj, name))
         else:
             return getattr(self.obj, name)
-class Timeout(object):
-    """This wrapps a (op, coro) pair in weakreferences, extracts the timeout 
-    value from the operation. We add instances of this class in the timeouts 
-    heapq."""
-    __slots__ = [
-        'coro', 'op', 'timeout', 'weak_timeout', 
-        'delta', 'last_checkpoint'
-    ]
-    def __init__(self, op, coro, weak_timeout=False):
-        assert isinstance(op.timeout, datetime.datetime)
-        self.timeout = op.timeout
-        self.coro = coro
-        self.op = op
-        self.weak_timeout = weak_timeout
-        if weak_timeout:
-            self.last_checkpoint = getnow()
-            self.delta = self.timeout - self.last_checkpoint
-        else:
-            self.last_checkpoint = self.delta = None
-        
-    def __cmp__(self, other):
-        return cmp(self.timeout, other.timeout)    
-    def __repr__(self):
-        return "<%s@%s timeout:%s, coro:%s, op:%s, weak:%s, lastcheck:%s, delta:%s>" % (
-            self.__class__.__name__, 
-            id(self), 
-            self.timeout, 
-            self.coro, 
-            self.op, 
-            self.weak_timeout, 
-            self.last_checkpoint, 
-            self.delta
-        )
 
 class Scheduler(object):
     """Basic deque-based scheduler with timeout support and primitive 
@@ -150,9 +117,6 @@ class Scheduler(object):
             else:
                 return None
     
-    def add_timeout(self, op, coro, weak_timeout):
-        heapq.heappush(self.timeouts, Timeout(op, coro, weak_timeout))
-    
     def handle_timeouts(self):
         """Handle timeouts. Raise timeouted operations with a OperationTimeout 
         in the associated coroutine (if they are still alive and the operation
@@ -178,18 +142,19 @@ class Scheduler(object):
         now = getnow()
         #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
         while self.timeouts and self.timeouts[0].timeout <= now:
-            timo = heapq.heappop(self.timeouts)
+            op = heapq.heappop(self.timeouts)
                 
-            op = timo.op
-            coro = timo.coro
-            if timo.weak_timeout and hasattr(op, 'last_update'):
-                if op.last_update > timo.last_checkpoint:
-                    timo.last_checkpoint = op.last_update
-                    timo.timeout = timo.last_checkpoint + timo.delta
-                    heapq.heappush(self.timeouts, timo)
+            coro = op.coro
+            if op.weak_timeout and hasattr(op, 'last_update'):
+                if op.last_update > op.last_checkpoint:
+                    op.last_checkpoint = op.last_update
+                    op.timeout = op.last_checkpoint + op.delta
+                    heapq.heappush(self.timeouts, op)
                     continue
+           
             if op.state is events.RUNNING and coro and coro.running and \
                                                     op.cleanup(self, coro):
+                
                 self.active.append((
                     events.CoroutineException((
                         events.OperationTimeout, 

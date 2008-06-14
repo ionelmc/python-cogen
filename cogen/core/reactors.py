@@ -65,7 +65,7 @@ except ImportError:
 
 import sockets
 import events
-from util import debug, TimeoutDesc, priority
+from util import debug, priority
 __doc_all__ = [
     "ReactorBase",
     "SelectReactor",
