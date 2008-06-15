@@ -15,11 +15,10 @@ import socket
 from cStringIO import StringIO
 
 from cogen.common import *
-from cogen.core import reactors
 from cogen.core.util import debug
 from cogen.web import wsgi, async
 
-from base import priorities
+from base import priorities, reactors_available
 from base_web import WebTest_Base
 
  
@@ -275,7 +274,7 @@ class FileWrapperTest_MixIn:
                 self.failIf("Connection not closed!")
         
     
-for poller_cls in reactors.available:
+for poller_cls in reactors_available:
     for prio_mixin in priorities:
         
         name = 'LazyStartResponseTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)

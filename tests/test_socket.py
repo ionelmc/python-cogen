@@ -15,8 +15,7 @@ import thread
 from cStringIO import StringIO
 
 from cogen.common import *
-from cogen.core import reactors
-from base import priorities
+from base import priorities, reactors_available
 from cogen.core.coroutines import debug_coroutine
 
 class SocketTest_MixIn:
@@ -172,7 +171,7 @@ class SocketTest_MixIn:
                 try:
                     cli, addr = srv.accept()    
                     break
-                except error, exc:
+                except socket.error, exc:
                     if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
                         continue
                     else:
@@ -202,7 +201,7 @@ class SocketTest_MixIn:
         except KeyboardInterrupt:
             self.failIf("Interrupted from the coroutine, something failed.")
             
-for poller_cls in reactors.available:
+for poller_cls in reactors_available:
     for prio_mixin in priorities:
         for run_first in (True, False):
             name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')

@@ -12,8 +12,7 @@ import traceback
 import thread
 
 from cogen.common import *
-from cogen.core import reactors
-from base import priorities
+from base import priorities, reactors_available
 
 class Timer_MixIn:
     def setUp(self):
@@ -136,7 +135,7 @@ class Timer_MixIn:
         self.assert_(self.timo)
         self.assert_(self.delta < 0.2)
         
-for poller_cls in reactors.available:
+for poller_cls in reactors_available:
     for prio_mixin in priorities:
         name = 'TimerTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(
