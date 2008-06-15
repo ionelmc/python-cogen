@@ -1,6 +1,6 @@
 __all__ = ['PublishSubscribeQueue']
-from cogen.core import events
-from cogen.core.util import priority
+import events
+from util import priority
 
 class PSPut(events.Operation):
     __slots__ = ['queue', 'message']

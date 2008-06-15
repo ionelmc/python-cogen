@@ -813,7 +813,8 @@ class Connect(WriteOperation):
         #  we can't just try-run this with iocp, because if we do ConnectEx 
         # will fail
         super(SocketOperation, self).process(sched, coro)
-        if not isinstance(sched.poll, reactors.IOCPProactor) and \
+        has_iocp = reactors.has_iocp()
+        if not (has_iocp and isinstance(sched.poll, has_iocp)) and \
                                 (self.run_first or self.pending()):
             r = sched.poll.run_or_add(self, coro)
             if r:
@@ -833,7 +834,9 @@ class Connect(WriteOperation):
             if exc[0] not in (errno.EINVAL, errno.WSAEINVAL):
                 raise
         self.connect_attempted = True
-        return win32file.ConnectEx(self.sock, self.addr, overlaped)
+        x=win32file.ConnectEx(self.sock, self.addr, overlaped)
+        print x, overlaped
+        return x
         
     def iocp_done(self, *args):
         self.sock.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_CONNECT_CONTEXT, "")

@@ -9,7 +9,7 @@ __all__ = [
 import datetime
 import heapq
 
-from cogen.core.util import debug, priority
+from util import debug, priority
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 

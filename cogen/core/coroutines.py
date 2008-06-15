@@ -6,8 +6,8 @@ __all__ = ['local', 'coroutine', 'Coroutine']
 import types
 import sys
 
-from cogen.core import events
-from cogen.core.util import debug, priority
+import events
+from util import debug, priority
 
 def coroutine(func):
     """ 
