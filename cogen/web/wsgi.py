@@ -791,7 +791,7 @@ def server_factory(global_conf, host, port, **options):
   
   def serve(app):
     sched = Scheduler(
-      reactor=getattr(reactors, options.get('reactor', 'DefaultReactor')), 
+      reactor=getattr(reactors, "has_"+options.get('reactor', 'any'))(), 
       default_priority=int(options.get('sched_default_priority', priority.FIRST)), 
       default_timeout=float(options.get('sched_default_timeout', 0)),
       reactor_resolution=float(options.get('reactor_resolution', 0.5)),
