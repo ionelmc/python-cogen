@@ -12,7 +12,6 @@ class KQueueProactor(ProactorBase):
         self.default_size = default_size
         self.kq = kqueue.kqueue()
     
-
     def unregister_fd(self, act):
         try:
             flag =  kqueue.EVFILT_READ if performer == self.perform_recv \

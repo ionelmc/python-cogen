@@ -382,7 +382,7 @@ class Accept(SocketOperation):
     """
     Returns a (conn, addr) tuple when the operation completes.
     """
-    __slots__ = ['conn', 'addr']
+    __slots__ = ['conn', 'addr', 'cbuff']
     
     def __init__(self, sock, **kws):
         super(Accept, self).__init__(sock, **kws)

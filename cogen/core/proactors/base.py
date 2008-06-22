@@ -25,7 +25,7 @@ class ProactorBase(object):
 
     def __len__(self):
         return len(self.tokens)
-        
+
     def perform_recv(self, act):
         act.buff = act.sock._fd.recv(act.len)
         if act.buff:
