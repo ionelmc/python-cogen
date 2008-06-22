@@ -343,7 +343,7 @@ class Recv(SocketOperation):
     def finalize(self):
         super(Recv, self).finalize()
         return self.buff
-                
+
 
 class Send(SocketOperation):
     """

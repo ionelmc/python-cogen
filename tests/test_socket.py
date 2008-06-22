@@ -15,15 +15,15 @@ import thread
 from cStringIO import StringIO
 
 from cogen.common import *
-from base import priorities, reactors_available
+from base import priorities, proactors_available
 from cogen.core.coroutines import debug_coroutine
 
 class SocketTest_MixIn:
     sockets = []
     def setUp(self):
         self.local_addr = ('localhost', random.randint(10000,64000))
-        self.m = Scheduler( default_priority=self.prio, reactor=self.poller, 
-                            reactor_resolution=0.01)
+        self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
+                            proactor_resolution=0.01)
         def run():
             try:
                 time.sleep(1)
@@ -51,29 +51,22 @@ class SocketTest_MixIn:
             srv.bind(self.local_addr)
             srv.listen(0)
             conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first))
-            self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_first=self.run_first) 
+            fh = conn.makefile()
+            self.waitobj = fh.readline(1024) 
                                     # test for simple readline, 
                                     #   send data w/o NL, 
                                     #   check poller, send NL, check again
             self.recvobj = yield self.waitobj
             try:
                 # test for readline overflow'
-                self.waitobj2 = yield sockets.ReadLine(
-                    conn, 
-                    len=512, 
-                    prio=self.prio, run_first=self.run_first
-                )
+                self.waitobj2 = yield fh.readline(512)
             except exceptions.OverflowError, e:
                 self.waitobj2 = "OK"
-                self.waitobj_cleanup = yield sockets.Read(
-                    conn, 
-                    len=1024*8, 
-                    prio=self.prio, run_first=self.run_first
-                ) 
+                self.waitobj_cleanup = yield fh.read(1024*8) 
                     # eat up the remaining data waiting on socket
-            y1 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
-            y2 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
-            y3 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
+            y1 = fh.readline(1024)
+            y2 = fh.readline(1024)
+            y3 = fh.readline(1024)
             a1 = yield y1 
             a2 = yield y2
             a3 = yield y3
@@ -117,12 +110,9 @@ class SocketTest_MixIn:
             srv.bind(self.local_addr)
             srv.listen(0)
             conn, addr = yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first)
-            self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_first=self.run_first)
-            self.recvobj_all = yield sockets.ReadAll(
-                conn, 
-                1024**2-1024*4, 
-                prio=self.prio, run_first=self.run_first
-            )
+            self.recvobj = yield sockets.Recv(conn, 1024*4, prio=self.prio, run_first=self.run_first)
+            fh = conn.makefile()
+            self.recvobj_all = yield fh.read(1024**2-1024*4)
             #~ srv.close()
             self.m.stop()
         coro = self.m.add(reader)
@@ -201,7 +191,7 @@ class SocketTest_MixIn:
         except KeyboardInterrupt:
             self.failIf("Interrupted from the coroutine, something failed.")
             
-for poller_cls in reactors_available:
+for poller_cls in proactors_available:
     for prio_mixin in priorities:
         for run_first in (True, False):
             name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
