@@ -50,6 +50,11 @@ import rfc822
 import socket
 import errno
 
+try:
+    from pywintypes import error as pywinerror
+except ImportError:
+    from socket import error as pywinerror
+
 try:                
   import cStringIO as StringIO
 except ImportError: 
@@ -530,7 +535,7 @@ class WSGIConnection(object):
           # we need to consume any unread input data to read the next 
           #pipelined request
           pass
-    except (socket.error, OSError), e:
+    except (socket.error, OSError, pywinerror), e:
       errno = e.args[0]
       if errno not in useless_socket_errors:
         yield self.simple_response("500 Internal Server Error",
