@@ -23,6 +23,9 @@ class ProactorBase(object):
         self.m_resolution = resolution*1000 # miliseconds
         self.n_resolution = resolution*1000000000 #nanoseconds
 
+    def __len__(self):
+        return len(self.tokens)
+        
     def perform_recv(self, act):
         act.buff = act.sock._fd.recv(act.len)
         if act.buff:
