@@ -159,6 +159,10 @@ class ProactorBase(object):
                 del self.tokens[act]
                 return op, coro
         
-        
-        
+    def handle_error_event(self, act, detail, exc=ConnectionError):
+        del self.tokens[act]
+        self.scheduler.active.append((
+            CoroutineException( (exc, exc(detail)) ), 
+            act.coro
+        ))
     

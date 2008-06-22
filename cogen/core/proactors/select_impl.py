@@ -28,7 +28,7 @@ class SelectProactor(ProactorBase):
                 ptimeout
             )
             for act in in_error:
-                self.handle_error_event(act)
+                self.handle_error_event(act, 'Unknown error.')
             last_act = None
             for act in itertools.chain(ready_to_read, ready_to_write):
                 if last_act:

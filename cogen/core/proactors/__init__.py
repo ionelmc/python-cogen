@@ -89,4 +89,3 @@ def has_any():
     return get_first(has_select, has_iocp, has_kqueue, has_epoll, has_poll, has_select)
 
 DefaultProactor = has_any()
-print DefaultProactor

@@ -19,15 +19,20 @@ def server():
 
 @coroutine
 def handler(sock, addr):
-    yield sock.sendall("WELCOME TO ECHO SERVER !\r\n")
+    fh = sock.makefile()
+    yield fh.write("WELCOME TO ECHO SERVER !\r\n")
+    yield fh.flush()
         
     while 1:
-        line = yield sock.recv(20)
+        line = yield fh.readline()
+        print `line`
         if line.strip() == 'exit':
-            yield sock.sendall("GOOD BYE")
+            yield fh.write("GOOD BYE")
+            yield fh.close()
             sock.close()
             return
-        yield sock.sendall(line)
+        yield fh.write(line)
+        yield fh.flush()
 
 m = schedulers.Scheduler(proactor_resolution=.5)
 m.add(server)

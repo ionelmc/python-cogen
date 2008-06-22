@@ -25,7 +25,7 @@ except:
 
 import events
 from util import debug, priority, fmt_list
-
+from coroutines import coro, debug_coroutine
 getnow = datetime.datetime.now
 
 try:
@@ -72,12 +72,12 @@ class Socket(object):
 
     A socket object represents one endpoint of a network connection.
     """
-    __slots__ = ['_fd', '_timeout', '_reactor_added']
+    __slots__ = ['_fd', '_timeout', '_proactor_added']
     def __init__(self, *a, **k):
         self._fd = socket.socket(*a, **k)
         self._fd.setblocking(0)
         self._timeout = _TIMEOUT
-        self._reactor_added = False
+        self._proactor_added = False
         
     def recv(self, bufsize, **kws):
         """Receive data from the socket. The return value is a string 
@@ -86,7 +86,7 @@ class Socket(object):
         return Recv(self, bufsize, timeout=self._timeout, **kws)
         
        
-    def makefile(self, mode, bufsize):
+    def makefile(self, mode='r', bufsize=-1):
         return _fileobject(self, mode, bufsize)
         
     def send(self, data, **kws):
@@ -276,7 +276,7 @@ class SocketOperation(events.TimedOperation):
     #~ def iocp_done(self, rc, nbytes):
         #~ self.sent += nbytes
 
-    #~ def run(self, reactor):
+    #~ def run(self, proactor):
         #~ if self.length:
             #~ assert self.sent <= self.length
         #~ if self.sent == self.length:
@@ -423,4 +423,221 @@ class Connect(SocketOperation):
     def finalize(self):
         super(Accept, self).finalize()
         return self.conn
+
+
+class _fileobject(object):
+    """Faux file object attached to a socket object."""
+
+    default_bufsize = 8192
+    name = "<socket>"
+
+    __slots__ = ["mode", "bufsize", "softspace",
+                 # "closed" is a property, see below
+                 "_sock", "_rbufsize", "_wbufsize", "_rbuf", "_wbuf",
+                 "_close"]
+
+    def __init__(self, sock, mode='rb', bufsize=-1, close=False):
+        self._sock = sock
+        self.mode = mode # Not actually used in this version
+        if bufsize < 0:
+            bufsize = self.default_bufsize
+        self.bufsize = bufsize
+        self.softspace = False
+        if bufsize == 0:
+            self._rbufsize = 1
+        elif bufsize == 1:
+            self._rbufsize = self.default_bufsize
+        else:
+            self._rbufsize = bufsize
+        self._wbufsize = bufsize
+        self._rbuf = "" # A string
+        self._wbuf = [] # A list of strings
+        self._close = close
+
+    def _getclosed(self):
+        return self._sock is None
+    closed = property(_getclosed, doc="True if the file is closed")
     
+    @coro
+    def close(self):
+        try:
+            if self._sock:
+                yield self.flush()
+        finally:
+            if self._close:
+                self._sock.close()
+            self._sock = None
+
+    def __del__(self):
+        try:
+            self.close()
+        except:
+            # close() may fail if __init__ didn't complete
+            pass
+
+    @coro
+    def flush(self):
+        if self._wbuf:
+            buffer = "".join(self._wbuf)
+            self._wbuf = []
+            yield self._sock.sendall(buffer)
+
+    def fileno(self):
+        return self._sock.fileno()
+
+    @coro
+    def write(self, data):
+        data = str(data) # XXX Should really reject non-string non-buffers
+        if not data:
+            return
+        self._wbuf.append(data)
+        if (self._wbufsize == 0 or
+            self._wbufsize == 1 and '\n' in data or
+            self._get_wbuf_len() >= self._wbufsize):
+            yield self.flush()
+
+    @coro
+    def writelines(self, list):
+        # XXX We could do better here for very long lists
+        # XXX Should really reject non-string non-buffers
+        self._wbuf.extend(filter(None, map(str, list)))
+        if (self._wbufsize <= 1 or
+            self._get_wbuf_len() >= self._wbufsize):
+            yield self.flush()
+
+    def _get_wbuf_len(self):
+        buf_len = 0
+        for x in self._wbuf:
+            buf_len += len(x)
+        return buf_len
+
+    @coro
+    def read(self, size=-1):
+        data = self._rbuf
+        if size < 0:
+            # Read until EOF
+            buffers = []
+            if data:
+                buffers.append(data)
+            self._rbuf = ""
+            if self._rbufsize <= 1:
+                recv_size = self.default_bufsize
+            else:
+                recv_size = self._rbufsize
+            while True:
+                data = (yield self._sock.recv(recv_size))
+                if not data:
+                    break
+                buffers.append(data)
+            raise StopIteration("".join(buffers))
+        else:
+            # Read until size bytes or EOF seen, whichever comes first
+            buf_len = len(data)
+            if buf_len >= size:
+                self._rbuf = data[size:]
+                raise StopIteration(data[:size])
+            buffers = []
+            if data:
+                buffers.append(data)
+            self._rbuf = ""
+            while True:
+                left = size - buf_len
+                recv_size = max(self._rbufsize, left)
+                data = (yield self._sock.recv(recv_size))
+                if not data:
+                    break
+                buffers.append(data)
+                n = len(data)
+                if n >= left:
+                    self._rbuf = data[left:]
+                    buffers[-1] = data[:left]
+                    break
+                buf_len += n
+            raise StopIteration("".join(buffers))
+
+    @coro
+    def readline(self, size=-1):
+        data = self._rbuf
+        if size < 0:
+            # Read until \n or EOF, whichever comes first
+            if self._rbufsize <= 1:
+                # Speed up unbuffered case
+                assert data == ""
+                buffers = []
+                recv = self._sock.recv
+                while data != "\n":
+                    data = (yield recv(1))
+                    if not data:
+                        break
+                    buffers.append(data)
+                raise StopIteration("".join(buffers))
+            nl = data.find('\n')
+            if nl >= 0:
+                nl += 1
+                self._rbuf = data[nl:]
+                raise StopIteration(data[:nl])
+            buffers = []
+            if data:
+                buffers.append(data)
+            self._rbuf = ""
+            while True:
+                data = (yield self._sock.recv(self._rbufsize))
+                if not data:
+                    break
+                buffers.append(data)
+                nl = data.find('\n')
+                if nl >= 0:
+                    nl += 1
+                    self._rbuf = data[nl:]
+                    buffers[-1] = data[:nl]
+                    break
+            raise StopIteration("".join(buffers))
+        else:
+            # Read until size bytes or \n or EOF seen, whichever comes first
+            nl = data.find('\n', 0, size)
+            if nl >= 0:
+                nl += 1
+                self._rbuf = data[nl:]
+                raise StopIteration(data[:nl])
+            buf_len = len(data)
+            if buf_len >= size:
+                self._rbuf = data[size:]
+                raise StopIteration(data[:size])
+            buffers = []
+            if data:
+                buffers.append(data)
+            self._rbuf = ""
+            while True:
+                data = (yield self._sock.recv(self._rbufsize))
+                if not data:
+                    break
+                buffers.append(data)
+                left = size - buf_len
+                nl = data.find('\n', 0, left)
+                if nl >= 0:
+                    nl += 1
+                    self._rbuf = data[nl:]
+                    buffers[-1] = data[:nl]
+                    break
+                n = len(data)
+                if n >= left:
+                    self._rbuf = data[left:]
+                    buffers[-1] = data[:left]
+                    break
+                buf_len += n
+            raise StopIteration("".join(buffers))
+
+    @coro
+    def readlines(self, sizehint=0):
+        total = 0
+        list = []
+        while True:
+            line = (yield self.readline())
+            if not line:
+                break
+            list.append(line)
+            total += len(line)
+            if sizehint and total >= sizehint:
+                break
+        raise StopIteration(list)
+
