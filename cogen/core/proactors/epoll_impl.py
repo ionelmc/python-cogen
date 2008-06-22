@@ -29,7 +29,7 @@ class EpollProactor(ProactorBase):
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
         self.shadow[fileno] = act
-        flag = epoll.EPOLLIN if performer == self.perform_recv
+        flag =  epoll.EPOLLIN if performer == self.perform_recv \
                 or performer == self.perform_accept else epoll.EPOLLOUT 
         epoll.epoll_ctl(
             self.epoll_fd, 
@@ -58,12 +58,10 @@ class EpollProactor(ProactorBase):
                 elif ev & epoll.EPOLLERR:
                     self.handle_error_event(act, 'Unknown error.')
                 else:
-                    if nr == nr_events:
+                    if nr == len_events:
                         return self.yield_event(act)
                     else:
-                        if self.handle_event(act):
-                            del self.tokens[act]
-                        else:
+                        if not self.handle_event(act):
                             self.shadow[fd] = act
                             epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_MOD, fd, ev | epoll.EPOLLONESHOT)
                 

@@ -109,7 +109,8 @@ class Coroutine(events.Operation):
             self.exception = ValueError("Bad generator")
             raise self.exception 
         self.coro = coro
-        self.caller = self.prio = None
+        self.caller = None
+        self.prio = priority.FIRST
         self.waiters = []
         self.exception = None
     
