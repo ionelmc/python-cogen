@@ -6,11 +6,13 @@ import pywintypes
 import socket
 import ctypes
 import struct    
+import sys
 
 from base import ProactorBase
 from cogen.core.util import priority
-from cogen.core import events
 from cogen.core.sockets import Socket
+from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
+
 
 class IOCPProactor(ProactorBase):
     def __init__(self, scheduler, res):
@@ -26,8 +28,8 @@ class IOCPProactor(ProactorBase):
         return win32file.WSARecv(act.sock._fd, act.buff, overlapped, 0)
     
     def complete_recv(self, act, rc, nbytes):
+        act.buff = act.buff[:nbytes]
         if act.buff:
-            act.buff = str(act.buff)
             return act
         else:
             raise ConnectionClosed("Empty recv.")
@@ -111,50 +113,60 @@ class IOCPProactor(ProactorBase):
             win32file.PostQueuedCompletionStatus(
                 self.iocp, nbytes, 0, overlapped
             )
-        else:
-            self.add_token(act, coro, (overlapped, perform, complete))
+        self.add_token(act, coro, (overlapped, perform, complete))
 
     def register_fd(self, act, performer):
-        win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
+        if not act.sock._proactor_added:
+            win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
+            act.sock._proactor_added = True
     
     def unregister_fd(self, act):
         win32file.CancelIo(act.sock._fd.fileno()) 
     
-    def run_act(self, act, (perform, complete), rc, nbytes):
-        try:
-            return complete(act, rc, nbytes)
-        except soerror, exc:
-            if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS): 
-                return
-            elif exc[0] == errno.EPIPE:
-                raise ConnectionClosed(exc)
-            else:
-                raise
     
-    def handle_completion(self, overlapped, rc, nbytes):
-        act = overlapped.object
-        overlapped.object = None
-        if rc == 0:
+    def try_run_act(self, act, func, rc, nbytes):
+        try:
+            return func(act, rc, nbytes)
+        except:
+            return CoroutineException(sys.exc_info())
+        
+    def process_op(self, rc, nbytes, overlap):
+        act = overlap.object
+        overlap.object = None
+        if act in self.tokens:
             ol, perform, complete = self.tokens[act]
-            assert ol is overlapped
+            assert ol is overlap
             
-            if self.handle_event(act, rc, nbytes):
-                win32file.CancelIo(act.sock._fd.fileno()) 
+            if rc == 0:
+                ract = self.try_run_act(act, complete, rc, nbytes)
+                if ract:
+                    del self.tokens[act] 
+                    win32file.CancelIo(act.sock._fd.fileno()) 
+                    return ract, act.coro
+                else:
+                    # operation hasn't completed yet (not enough data etc)
+                    # read it in the iocp
+                    self.request_generic(act, act.coro, perform, complete)
+                    
+                    
             else:
-                # operation hasn't completed yet (not enough data etc)
-                self.request_generic(act, act.coro, *self.tokens[act])
+                #looks like we have a problem, forward it to the coroutine.
+                
+                # this needs some research: ERROR_NETNAME_DELETED, need to reopen 
+                #the accept sock ?! something like:
+                #    warnings.warn("ERROR_NETNAME_DELETED: %r. Re-registering operation." % op)
+                #    self.registered_ops[op] = self.run_iocp(op, coro)
+                del self.tokens[act]
+                win32file.CancelIo(act.sock._fd.fileno())
+                return CoroutineException((
+                    ConnectionError, ConnectionError(
+                        (rc, "%s on %r" % (ctypes.FormatError(rc), act))
+                    )
+                )), act.coro
         else:
-            #looks like we have a problem, forward it to the coroutine.
+            import warnings
+            warnings.warn("Unknown token %s" % act)
             
-            # this needs some research: ERROR_NETNAME_DELETED, need to reopen 
-            #the accept sock ?! something like:
-            #    warnings.warn("ERROR_NETNAME_DELETED: %r. Re-registering operation." % op)
-            #    self.registered_ops[op] = self.run_iocp(op, coro)
-            win32file.CancelIo(act.sock._fd.fileno())
-            self.handle_error_event(act, (rc, "%s on %r" % (ctypes.FormatError(rc), act)))
-            
-
-
     def run(self, timeout = 0):
         # same resolution as epoll
         ptimeout = int(
@@ -170,34 +182,40 @@ class IOCPProactor(ProactorBase):
             #goes to sleep) and not added in the sched.active queue
             while 1:
                 try:
-                    rc, nbytes, key, overlapped = win32file.GetQueuedCompletionStatus(
+                    rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
                         self.iocp,
                         0 if urgent else ptimeout
                     )
-                except RuntimeError, e:
+                except RuntimeError:
                     # we will get "This overlapped object has lost all its 
                     # references so was destroyed" when we remove a operation, 
                     # it is garbage collected and the overlapped completes
                     # afterwards
-                    import warnings 
-                    warnings.warn("Error on GetQueuedCompletionStatus: %s"%e)
                     break 
                     
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo
                 #i suppose) evaluating the overlap crashes the interpeter 
                 #with a memory read error
-                if rc != win32file.WSA_OPERATION_ABORTED and overlapped:
+                if rc != win32file.WSA_OPERATION_ABORTED and overlap:
                     
                     if urgent:
-                        self.handle_completion(*urgent)
+                        op, coro = urgent
                         urgent = None
-                        
-                    if overlapped.object:
-                        urgent = overlapped, rc, nbytes
-                        
+                        if op.prio & priority.OP:
+                            # imediately run the asociated coroutine step
+                            op, coro = self.scheduler.process_op(
+                                coro.run_op(op), 
+                                coro
+                            )
+                        if coro:
+                            if op.prio & priority.CORO:
+                                self.scheduler.active.appendleft( (op, coro) )
+                            else:
+                                self.scheduler.active.append( (op, coro) )                     
+                    if overlap.object:
+                        urgent = self.process_op(rc, nbytes, overlap)
                 else:
                     break
-            if urgent:
-                return self.yield_event(*urgent)
+            return urgent
         else:
             time.sleep(self.resolution)    
