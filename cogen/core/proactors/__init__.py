@@ -38,13 +38,13 @@ def has_select():
     
 
 def has_poll():
-    try:
+    #~ try:
         import select
         if select and hasattr(select, 'poll'):
             import poll_impl
             return poll_impl.PollProactor
-    except ImportError:
-        pass
+    #~ except ImportError:
+        #~ pass
     
 
 def has_epoll():
@@ -86,7 +86,7 @@ def get_first(*imps):
             return proactor
 
 def has_any():
-    return get_first(has_epoll, has_select)
+    return get_first(has_poll, has_select)
     #, has_iocp, has_kqueue, has_epoll, has_poll, has_select)
 
 DefaultProactor = has_any()

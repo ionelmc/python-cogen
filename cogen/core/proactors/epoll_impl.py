@@ -15,7 +15,7 @@ class EpollProactor(ProactorBase):
     def unregister_fd(self, act):
         try:
             del self.shadow[fileno.sock.fileno()]
-        except OSError, e:
+        except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
             
@@ -50,7 +50,7 @@ class EpollProactor(ProactorBase):
                 if timeout else (self.m_resolution if timeout is None else 0))
         if self.tokens:
             events = epoll.epoll_wait(self.epoll_fd, 1024, ptimeout)
-            len_events = len(events)
+            len_events = len(events)-1
             for nr, (ev, fd) in enumerate(events):
                 act = self.shadow.pop(fd)
                 if ev & epoll.EPOLLHUP:

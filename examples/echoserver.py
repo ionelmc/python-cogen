@@ -36,6 +36,7 @@ def handler(sock, addr):
         yield fh.write(line)
         yield fh.flush()
 
+print 'Using:', proactors.DefaultProactor.__name__
 m = schedulers.Scheduler(proactor_resolution=.5)
 m.add(server)
 m.run()
