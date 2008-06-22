@@ -138,7 +138,7 @@ class SynchronousInputMiddleware:
 
 sync_input = SynchronousInputMiddleware
 
-class Read(sockets.ReadAll, sockets.ReadLine):
+class Read():#sockets.ReadAll, sockets.ReadLine
     """This is actually a hack that mixes ReadAll and ReadLine and 
     patches their state attributes. Hopefully i'll evolve it to
     something more elegant at some point."""
@@ -295,7 +295,7 @@ class Read(sockets.ReadAll, sockets.ReadLine):
     def __str__(self):
         return repr(self)
         
-class ReadLine(sockets.ReadAll, sockets.ReadLine):
+class ReadLine:#(sockets.ReadAll, sockets.ReadLine):
     """
     Same a async.Read but doesn't work with chunked input (it would complicate
     things too much at the moment).

@@ -62,7 +62,7 @@ from urlparse import urlparse
 from traceback import format_exc
 
 from cogen import core, __version__
-from cogen.core import reactors, sockets, events
+from cogen.core import proactors, sockets, events
 from cogen.core.util import debug, priority
 from cogen.core.coroutines import coroutine, local
 from cogen.core.schedulers import Scheduler
@@ -766,9 +766,9 @@ def server_factory(global_conf, host, port, **options):
   """Server factory for paste. 
   
   Options are:
-    * reactor: class name to use from cogen.core.reactors 
-      (default: DefaultReactor - best available reactor for current platform)
-    * reactor_resolution: float
+    * proactor: class name to use from cogen.core.proactors 
+      (default: DefaultProactor - best available proactor for current platform)
+    * proactor_resolution: float
     * sched_default_priority: int (see cogen.core.util.priority)
     * sched_default_timeout: float (default: 0 - no timeout)
     * server_name: str
@@ -791,10 +791,10 @@ def server_factory(global_conf, host, port, **options):
   
   def serve(app):
     sched = Scheduler(
-      reactor=getattr(reactors, "has_"+options.get('reactor', 'any'))(), 
+      proactor=getattr(proactors, "has_"+options.get('proactor', 'any'))(), 
       default_priority=int(options.get('sched_default_priority', priority.FIRST)), 
       default_timeout=float(options.get('sched_default_timeout', 0)),
-      reactor_resolution=float(options.get('reactor_resolution', 0.5)),
+      proactor_resolution=float(options.get('proactor_resolution', 0.5)),
     )
     server = WSGIServer( 
       (host, port), 

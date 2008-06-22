@@ -25,7 +25,6 @@ except:
 
 import events
 from util import debug, priority, fmt_list
-import reactors
 
 getnow = datetime.datetime.now
 
@@ -186,7 +185,7 @@ class SocketOperation(events.TimedOperation):
     `run` method and call the __init__ method of the superclass.
     """
     __slots__ = [
-        'sock', 'last_update', 'type', 'run_first',        
+        'sock', 'last_update', 'coro', 'run_first',        
     ]
     def __init__(self, sock, run_first=True, **kws):
         """
@@ -205,116 +204,118 @@ class SocketOperation(events.TimedOperation):
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
         self.run_first = run_first
+    def fileno(self):
+        return self.sock.fileno()
         
     def cleanup(self, sched, coro):
-        return sched.proctor.remove(self, coro)
+        return sched.proactor.remove(self, coro)
     
     
-class SendFile(WriteOperation):
-    """
-        Uses underling OS sendfile call or a regular memory copy operation if 
-        there is no sendfile.
-        You can use this as a WriteAll if you specify the length.
-        Usage:
+#~ class SendFile(WriteOperation):
+    #~ """
+        #~ Uses underling OS sendfile call or a regular memory copy operation if 
+        #~ there is no sendfile.
+        #~ You can use this as a WriteAll if you specify the length.
+        #~ Usage:
             
-        .. sourcecode:: python
-            yield sockets.SendFile(file_object, socket_object, 0) 
-                # will send till send operations return 0
+        #~ .. sourcecode:: python
+            #~ yield sockets.SendFile(file_object, socket_object, 0) 
+                #~ # will send till send operations return 0
                 
-            yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
-                # there will be only one send operation (if successfull)
-                # that meas the whole file will be read in memory if there is 
-                #no sendfile
+            #~ yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
+                #~ # there will be only one send operation (if successfull)
+                #~ # that meas the whole file will be read in memory if there is 
+                #~ #no sendfile
                 
-            yield sockets.SendFile(file_object, socket_object, 0, file_size)
-                # this will hang if we can't read file_size bytes
-                #from the file
+            #~ yield sockets.SendFile(file_object, socket_object, 0, file_size)
+                #~ # this will hang if we can't read file_size bytes
+                #~ #from the file
 
-    """
-    __slots__ = [
-        'sent', 'file_handle', 'offset', 
-        'position', 'length', 'blocksize'
-    ]
-    def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
-        super(SendFile, self).__init__(sock, **kws)
-        self.file_handle = file_handle
-        self.offset = self.position = offset or file_handle.tell()
-        self.length = length
-        self.sent = 0
-        self.blocksize = blocksize
-    def send(self, offset, length):
-        if sendfile:
-            offset, sent = sendfile.sendfile(
-                self.sock.fileno(), 
-                self.file_handle.fileno(), 
-                offset, 
-                length
-            )
-        else:
-            self.file_handle.seek(offset)
-            sent = self.sock._fd.send(self.file_handle.read(length))
-        return sent
+    #~ """
+    #~ __slots__ = [
+        #~ 'sent', 'file_handle', 'offset', 
+        #~ 'position', 'length', 'blocksize'
+    #~ ]
+    #~ def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
+        #~ super(SendFile, self).__init__(sock, **kws)
+        #~ self.file_handle = file_handle
+        #~ self.offset = self.position = offset or file_handle.tell()
+        #~ self.length = length
+        #~ self.sent = 0
+        #~ self.blocksize = blocksize
+    #~ def send(self, offset, length):
+        #~ if sendfile:
+            #~ offset, sent = sendfile.sendfile(
+                #~ self.sock.fileno(), 
+                #~ self.file_handle.fileno(), 
+                #~ offset, 
+                #~ length
+            #~ )
+        #~ else:
+            #~ self.file_handle.seek(offset)
+            #~ sent = self.sock._fd.send(self.file_handle.read(length))
+        #~ return sent
         
-    def iocp_send(self, offset, length, overlap):
-        self.file_handle.seek(offset)
-        return win32file.WSASend(self.sock._fd, self.file_handle.read(length), overlap, 0)
+    #~ def iocp_send(self, offset, length, overlap):
+        #~ self.file_handle.seek(offset)
+        #~ return win32file.WSASend(self.sock._fd, self.file_handle.read(length), overlap, 0)
         
-    def iocp(self, overlap):
-        if self.length:
-            if self.blocksize:
-                return self.iocp_send(
-                    self.offset + self.sent, 
-                    min(self.length-self.sent, self.blocksize),
-                    overlap
-                )
-            else:
-                return self.iocp_send(self.offset+self.sent, self.length-self.sent, overlap)
-        else:
-            return self.iocp_send(self.offset+self.sent, self.blocksize, overlap)
+    #~ def iocp(self, overlap):
+        #~ if self.length:
+            #~ if self.blocksize:
+                #~ return self.iocp_send(
+                    #~ self.offset + self.sent, 
+                    #~ min(self.length-self.sent, self.blocksize),
+                    #~ overlap
+                #~ )
+            #~ else:
+                #~ return self.iocp_send(self.offset+self.sent, self.length-self.sent, overlap)
+        #~ else:
+            #~ return self.iocp_send(self.offset+self.sent, self.blocksize, overlap)
             
-    def iocp_done(self, rc, nbytes):
-        self.sent += nbytes
+    #~ def iocp_done(self, rc, nbytes):
+        #~ self.sent += nbytes
 
-    def run(self, reactor):
-        if self.length:
-            assert self.sent <= self.length
-        if self.sent == self.length:
-            return self
+    #~ def run(self, reactor):
+        #~ if self.length:
+            #~ assert self.sent <= self.length
+        #~ if self.sent == self.length:
+            #~ return self
             
-        if self.length:
-            if self.blocksize:
-                self.sent += self.send(
-                    self.offset + self.sent, 
-                    min(self.length-self.sent, self.blocksize)
-                )
-            else:
-                self.sent += self.send(self.offset+self.sent, self.length-self.sent)
-            if self.sent == self.length:
-                return self
-        else:
-            if self.blocksize:
-                sent = self.send(self.offset+self.sent, self.blocksize)
-            else:
-                sent = self.send(self.offset+self.sent, self.blocksize)
-                # we would use self.length but we don't have any,
-                #  and we don't know the file's length
-            self.sent += sent
-            if not sent:
-                return self
+        #~ if self.length:
+            #~ if self.blocksize:
+                #~ self.sent += self.send(
+                    #~ self.offset + self.sent, 
+                    #~ min(self.length-self.sent, self.blocksize)
+                #~ )
+            #~ else:
+                #~ self.sent += self.send(self.offset+self.sent, self.length-self.sent)
+            #~ if self.sent == self.length:
+                #~ return self
+        #~ else:
+            #~ if self.blocksize:
+                #~ sent = self.send(self.offset+self.sent, self.blocksize)
+            #~ else:
+                #~ sent = self.send(self.offset+self.sent, self.blocksize)
+                #~ # we would use self.length but we don't have any,
+                #~ #  and we don't know the file's length
+            #~ self.sent += sent
+            #~ if not sent:
+                #~ return self
         #TODO: test this some more with bad usage cases
         
         
-    def __repr__(self):
-        return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (
-            self.__class__.__name__, 
-            id(self), 
-            self.sock, 
-            self.file_handle, 
-            self.offset, 
-            self.length, 
-            self.blocksize, 
-            self.timeout
-        )
+    #~ def __repr__(self):
+        #~ return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (
+            #~ self.__class__.__name__, 
+            #~ id(self), 
+            #~ self.sock, 
+            #~ self.file_handle, 
+            #~ self.offset, 
+            #~ self.length, 
+            #~ self.blocksize, 
+            #~ self.timeout
+        #~ )
     
 
 
@@ -332,15 +333,15 @@ class Recv(SocketOperation):
     __slots__ = ['buff', 'len']
         
     def __init__(self, sock, len = 4096, **kws):
-        super(Read, self).__init__(sock, **kws)
+        super(Recv, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
     
     def process(self, sched, coro):
-        return sched.proctor.request_recv(self, coro)
+        return sched.proactor.request_recv(self, coro)
         
     def finalize(self):
-        super(Read, self).finalize()
+        super(Recv, self).finalize()
         return self.buff
                 
 
@@ -351,15 +352,15 @@ class Send(SocketOperation):
     __slots__ = ['sent']
     
     def __init__(self, sock, buff, **kws):
-        super(Write, self).__init__(sock, **kws)
+        super(Send, self).__init__(sock, **kws)
         self.buff = buff
         self.sent = 0
         
     def process(self, sched, coro):
-        return sched.proctor.request_send(self, coro)
+        return sched.proactor.request_send(self, coro)
     
     def finalize(self):
-        super(Write, self).finalize()
+        super(Send, self).finalize()
         return self.sent
         
 class SendAll(SocketOperation):
@@ -369,11 +370,12 @@ class SendAll(SocketOperation):
     __slots__ = ['sent', 'buff']
     
     def __init__(self, sock, buff, **kws):
-        super(WriteAll, self).__init__(sock, **kws)
+        super(SendAll, self).__init__(sock, **kws)
         self.buff = buff
+        self.sent = 0
         
     def process(self, sched, coro):
-        return sched.proctor.request_sendall(self, coro)
+        return sched.proactor.request_sendall(self, coro)
     
  
 class Accept(SocketOperation):
@@ -387,7 +389,7 @@ class Accept(SocketOperation):
         self.conn = None
         
     def process(self, sched, coro):
-        return sched.proctor.request_accept(self, coro)
+        return sched.proactor.request_accept(self, coro)
 
     def finalize(self):
         super(Accept, self).finalize()
@@ -416,7 +418,7 @@ class Connect(SocketOperation):
         self.addr = addr
 
     def process(self, sched, coro):
-        return sched.proctor.request_connect(self, coro)
+        return sched.proactor.request_connect(self, coro)
         
     def finalize(self):
         super(Accept, self).finalize()

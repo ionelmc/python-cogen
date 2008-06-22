@@ -184,7 +184,8 @@ class Coroutine(events.Operation):
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
-                self, {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state], op,
+                self, isinstance(op, events.CoroutineException) and op or 
+                {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state], op,
                 self._state_names[self.state],
                 self._state_names[self.STATE_COMPLETED]
             )

@@ -1,10 +1,13 @@
 import sys
-import errno, socket.error as soerror
-from cogen.core.events import ConnectionClosed
+import errno
+from socket import error as soerror
+from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
 from cogen.core.sockets import Socket
-class ReactorBase(object):
+from cogen.core.util import priority, debug
+
+class ProactorBase(object):
     """
-    A reactor just checks if there are ready-sockets for the operations.
+    A proactor just checks if there are ready-sockets for the operations.
     The operations are not done here, they are done in the socket ops instances.
     """
     __doc_all__ = [
@@ -19,54 +22,29 @@ class ReactorBase(object):
         self.resolution = resolution # seconds
         self.m_resolution = resolution*1000 # miliseconds
         self.n_resolution = resolution*1000000000 #nanoseconds
-    
-    def request_recv(self, act, coro, run_first):
-        result = run_first and self.try_run(act, self, perform_recv)
-        if result:
-            return result, coro
+
+    def perform_recv(self, act):
+        act.buff = act.sock._fd.recv(act.len)
+        if act.buff:
+            return act
         else:
-            self.add_token(act, coro, perform_recv)
+            raise ConnectionClosed("Empty recv.")
+        
+    def perform_send(self, act):
+        act.sent = act.sock._fd.send(act.buff)
+        return act.sent and act
+        
+    def perform_sendall(self, act):
+        act.sent += act.sock._fd.send(act.buff[act.sent:])
+        return act.sent==len(act.buff) and act
+        
+    def perform_accept(self, act):
+        act.conn, act.addr = act.sock._fd.accept()
+        act.conn.setblocking(0)
+        act.conn = Socket(_sock=act.conn)
+        return act
             
-    def request_send(self, act, coro, buff, run_first):
-        result = run_first and self.try_run(act, self, perform_send)
-        if result:
-            return result, coro
-        else:
-            self.add_token(act, coro, perform_send)
-    def request_sendall(self, act, coro, buff, run_first):
-        result = run_first and self.try_run(act, self, perform_sendall)
-        if result:
-            return result, coro
-        else:
-            self.add_token(act, coro, perform_sendall)
-    def request_accept(self, act, coro, run_first):
-        result = run_first and self.try_run(act, self, perform_accept)
-        if result:
-            return result, coro
-        else:
-            self.add_token(act, coro, perform_accept)
-    def request_connect(self, act, coro, addr, run_first):
-        result = run_first and self.try_run(act, self, perform_connect)
-        if result:
-            return result, coro
-        else:
-            self.add_token(act, coro, perform_connect)
-    
-    def perform_recv(self, act, length):
-        act.sock.buff = act.sock._fd.recv(length)
-        
-    def perform_send(self, act, coro, buff):
-        act.sent = act.sock._fd.send(buff)
-        
-    def perform_sendall(self, act, coro, buff):
-        act.sent = act.sock._fd.sendall(buff)
-        
-    def perform_accept(self, act, coro):
-        self.conn, self.addr = self.sock._fd.accept()
-        self.conn.setblocking(0)
-        self.conn = Socket(_sock=self.conn)
-            
-    def perform_connect(self, act, coro, addr):
+    def perform_connect(self, act):
         if act.connect_attempted:
             try:
                 act.sock._fd.getpeername()
@@ -81,34 +59,106 @@ class ReactorBase(object):
             if err == errno.EISCONN:
                 return act
             if err not in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
-                return events.ConnectionError(err, errno.errorcode[err])
+                raise ConnectionError(err, errno.errorcode[err])
         else: # err==0 means successful connect
             return act
-            
 
+    def request_recv(self, act, coro):
+        return self.request_generic(act, coro, self.perform_recv)
+            
+    def request_send(self, act, coro):
+        return self.request_generic(act, coro, self.perform_send)
+            
+    def request_sendall(self, act, coro):
+        return self.request_generic(act, coro, self.perform_sendall)
+            
+    def request_accept(self, act, coro):
+        return self.request_generic(act, coro, self.perform_accept)
+            
+    def request_connect(self, act, coro):
+        return self.request_generic(act, coro, self.perform_connect)
+        
+    def request_generic(self, act, coro, perform):
+        result = act.run_first and self.try_run_act(act, perform)
+        if result:
+            return result, coro
+        else:
+            self.add_token(act, coro, perform)
+    
+            
     def add_token(self, act, coro, performer):
         assert act not in self.tokens
-        
-        self.tokens[act] = coro, performer
+        act.coro = coro
+        self.tokens[act] = performer
+        self.register_fd(act, performer)
         
     def remove_token(self, act):
         if act in self.tokens:
             del self.tokens[act]
-        
-    def try_run(self, act, func, *args):
+            self.unregister_fd(act)
+        else:
+            import warnings
+            warnings.warn("%s does not have an registered operation." % coro)
+    
+    def try_run_act(self, act, func):
         try:
-            return func(*args)
+            return self.run_act(act, func)
+        except:
+            return CoroutineException(sys.exc_info())
+            
+    def run_act(self, act, func):
+        try:
+            return func(act)
         except soerror, exc:
             if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS): 
                 return
             elif exc[0] == errno.EPIPE:
-                return events.ConnectionClosed(exc)
+                raise ConnectionClosed(exc)
             else:
-                return events.ConnectionError(exc)
-        return act
-    
-    def register_fd(self, act, coro, performer):
-        raise NotImplementedError()
+                raise
         
-    def unregister_fd(self, act, coro, performer):
-        raise NotImplementedError()
+    
+    def register_fd(self, act, performer):
+        pass
+        
+    def unregister_fd(self, act):
+        pass
+        
+        
+    def handle_event(self, act):
+        if act in self.tokens:
+            coro = act.coro
+            op = self.try_run_act(act, self.tokens[act])
+            if op:
+                del self.tokens[act]
+                if self.scheduler.ops_greedy:
+                    while True:
+                        op, coro = self.scheduler.process_op(coro.run_op(op), coro)
+                        if not op and not coro:
+                            break  
+                else:
+                    if op.prio & priority.OP:
+                        op, coro = self.scheduler.process_op(coro.run_op(op), coro)
+                    if coro:
+                        if op.prio & priority.CORO:
+                            self.scheduler.active.appendleft( (op, coro) )
+                        else:
+                            self.scheduler.active.append( (op, coro) )    
+            else:
+                return
+        else:
+            import warnings
+            warnings.warn("Got event for unkown act: %s" % act)
+        return True
+    
+    def yield_event(self, act):
+        if act in self.tokens:
+            coro = act.coro
+            op = self.try_run_act(act, self.tokens[act])
+            if op:
+                del self.tokens[act]
+                return op, coro
+        
+        
+        
+    
