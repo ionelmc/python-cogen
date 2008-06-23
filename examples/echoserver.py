@@ -1,5 +1,3 @@
-import cogen
-print cogen.__file__
 from cogen.core import sockets
 from cogen.core import schedulers
 from cogen.core.coroutines import coroutine

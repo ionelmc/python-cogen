@@ -1,9 +1,15 @@
 import sys
 import errno
 from socket import error as soerror
+try:
+    import sendfile
+except:
+    sendfile = None
+
 from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
 from cogen.core.sockets import Socket
 from cogen.core.util import priority, debug
+
 
 class ProactorBase(object):
     """
@@ -26,28 +32,33 @@ class ProactorBase(object):
     def __len__(self):
         return len(self.tokens)
 
-    def perform_recv(self, act):
+    @staticmethod
+    def perform_recv(act):
         act.buff = act.sock._fd.recv(act.len)
         if act.buff:
             return act
         else:
             raise ConnectionClosed("Empty recv.")
         
-    def perform_send(self, act):
+    @staticmethod
+    def perform_send(act):
         act.sent = act.sock._fd.send(act.buff)
         return act.sent and act
         
-    def perform_sendall(self, act):
+    @staticmethod
+    def perform_sendall(act):
         act.sent += act.sock._fd.send(act.buff[act.sent:])
         return act.sent==len(act.buff) and act
         
-    def perform_accept(self, act):
+    @staticmethod
+    def perform_accept(act):
         act.conn, act.addr = act.sock._fd.accept()
         act.conn.setblocking(0)
         act.conn = Socket(_sock=act.conn)
         return act
             
-    def perform_connect(self, act):
+    @staticmethod
+    def perform_connect(act):
         if act.connect_attempted:
             try:
                 act.sock._fd.getpeername()
@@ -65,7 +76,43 @@ class ProactorBase(object):
                 raise ConnectionError(err, errno.errorcode[err])
         else: # err==0 means successful connect
             return act
-
+    
+    @staticmethod
+    def wrapped_sendfile(act, offset, length):
+        if sendfile:
+            offset, sent = sendfile.sendfile(
+                act.sock.fileno(), 
+                act.file_handle.fileno(), 
+                offset, length
+            )
+        else:
+            act.file_handle.seek(offset)
+            sent = act.sock._fd.send(act.file_handle.read(length))
+        return sent
+        
+    def perform_sendfile(self, act):
+        if act.length:
+            if act.blocksize:
+                act.sent += self.wrapped_sendfile(
+                    act.offset + act.sent, 
+                    min(act.length-act.sent, act.blocksize)
+                )
+            else:
+                act.sent += self.wrapped_sendfile(act.offset+act.sent, act.length-act.sent)
+            if act.sent == act.length:
+                return act
+        else:
+            if act.blocksize:
+                sent = act.send(act.offset+act.sent, act.blocksize)
+            else:
+                sent = act.send(act.offset+act.sent, act.blocksize)
+                # we would use self.length but we don't have any,
+                #  and we don't know the file's length
+            act.sent += sent
+            if not sent:
+                return act
+        
+        
     def request_recv(self, act, coro):
         return self.request_generic(act, coro, self.perform_recv)
             
@@ -80,7 +127,7 @@ class ProactorBase(object):
             
     def request_connect(self, act, coro):
         return self.request_generic(act, coro, self.perform_connect)
-        
+    
     def request_generic(self, act, coro, perform):
         result = act.run_first and self.try_run_act(act, perform)
         if result:
