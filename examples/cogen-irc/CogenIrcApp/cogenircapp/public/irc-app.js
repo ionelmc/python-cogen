@@ -1,3 +1,12 @@
+window.con = {
+    'log': function() {},
+    'info': function() {},
+    'error': function() {},
+    'debug': function() {}
+};   
+function scroll_bottom(){ 
+    window.scrollBy(0, window.innerHeight);
+}
 
 
 var Connection = new Class({
@@ -36,14 +45,16 @@ var Connection = new Class({
         if (!this.connected) {
             this.connected = true;
             this.id = text;
+            this.pull.send('/pull/'+this.id);
         } else {
+            this.pull.send('/pull/'+this.id);
             Json.evaluate(text).each(this.processMessage.bind(this));
         }
-        this.pull.send('/pull/'+this.id);
+        
     },
     
     pull_failure: function (ev) {
-    
+        this.pull.send('/pull/'+this.id);
     },
     
     push_success: function (ev) {
@@ -59,7 +70,7 @@ var Connection = new Class({
             command = event[1],
             params = event[2];
         //~ if (['NOTICE', 'ERROR', 'CONNECTED', 'CONNECTING', 'CONNECT_TIMEOUT'].contains(command))
-        console.log([prefix, command, params]);
+        con.log([prefix, command, params]);
         var handler = this['cmd_'+command];
         if (handler) {
             if (handler.call(this, prefix, params)) {
@@ -69,6 +80,7 @@ var Connection = new Class({
         } else {
             this.fireEvent('onServerMessage', [prefix, command, params]);
         }
+        scroll_bottom();
     },
     parsePrefix: function(prefix) {
         prefix = prefix.split('!', 2);
@@ -92,18 +104,18 @@ var Connection = new Class({
             ['NICK', this.nickname],
             ['JOIN', this.initial_channel]
         ]);
-        console.log(payload);
+        con.log(payload);
         this.push.send('/push/'+this.id, payload);        
     },
     cmd_PING: function(prefix, params) {
         this.push.send('/push/'+this.id, Json.toString([['PONG', params[0]]]));
     },
     cmd_NAMREPLY: function(prefix, params) {
-        console.info('namerepl', params)
+        con.info('namerepl', params)
         var chan = params[2];
         var chantype = params[1];
         var users = params[3].trim().split(' ');
-        console.info('namerepl', users);
+        con.info('namerepl', users);
         this.channel(chan).users.extend(users);
     },
     cmd_ENDOFNAMES: function(prefix, params) {
@@ -206,7 +218,7 @@ var Context = new Class({
             this.conn.channel(this.name).addEvent('onAddUsers', this.addUsers.bind(this));
             this.conn.addEvent('onRemoveUser', this.removeUser.bind(this));
         }
-        console.debug("EVENTS REGISTERED FOR "+this.name);
+        con.debug("EVENTS REGISTERED FOR "+this.name);
         //~ tab.injectInside("tabbar");
         //~ cnt.injectInside("tabcontents");
     },
@@ -217,9 +229,9 @@ var Context = new Class({
         }.bind(this));
     },
     removeUser: function(user, reason) {
-        console.error(this.userlist.getChildren());
+        //~ con.error(this.userlist.getChildren());
         this.userlist.getChildren().each(function (el) {
-            console.info(el, el.getText(), user);
+            //~ con.info(el, el.getText(), user);
             if (el.getText() == user) {
                 el.remove();
                 this.printChanEvent(sprintf("%s has left %s (%s).", user, this.name, reason));
@@ -233,7 +245,6 @@ var Context = new Class({
             EL('span', {'class':'event'}, "*"), ' ', 
             EL('span', {'class':'event_message'}, event));
         line.injectInside(this.text);
-        new Fx.Scroll("text_"+this.id).set(0).toBottom();
     },
     printChanMessage: function(user, message) {
         var time = new Date();
@@ -242,7 +253,6 @@ var Context = new Class({
             EL('span', {'class':'user'}, "<"+user+">"), ' ', 
             EL('span', {'class':'message'}, message));
         line.injectInside(this.text);
-        new Fx.Scroll("text_"+this.id).set(0).toBottom();
     },
     printStatus: function(prefix, command, params) {
         var time = new Date();
@@ -252,7 +262,6 @@ var Context = new Class({
             EL('span', {'class':'command'}, command), ' ', 
             EL('span', {'class':'data'}, Json.toString(params)));
         line.injectInside(this.text);
-        new Fx.Scroll("text_"+this.id).set(0).toBottom();
     },
     processInput: function (data) {
         if (this.type == 'chan') {
@@ -263,7 +272,7 @@ var Context = new Class({
                     args = args.pop().split(' ');
                 args.unshift(cmd);
                 var payload = Json.toString([args]);
-                console.log(payload);
+                con.log(payload);
                 this.conn.push.send('/push/'+this.conn.id, payload);
             } else {
                 this.conn.push.send('/push/'+this.conn.id, Json.toString([['PRIVMSG', this.name, data]]));
@@ -280,7 +289,7 @@ var Context = new Class({
                 args = args.pop().split(' ');
             args.unshift(cmd);
             var payload = Json.toString([args]);
-            console.log(payload);
+            con.log(payload);
             this.conn.push.send('/push/'+this.conn.id, payload);
         }
         if (this.type == 'query') {
@@ -317,6 +326,7 @@ var IRC = new Class({
         this.currenttab.addClass('active');
         var input = $('input_'+id);
         if (input) input.focus();
+        setTimeout(function() {scroll_bottom();}, 0);
     },
     addTab: function(ctx) {
         ctx.tab.injectInside("tabbar");
@@ -348,7 +358,7 @@ window.addEvent('domready', function() {
     });
 });
 document.addEvent("keydown", function(event) {
-    console.info(event);
+    con.info(event);
 }.bindAsEventListener());
 
 

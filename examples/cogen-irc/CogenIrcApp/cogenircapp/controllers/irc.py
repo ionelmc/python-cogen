@@ -41,7 +41,7 @@ def parsemsg(s): # stolen from twisted.words
     return prefix, command, args
     
 class Connection:
-    def __init__(self, server, reconnect_interval=60, sock_timo=15):
+    def __init__(self, server, reconnect_interval=60, sock_timo=45):
         self.server = server
         self.reconnect_interval = reconnect_interval
         self.connected = False
