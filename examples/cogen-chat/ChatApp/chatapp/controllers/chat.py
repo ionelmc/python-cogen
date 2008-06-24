@@ -11,12 +11,15 @@ log = logging.getLogger(__name__)
 from cogen.core import queue, events
 from cogen.core.coroutines import coro
 from cogen.core.pubsub import PublishSubscribeQueue
+from cogen.core.util import priority
+
 pubsub = PublishSubscribeQueue()
 
 class Client:
-    def __init__(self):
+    def __init__(self, name):
         self.messages = queue.Queue(10)
         self.dead = False
+        self.name = name
     @coro
     def watch(self):
         """This is a coroutine that runs permanently for each participant to the 
@@ -35,6 +38,7 @@ class Client:
         yield pubsub.subscribe() 
         while 1:
             messages = yield pubsub.fetch()
+            print messages
             try:
                 yield self.messages.put_nowait(messages)
             except:
@@ -46,12 +50,13 @@ class ChatController(BaseController):
     def push(self):
         """This action puts a message in the global queue that all the clients
         will get via the 'pull' action."""
+        print `request.body`
         yield request.environ['cogen.call'](pubsub.publish)(
-            "%X: %s" % (id(session['client']), request.body)
+            "%s: %s" % (session['client'].name, request.body)
         )
         # the request.environ['cogen.*'] objects are the the asynchronous 
-        # wsgi extensions offered by cogen - basicaly they do some magic to 
         # make the code here work as a coroutine and still work with any
+        # wsgi extensions offered by cogen - basicaly they do some magic to 
         # middleware
         yield str(request.environ['cogen.wsgi'].result)
         
@@ -61,11 +66,11 @@ class ChatController(BaseController):
         it's state) and gets new messages or bail out in 10 seconds if there are
         no messages."""
         if not 'client' in session or session['client'].dead:
-            client = Client()
+            client = Client(str(request.environ['pylons.routes_dict']['id']))
             print 'Adding new client:', client
             session['client'] = client
             session.save()
-            yield request.environ['cogen.core'].events.AddCoro(client.watch)
+            yield request.environ['cogen.core'].events.AddCoro(client.watch, prio=priority.CORO)
         else:
             client = session['client']
             

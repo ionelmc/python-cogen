@@ -36,10 +36,11 @@ textarea, input {
             document.chat.output.value = req.responseText + document.chat.output.value;
             xhr('/chat/pull', pull)
         } else {
-            alert(req.responseText);
+            alert(req.status+": "+req.responseText);
         }
+        document.chat.tosend.focus();
     }
-    xhr('/chat/pull', pull);
+    xhr('/chat/pull/'+/nick=(.*?)&/.exec(document.location)[1], pull);
     document.chat.tosend.onkeydown = function (event) {
         event = event || window.event;
         var key = event.which || event.keyCode;
@@ -49,6 +50,7 @@ textarea, input {
         }
     }
     document.chat.onsubmit = function() { return false; }
+    document.chat.tosend.focus();
 </script>
 </body>
 </html>
