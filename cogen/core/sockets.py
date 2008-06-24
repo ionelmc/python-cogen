@@ -3,6 +3,9 @@ Socket-only coroutine operations and `Socket` wrapper.
 Really - the only thing you need to know for most stuff is 
 the `Socket <cogen.core.sockets.Socket.html>`_ class.
 """
+
+#TODO: how to deal with requets that have unicode params
+
 __all__ = [
     'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Read',
     'ReadAll', 'ReadLine', 'Write', 'WriteAll','Accept','Connect', 
