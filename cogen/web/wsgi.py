@@ -478,7 +478,6 @@ class WSGIConnection(object):
                   buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
                   if headers:
                     headers.extend(buf)
-                    print `headers`
                     yield sockets.WriteAll(self.conn, "".join(headers), 
                           run_first=run_first, timeout=self.sockoper_timeout)
                   else:
