@@ -10,7 +10,7 @@ hello.show()
 from cogen.core import reactors, schedulers, events, sockets, coroutines
 from cogen.web import wsgi
 
-m = schedulers.Scheduler(reactor=reactors.QtReactor)
+m = schedulers.Scheduler(reactor=reactors.has_qt())
 @coroutines.coro
 def server():
     srv = sockets.Socket()
