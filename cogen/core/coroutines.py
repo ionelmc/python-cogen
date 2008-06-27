@@ -145,6 +145,8 @@ class Coroutine(events.Operation):
             )
         if self.state == self.STATE_NEED_INIT:
             self.caller = coro
+            if coro.debug:
+                self.debug = True
             return None, self
 
         else:
@@ -200,6 +202,7 @@ class Coroutine(events.Operation):
             #~ )
         #~ self.lastop = op
         if self.debug:
+            print
             print 'Running %s with: %s' % (self, op)
         global ident
         ident = self
@@ -207,7 +210,7 @@ class Coroutine(events.Operation):
             if self.state == self.STATE_RUNNING:
                 if self.debug:
                     import traceback
-                    print traceback.print_stack(self.coro.gi_frame)
+                    traceback.print_stack(self.coro.gi_frame)
                 if isinstance(op, events.CoroutineException):
                     rop = self.coro.throw(*op.message)
                 else:
@@ -247,6 +250,8 @@ class Coroutine(events.Operation):
             sys.exc_clear()
         finally:
             ident = None
+        if self.debug:
+            print "Yields %s." % rop
         return rop
     def handle_error(self):        
         print>>sys.stderr, '-'*40
