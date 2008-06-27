@@ -28,8 +28,8 @@ class IOCPProactor(ProactorBase):
         return win32file.WSARecv(act.sock._fd, act.buff, overlapped, 0)
     
     def complete_recv(self, act, rc, nbytes):
-        act.buff = act.buff[:nbytes]
-        if act.buff:
+        if nbytes:
+            act.buff = act.buff[:nbytes]
             return act
         else:
             raise ConnectionClosed("Empty recv.")

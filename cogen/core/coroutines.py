@@ -40,6 +40,7 @@ def debug_coroutine(func):
     make_new_coroutine.__doc__ = func.__doc__
     make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
+debug_coro = debug_coroutine
 
 ident = None
 

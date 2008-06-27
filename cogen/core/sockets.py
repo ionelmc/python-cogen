@@ -28,7 +28,7 @@ except:
 
 import events
 from util import debug, priority, fmt_list
-from coroutines import coro, debug_coroutine
+from coroutines import coro, debug_coro
 getnow = datetime.datetime.now
 
 try:
@@ -352,7 +352,7 @@ class Send(SocketOperation):
     """
     Write the buffer to the socket and return the number of bytes written.
     """    
-    __slots__ = ['sent']
+    __slots__ = ['sent', 'buff']
     
     def __init__(self, sock, buff, **kws):
         super(Send, self).__init__(sock, **kws)
@@ -380,6 +380,9 @@ class SendAll(SocketOperation):
     def process(self, sched, coro):
         return sched.proactor.request_sendall(self, coro)
     
+    def finalize(self):
+        super(SendAll, self).finalize()
+        return self.sent
  
 class Accept(SocketOperation):
     """
@@ -419,14 +422,26 @@ class Connect(SocketOperation):
         """
         super(Connect, self).__init__(sock, **kws)
         self.addr = addr
+        self.connect_attempted = False
 
     def process(self, sched, coro):
         return sched.proactor.request_connect(self, coro)
         
     def finalize(self):
-        super(Accept, self).finalize()
-        return self.conn
+        super(Connect, self).finalize()
+        return self.sock
 
+@coro
+def RecvAll(sock, length, **k):
+    recvd = 0
+    data = []
+    while recvd < length:
+        chunk = (yield Recv(sock, length-recvd,  **k))
+        recvd += len(chunk)
+        data.append(chunk)
+    assert recvd == length
+    
+    raise StopIteration(''.join(data))
 
 class _fileobject(object):
     """Faux file object attached to a socket object."""
@@ -558,7 +573,7 @@ class _fileobject(object):
                 buf_len += n
             raise StopIteration("".join(buffers))
 
-    @coro
+    @debug_coro
     def readline(self, size=-1):
         data = self._rbuf
         if size < 0:
