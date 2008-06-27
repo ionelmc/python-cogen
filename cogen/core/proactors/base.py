@@ -22,12 +22,13 @@ class ProactorBase(object):
         'handle_events'
     ]
     
-    def __init__(self, scheduler, resolution):
+    def __init__(self, scheduler, resolution, multiplex_first=True):
         self.tokens = {}
         self.scheduler = scheduler
         self.resolution = resolution # seconds
         self.m_resolution = resolution*1000 # miliseconds
         self.n_resolution = resolution*1000000000 #nanoseconds
+        self.multiplex_first = multiplex_first
 
     def __len__(self):
         return len(self.tokens)
@@ -133,7 +134,7 @@ class ProactorBase(object):
             self.add_token(act, coro, self.perform_connect)
     
     def request_generic(self, act, coro, perform):
-        result = act.run_first and self.try_run_act(act, perform)
+        result = self.multiplex_first and self.try_run_act(act, perform)
         if result:
             return result, coro
         else:

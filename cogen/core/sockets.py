@@ -188,9 +188,9 @@ class SocketOperation(events.TimedOperation):
     `run` method and call the __init__ method of the superclass.
     """
     __slots__ = [
-        'sock', 'last_update', 'coro', 'run_first',        
+        'sock', 'last_update', 'coro',
     ]
-    def __init__(self, sock, run_first=True, **kws):
+    def __init__(self, sock, **kws):
         """
         All the socket operations have these generic properties that the 
         poller and scheduler interprets:
@@ -206,7 +206,6 @@ class SocketOperation(events.TimedOperation):
         
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
-        self.run_first = run_first
     def fileno(self):
         return self.sock.fileno()
         
