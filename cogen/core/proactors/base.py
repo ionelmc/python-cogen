@@ -126,7 +126,11 @@ class ProactorBase(object):
         return self.request_generic(act, coro, self.perform_accept)
             
     def request_connect(self, act, coro):
-        return self.request_generic(act, coro, self.perform_connect)
+        result = self.try_run_act(act, self.perform_connect)
+        if result:
+            return result, coro
+        else:
+            self.add_token(act, coro, self.perform_connect)
     
     def request_generic(self, act, coro, perform):
         result = act.run_first and self.try_run_act(act, perform)
