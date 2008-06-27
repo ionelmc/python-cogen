@@ -477,10 +477,10 @@ class _fileobject(object):
     closed = property(_getclosed, doc="True if the file is closed")
     
     @coro
-    def close(self):
+    def close(self, **kws):
         try:
             if self._sock:
-                yield self.flush()
+                yield self.flush(**kws)
         finally:
             if self._close:
                 self._sock.close()
@@ -494,17 +494,17 @@ class _fileobject(object):
             pass
 
     @coro
-    def flush(self):
+    def flush(self, **kws):
         if self._wbuf:
             buffer = "".join(self._wbuf)
             self._wbuf = []
-            yield self._sock.sendall(buffer)
+            yield self._sock.sendall(buffer, **kws)
 
     def fileno(self):
         return self._sock.fileno()
 
     @coro
-    def write(self, data):
+    def write(self, data, **kws):
         data = str(data) # XXX Should really reject non-string non-buffers
         if not data:
             return
@@ -512,16 +512,16 @@ class _fileobject(object):
         if (self._wbufsize == 0 or
             self._wbufsize == 1 and '\n' in data or
             self._get_wbuf_len() >= self._wbufsize):
-            yield self.flush()
+            yield self.flush(**kws)
 
     @coro
-    def writelines(self, list):
+    def writelines(self, list, **kws):
         # XXX We could do better here for very long lists
         # XXX Should really reject non-string non-buffers
         self._wbuf.extend(filter(None, map(str, list)))
         if (self._wbufsize <= 1 or
             self._get_wbuf_len() >= self._wbufsize):
-            yield self.flush()
+            yield self.flush(**kws)
 
     def _get_wbuf_len(self):
         buf_len = 0
@@ -530,7 +530,7 @@ class _fileobject(object):
         return buf_len
 
     @coro
-    def read(self, size=-1):
+    def read(self, size=-1, **kws):
         data = self._rbuf
         if size < 0:
             # Read until EOF
@@ -543,7 +543,7 @@ class _fileobject(object):
             else:
                 recv_size = self._rbufsize
             while True:
-                data = (yield self._sock.recv(recv_size))
+                data = (yield self._sock.recv(recv_size, **kws))
                 if not data:
                     break
                 buffers.append(data)
@@ -561,7 +561,7 @@ class _fileobject(object):
             while True:
                 left = size - buf_len
                 recv_size = max(self._rbufsize, left)
-                data = (yield self._sock.recv(recv_size))
+                data = (yield self._sock.recv(recv_size, **kws))
                 if not data:
                     break
                 buffers.append(data)
@@ -573,8 +573,8 @@ class _fileobject(object):
                 buf_len += n
             raise StopIteration("".join(buffers))
 
-    @debug_coro
-    def readline(self, size=-1):
+    @coro
+    def readline(self, size=-1, **kws):
         data = self._rbuf
         if size < 0:
             # Read until \n or EOF, whichever comes first
@@ -584,7 +584,7 @@ class _fileobject(object):
                 buffers = []
                 recv = self._sock.recv
                 while data != "\n":
-                    data = (yield recv(1))
+                    data = (yield recv(1, **kws))
                     if not data:
                         break
                     buffers.append(data)
@@ -599,7 +599,7 @@ class _fileobject(object):
                 buffers.append(data)
             self._rbuf = ""
             while True:
-                data = (yield self._sock.recv(self._rbufsize))
+                data = (yield self._sock.recv(self._rbufsize, **kws))
                 if not data:
                     break
                 buffers.append(data)
@@ -626,7 +626,7 @@ class _fileobject(object):
                 buffers.append(data)
             self._rbuf = ""
             while True:
-                data = (yield self._sock.recv(self._rbufsize))
+                data = (yield self._sock.recv(self._rbufsize, **kws))
                 if not data:
                     break
                 buffers.append(data)
@@ -646,11 +646,11 @@ class _fileobject(object):
             raise StopIteration("".join(buffers))
 
     @coro
-    def readlines(self, sizehint=0):
+    def readlines(self, sizehint=0, **kws):
         total = 0
         list = []
         while True:
-            line = (yield self.readline())
+            line = (yield self.readline(**kws))
             if not line:
                 break
             list.append(line)
