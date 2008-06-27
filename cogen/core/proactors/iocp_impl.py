@@ -9,7 +9,7 @@ import struct
 import sys
 
 from base import ProactorBase
-from cogen.core.util import priority
+from cogen.core.util import priority, debug
 from cogen.core.sockets import Socket
 from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
 
@@ -103,19 +103,24 @@ class IOCPProactor(ProactorBase):
     def request_connect(self, act, coro):
         return self.request_generic(act, coro, self.perform_connect, self.complete_connect)
         
+    #~ @debug(0)
     def request_generic(self, act, coro, perform, complete):
         overlapped = pywintypes.OVERLAPPED() 
         overlapped.object = act
+        self.add_token(act, coro, (overlapped, perform, complete))
+        
         rc, nbytes = perform(act, overlapped)
+        print rc, nbytes
         
         if rc == 0:
             # ah geez, it didn't got in the iocp, we have a result!
             win32file.PostQueuedCompletionStatus(
                 self.iocp, nbytes, 0, overlapped
             )
-        self.add_token(act, coro, (overlapped, perform, complete))
+        
 
     def register_fd(self, act, performer):
+        print act.sock, act.sock._proactor_added
         if not act.sock._proactor_added:
             win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
             act.sock._proactor_added = True
