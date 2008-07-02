@@ -348,7 +348,10 @@ var IRC = new Class({
 window.addEvent('domready', function() {
     irc = new IRC();
     $('nickname_field').value = "Guest"+$random(10000,20000);
+    //~ alert($('connect_form').);
     $('connect_form').addEvent('submit', function (ev) {
+        ev = new Event(ev);
+        ev.stopPropagation();
         ev.preventDefault();
         irc.connect(
             $('server_field').getValue(),

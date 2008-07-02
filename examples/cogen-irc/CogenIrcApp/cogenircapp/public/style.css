@@ -1,0 +1,104 @@
+body {
+	margin:0;
+	padding:0;
+    text-align:center;
+}
+#connect {
+    margin: 0 auto;
+}
+#connect label{
+    display: block;
+}
+#connect span {
+    text-align:left;
+    width: 5em;
+    display: inline-block;
+}
+#connect label {
+    display: block;
+}
+.error-message {
+    color: red;
+    font-weight: bold;
+    display:inline !important;
+}
+
+.textarea {
+    text-align: left;
+}
+.inputarea {
+    display: block;
+    width: 100%;
+}
+#header {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+}
+#tabcontents {
+	margin-top: 50px;
+}
+#tabbar li {
+    background: gray;
+}
+
+ul#tabbar {
+    font: bold 11px verdana, arial, sans-serif;
+    list-style-type: none;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #6c6;
+    margin: 0;
+}
+
+ul#tabbar li {
+    float: left;
+    height: 21px;
+    background-color: #cfc;
+    margin: 2px 2px 0 2px;
+    border: 1px solid #6c6;
+}
+
+ul#tabbar li.active {
+    border-bottom: 1px solid #fff;
+    background-color: #fff;
+}
+
+li.active a { color: #000; }
+
+#tabbar a {
+    float: left;
+    display: block;
+    color: #666;
+    text-decoration: none;
+    padding: 4px;
+}
+
+#tabbar a:hover { 
+    background: #fff; 
+}
+#connected {
+}
+#tabcontents {
+    font: 11px "Courier New", courier;
+}
+
+.textarea {
+    margin-right: 100px
+}
+.userlist {
+    display: none;
+}
+.userlist li{
+    margin: 0;
+}
+.textarea .time {
+    font-weight: bold;
+    color: darkred;
+}
+.inputarea {
+    clear: both;
+}
+#tabbat li.active {
+    font-weight: bold;
+}
