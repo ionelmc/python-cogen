@@ -71,6 +71,7 @@ class ChatController(BaseController):
             session['client'] = client
             session.save()
             yield request.environ['cogen.core'].events.AddCoro(client.watch, prio=priority.CORO)
+            return
         else:
             client = session['client']
             
