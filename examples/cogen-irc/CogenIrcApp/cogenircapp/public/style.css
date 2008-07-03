@@ -31,24 +31,23 @@ body {
     width: 100%;
 }
 #header {
-	position: absolute;
+	position: fixed;
+	height: 70px;
+	width: 100%;
 	top: 0;
-	right: 0;
 	left: 0;
+	right: 0;
+	background: white;
 }
-#tabcontents {
-	margin-top: 50px;
+#header h3 {
+	margin: 0;
+	padding: 0;
 }
-#tabbar li {
-    background: gray;
-}
-
 ul#tabbar {
     font: bold 11px verdana, arial, sans-serif;
     list-style-type: none;
     padding-bottom: 24px;
     border-bottom: 1px solid #6c6;
-    margin: 0;
 }
 
 ul#tabbar li {
@@ -77,28 +76,21 @@ li.active a { color: #000; }
 #tabbar a:hover { 
     background: #fff; 
 }
-#connected {
-}
+
 #tabcontents {
     font: 11px "Courier New", courier;
+	margin-top: 70px;
 }
-
 .textarea {
-    margin-right: 100px
-}
-.userlist {
-    display: none;
-}
-.userlist li{
-    margin: 0;
+	margin-right: 150px;
 }
 .textarea .time {
     font-weight: bold;
     color: darkred;
 }
-.inputarea {
-    clear: both;
-}
 #tabbat li.active {
     font-weight: bold;
+}
+.userlist {
+	display: none;
 }
