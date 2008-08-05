@@ -115,9 +115,9 @@ class SynchronousInputMiddleware:
 
     def __call__(self, environ, start_response):
         buff = StringIO()
-        length = 0
-        while 1:
-            yield environ['cogen.input'].Read(self.buffer_length)
+        remaining = content_length = environ['cogen.wsgi'].content_length or 0
+        while remaining:
+            yield environ['cogen.input'].read(min(remaining, self.buffer_length))
             result = environ['cogen.wsgi'].result
             if isinstance(result, Exception):
                 import traceback
@@ -127,10 +127,10 @@ class SynchronousInputMiddleware:
                 if not result:
                     break
                 buff.write(result)
-                length += len(result)
+                remaining -= len(result)
         buff.seek(0)
         environ['wsgi.input'] = buff
-        environ['CONTENT_LENGTH'] = str(length)
+        environ['CONTENT_LENGTH'] = str(content_length)
         iterator = self.app(environ, start_response)
         for i in iterator:
             yield i

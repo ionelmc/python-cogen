@@ -122,7 +122,7 @@ class IOCPProactor(ProactorBase):
         self.add_token(act, coro, (overlapped, perform, complete))
         
         rc, nbytes = perform(act, overlapped)
-        print rc, nbytes
+        #~ print rc, nbytes
         
         if rc == 0:
             # ah geez, it didn't got in the iocp, we have a result!
@@ -132,7 +132,7 @@ class IOCPProactor(ProactorBase):
         
 
     def register_fd(self, act, performer):
-        print act.sock, act.sock._proactor_added
+        #~ print act.sock, act.sock._proactor_added
         if not act.sock._proactor_added:
             win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
             act.sock._proactor_added = True
@@ -224,8 +224,10 @@ class IOCPProactor(ProactorBase):
                                 coro.run_op(op), 
                                 coro
                             )
+                        #~ print op, coro
                         if coro:
-                            if op.prio & priority.CORO:
+                            #TODO, what "op and "
+                            if op and (op.prio & priority.CORO):
                                 self.scheduler.active.appendleft( (op, coro) )
                             else:
                                 self.scheduler.active.append( (op, coro) )                     

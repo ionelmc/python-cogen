@@ -174,8 +174,10 @@ class Socket(object):
         """Set the value of the given socket option. Same as the usual socket 
         method."""
         self._fd.setsockopt(*args)
-    def sendfile(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
-        return SendFile(self._fd, file_handle, sock, offset=None, length=None, blocksize=4096, **kws)
+    
+    def sendfile(self, file_handle, offset=None, length=None, blocksize=4096, **kws):
+        return SendFile(file_handle, self, offset=None, length=None, blocksize=4096, **kws)
+        
     def __repr__(self):
         return '<socket at 0x%X>' % id(self)
     def __str__(self):
@@ -242,6 +244,7 @@ class SendFile(SocketOperation):
     ]
     
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
+        print file_handle, sock, offset, length, blocksize
         super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
         self.offset = self.position = offset or file_handle.tell()
@@ -253,7 +256,7 @@ class SendFile(SocketOperation):
         return sched.proactor.request_sendfile(self, coro)
     
     def finalize(self):
-        super(Send, self).finalize()
+        super(SendFile, self).finalize()
         return self.sent
 
 
@@ -465,6 +468,8 @@ class _fileobject(object):
         return buf_len
 
     @coro
+    #~ from cogen.core.coroutines import debug_coro
+    #~ @debug_coro
     def read(self, size=-1, **kws):
         data = self._rbuf
         if size < 0:

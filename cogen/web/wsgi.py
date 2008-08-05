@@ -146,7 +146,7 @@ class WSGIConnection(object):
   }
   
   def __init__(self, sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout):
-    print sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout
+    #~ print sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout
     self.conn = sock
     self.wsgi_app = wsgi_app
     self.server_environ = environ
@@ -402,12 +402,7 @@ class WSGIConnection(object):
         ENVIRON['cogen.call'] = async.COGENCallWrapper(ENVIRON['cogen.wsgi'])
         ENVIRON['cogen.input'] = async.COGENOperationWrapper(
           ENVIRON['cogen.wsgi'], 
-          async.COGENProxy( 
-            Read = lambda len, **kws: \
-              async.Read(self.conn, ENVIRON['cogen.wsgi'], len, **kws),
-            ReadLine = lambda len, **kws: \
-              async.ReadLine(self.conn, ENVIRON['cogen.wsgi'], len, **kws)
-          )
+          self.connfh
         )
         response = self.wsgi_app(ENVIRON, self.start_response)
         #~ print 'WSGI RESPONSE:', response
@@ -429,7 +424,7 @@ class WSGIConnection(object):
             if self.chunked_write:
               fsize = os.fstat(response.filelike.fileno()).st_size
               yield sockets.SendAll(self.conn, hex(int(fsize-offset))+"\r\n")
-            yield self.conn( 
+            yield self.conn.sendfile( 
               response.filelike,
               blocksize=response.blocksize, 
               offset=offset,
@@ -670,7 +665,7 @@ class WSGIServer(object):
     msg = "No socket could be created"
     for res in info:
       af, socktype, proto, canonname, sa = res
-      print res
+      #~ print res
       try:
         self.bind(af, socktype, proto)
       except socket.error, msg:

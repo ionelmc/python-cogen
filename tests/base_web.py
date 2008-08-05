@@ -29,7 +29,7 @@ class WebTest_Base:
                 for wrapper in self.middleware:
                     app = wrapper(app)
                 self.sched = Scheduler( default_priority=self.prio, 
-                                        proactor_resolution=0.001,
+                                        proactor_resolution=1,#0.001,
                                         proactor=self.poller) 
                 self.wsgi_server = wsgi.WSGIServer(self.local_addr, app, self.sched,
                             sockoper_timeout=None, sendfile_timeout=None) 

@@ -79,6 +79,7 @@ class ProactorBase(object):
             return act
     
     @staticmethod
+    @debug(0)
     def wrapped_sendfile(act, offset, length):
         if sendfile:
             offset, sent = sendfile.sendfile(
@@ -92,21 +93,23 @@ class ProactorBase(object):
         return sent
         
     def perform_sendfile(self, act):
+        print act
         if act.length:
             if act.blocksize:
                 act.sent += self.wrapped_sendfile(
+                    act,
                     act.offset + act.sent, 
                     min(act.length-act.sent, act.blocksize)
                 )
             else:
-                act.sent += self.wrapped_sendfile(act.offset+act.sent, act.length-act.sent)
+                act.sent += self.wrapped_sendfile(act, act.offset+act.sent, act.length-act.sent)
             if act.sent == act.length:
                 return act
         else:
             if act.blocksize:
-                sent = act.send(act.offset+act.sent, act.blocksize)
+                sent = self.wrapped_sendfile(act, act.offset+act.sent, act.blocksize)
             else:
-                sent = act.send(act.offset+act.sent, act.blocksize)
+                sent = self.wrapped_sendfile(act, act.offset+act.sent, act.blocksize)
                 # we would use self.length but we don't have any,
                 #  and we don't know the file's length
             act.sent += sent
