@@ -16,6 +16,15 @@ class SelectProactor(ProactorBase):
         ptimeout = timeout.days*86400 + timeout.microseconds/1000000 + timeout.seconds \
                 if timeout else (self.resolution if timeout is None else 0)
         if self.tokens:
+            print ([act for act in self.tokens 
+                    if self.tokens[act] == self.perform_recv
+                    or self.tokens[act] == self.perform_accept], 
+                [act for act in self.tokens 
+                    if self.tokens[act] == self.perform_send 
+                    or self.tokens[act] == self.perform_sendall
+                    or self.tokens[act] == self.perform_connect], 
+                [act for act in self.tokens])
+                    
             ready_to_read, ready_to_write, in_error = select.select(
                 [act for act in self.tokens 
                     if self.tokens[act] == self.perform_recv
@@ -27,6 +36,7 @@ class SelectProactor(ProactorBase):
                 [act for act in self.tokens], 
                 ptimeout
             )
+            print ready_to_read, ready_to_write, in_error
             for act in in_error:
                 self.handle_error_event(act, 'Unknown error.')
             last_act = None

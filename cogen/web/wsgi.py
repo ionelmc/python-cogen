@@ -145,15 +145,15 @@ class WSGIConnection(object):
     "wsgi.file_wrapper": WSGIFileWrapper,
   }
   
-  def __init__(self, sock, wsgi_app, environ, sockoper_run_first, 
-                              sockoper_timeout, sendfile_timeout):
+  def __init__(self, sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout):
+    print sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout
     self.conn = sock
     self.wsgi_app = wsgi_app
     self.server_environ = environ
-    self.sockoper_run_first = sockoper_run_first
     self.sendfile_timeout = sendfile_timeout
     self.sockoper_timeout = sockoper_timeout
     self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    self.connfh = self.conn.makefile()
   
   def start_response(self, status, headers, exc_info = None):
     """WSGI callable to begin the HTTP response."""
@@ -237,15 +237,13 @@ class WSGIConnection(object):
     buf.append("\r\n")
     if msg:
       buf.append(msg)
-    return sockets.WriteAll(self.conn, "".join(buf), 
-            run_first=self.sockoper_run_first, timeout=self.sockoper_timeout)
+    return sockets.SendAll(self.conn, "".join(buf))
   #~ from cogen.core.coroutines import debug_coroutine
   #~ @debug_coroutine
   @coroutine
   def run(self):
     """A bit bulky atm..."""
     self.close_connection = False
-    run_first = self.sockoper_run_first
     
     try:
       while True:
@@ -260,14 +258,12 @@ class WSGIConnection(object):
         ENVIRON = self.environ = self.connection_environ.copy()
         self.environ.update(self.server_environ)
             
-        request_line = yield sockets.ReadLine(self.conn, run_first=run_first, 
-                                              timeout=self.sockoper_timeout)
+        request_line = yield self.connfh.readline()
         if request_line == "\r\n":
           # RFC 2616 sec 4.1: "... it should ignore the CRLF."
           tolerance = 5
           while tolerance and request_line == "\r\n":
-            request_line = yield sockets.ReadLine(self.conn, 
-                            run_first=run_first, timeout=self.sockoper_timeout)
+            request_line = yield self.connfh.readline()
             tolerance -= 1
           if not tolerance:
             return
@@ -332,8 +328,7 @@ class WSGIConnection(object):
         # then all the http headers
         try:
           while True:
-            line = yield sockets.ReadLine(self.conn, run_first=run_first, 
-                                          timeout=self.sockoper_timeout)
+            line = yield self.connfh.readline()
             
             if line == '\r\n':
               # Normal end of headers
@@ -386,24 +381,15 @@ class WSGIConnection(object):
           if te:
             te = [x.strip().lower() for x in te.split(",") if x.strip()]
         
-        read_chunked = False
         
         if te:
-          for enc in te:
-            if enc == "chunked":
-              read_chunked = True
-            else:
-              # Note that, even if we see "chunked", we must reject
-              # if there is an extension we don't recognize.
-              yield self.simple_response("501 Unimplemented")
-              self.close_connection = True
-              return
+          # reject transfer encodings for now
+          yield self.simple_response("501 Unimplemented")
+          self.close_connection = True
+          return
         ENVIRON['cogen.wsgi'] = async.COGENProxy(
-          read_chunked = read_chunked,
           content_length = int(ENVIRON.get('CONTENT_LENGTH', None) or 0) or None,
           read_count = 0,
-          state = async.Read.NEED_SIZE,
-          chunk_remaining = 0,
           operation = None,
           result = None,
           exception = None
@@ -435,26 +421,24 @@ class WSGIConnection(object):
             assert not self.sent_headers
             
             self.sent_headers = True
-            yield sockets.WriteAll(self.conn, 
-              self.render_headers()+self.write_buffer.getvalue(), 
-              run_first=run_first, timeout=self.sockoper_timeout)
+            yield sockets.SendAll(self.conn,
+                    self.render_headers()+self.write_buffer.getvalue()                    
+            )
               
             offset = response.filelike.tell()
             if self.chunked_write:
               fsize = os.fstat(response.filelike.fileno()).st_size
-              yield sockets.WriteAll( self.conn, hex(int(fsize-offset))+"\r\n", 
-                                      timeout=self.sockoper_timeout)
-            yield sockets.SendFile( response.filelike, self.conn, 
-                                    blocksize=response.blocksize, 
-                                    offset=offset,
-                                    length=self.content_length,
-                                    run_first=run_first, 
-                                    timeout=self.sendfile_timeout
-                                  )
+              yield sockets.SendAll(self.conn, hex(int(fsize-offset))+"\r\n")
+            yield self.conn( 
+              response.filelike,
+              blocksize=response.blocksize, 
+              offset=offset,
+              length=self.content_length,
+              timeout=self.sendfile_timeout
+            )
             
             if self.chunked_write:
-              yield sockets.WriteAll( self.conn, "\r\n", 
-                                      timeout=self.sockoper_timeout)
+              yield sockets.SendAll(self.conn, "\r\n")
             #  also, tcp_cork will make the file data sent on packet boundaries, 
             # wich is a good thing
             if hasattr(socket, "TCP_CORK"):
@@ -473,26 +457,21 @@ class WSGIConnection(object):
                   buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
                   if headers:
                     headers.extend(buf)
-                    yield sockets.WriteAll(self.conn, "".join(headers), 
-                          run_first=run_first, timeout=self.sockoper_timeout)
+                    yield sockets.SendAll(self.conn, "".join(headers))
                   else:
-                    yield sockets.WriteAll(self.conn, "".join(buf), 
-                          run_first=run_first, timeout=self.sockoper_timeout)
+                    yield sockets.SendAll(self.conn, "".join(buf))
                 else:
                   if headers:
                     headers.append(chunk)
-                    yield sockets.WriteAll(self.conn, "".join(headers), 
-                          run_first=run_first, timeout=self.sockoper_timeout)
+                    yield sockets.SendAll(self.conn, "".join(headers))
                   else:
-                    yield sockets.WriteAll(self.conn, chunk, 
-                          run_first=run_first, timeout=self.sockoper_timeout)
+                    yield sockets.SendAll(self.conn, chunk)
               else:
                 if self.started_response: 
                   if not self.sent_headers:
                     self.sent_headers = True
-                    yield sockets.WriteAll(self.conn,
-                          self.render_headers()+self.write_buffer.getvalue(), 
-                          run_first=run_first, timeout=self.sockoper_timeout)
+                    yield sockets.SendAll(self.conn,
+                          self.render_headers()+self.write_buffer.getvalue())
                 if ENVIRON['cogen.wsgi'].operation:
                   op = ENVIRON['cogen.wsgi'].operation
                   ENVIRON['cogen.wsgi'].operation = None
@@ -513,23 +492,22 @@ class WSGIConnection(object):
         if self.started_response:
           if not self.sent_headers:
             self.sent_headers = True
-            yield sockets.WriteAll(self.conn,
-                          self.render_headers()+self.write_buffer.getvalue(), 
-                          run_first=run_first, timeout=self.sockoper_timeout)
+            yield sockets.SendAll(self.conn,
+              self.render_headers()+self.write_buffer.getvalue()
+            )
         else:
           import warnings
           warnings.warn("App was consumed and hasn't called start_response")
         
         if self.chunked_write:
-          yield sockets.WriteAll( self.conn, "0\r\n\r\n", run_first=run_first, 
-                                  timeout=self.sockoper_timeout)
+          yield sockets.SendAll(self.conn, "0\r\n\r\n")
         if self.close_connection:
           return
-        while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'], 
-                     run_first=run_first, timeout=self.sockoper_timeout)):
-          # we need to consume any unread input data to read the next 
+        #~ while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'], 
+                     #~ timeout=self.sockoper_timeout)):
+          #~ # we need to consume any unread input data to read the next 
           #pipelined request
-          pass
+          #~ pass
     except (socket.error, OSError), e:
       errno = e.args[0]
       if errno not in useless_socket_errors:
@@ -598,20 +576,18 @@ class WSGIServer(object):
   def __init__(self, bind_addr, wsgi_app, scheduler, 
             server_name=None, 
             request_queue_size=64,
-            sockoper_run_first=True,
             sockoper_timeout=15,
             sendfile_timeout=-1,
             sockaccept_greedy=False
         ):
     self.request_queue_size = int(request_queue_size)
-    self.sockoper_run_first = sockoper_run_first
     self.sendfile_timeout = sendfile_timeout
     self.sockoper_timeout = sockoper_timeout
     self.scheduler = scheduler
     self.sockaccept_greedy = sockaccept_greedy
     self.environ['cogen.sched'] = self.scheduler
           
-    self.version = "cogen.web/%s %s" % (__version__, scheduler.poll.__class__.__name__)
+    self.version = "cogen.web/%s %s" % (__version__, scheduler.proactor.__class__.__name__)
     if callable(wsgi_app):
       # We've been handed a single wsgi_app, in CP-2.1 style.
       # Assume it's mounted at "".
@@ -694,6 +670,7 @@ class WSGIServer(object):
     msg = "No socket could be created"
     for res in info:
       af, socktype, proto, canonname, sa = res
+      print res
       try:
         self.bind(af, socktype, proto)
       except socket.error, msg:
@@ -709,13 +686,16 @@ class WSGIServer(object):
     with closing(self.socket):
       while True:
         try:
-          s, addr = yield sockets.Accept(self.socket, timeout=-1, 
-                                  run_first=self.sockoper_run_first)
+          s, addr = yield sockets.Accept(self.socket, timeout=-1)
         except Exception, exc: 
           # make acceptor more robust in the face of weird 
           # accept bugs, XXX: but we might get a infinite loop
-          import warnings
-          warnings.warn("Accept thrown an exception: %s" % exc)
+          
+          #~ import warnings
+          #~ warnings.warn("Accept thrown an exception: %s" % exc)
+          
+          import traceback
+          traceback.print_exc()
           continue
          
         environ = self.environ.copy()
@@ -738,7 +718,7 @@ class WSGIServer(object):
           environ["REMOTE_PORT"] = str(addr[1])
         
         conn = self.ConnectionClass(s, self.wsgi_app, environ, 
-          self.sockoper_run_first, self.sockoper_timeout, self.sendfile_timeout)
+          self.sockoper_timeout, self.sendfile_timeout)
         yield events.AddCoro(conn.run, prio=priority.LAST if
                                      self.sockaccept_greedy else priority.FIRST)
    
@@ -773,7 +753,6 @@ def server_factory(global_conf, host, port, **options):
     * sched_default_timeout: float (default: 0 - no timeout)
     * server_name: str
     * request_queue_size: int
-    * sockoper_run_first: bool (yes/no, true/false)
     * sockoper_timeout: float (default: 15 - operations timeout in 15 seconds), 
       -1 (no timeout), 0 (use scheduler's default), >0 (seconds)
     * sendfile_timeout: float (default: 300) - same as sockoper_timeout, 
@@ -795,6 +774,9 @@ def server_factory(global_conf, host, port, **options):
       default_priority=int(options.get('sched_default_priority', priority.FIRST)), 
       default_timeout=float(options.get('sched_default_timeout', 0)),
       proactor_resolution=float(options.get('proactor_resolution', 0.5)),
+      sockoper_run_first=asbool(options.get('sockoper_run_first', 'true')),
+      proactor_greedy=asbool(options.get('proactor_greedy')),
+      ops_greedy=asbool(options.get('ops_greedy'))
     )
     server = WSGIServer( 
       (host, port), 
@@ -802,7 +784,6 @@ def server_factory(global_conf, host, port, **options):
       sched, 
       server_name=options.get('server_name', host), 
       request_queue_size=int(options.get('request_queue_size', 64)),
-      sockoper_run_first=asbool(options.get('sockoper_run_first', 'true')),
       sockoper_timeout=float(options.get('sockoper_timeout', 15)),
       sendfile_timeout=float(options.get('sendfile_timeout', 300)),
       sockaccept_greedy=asbool(options.get('sockoper_run_first', 'false')),

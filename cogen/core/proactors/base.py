@@ -125,13 +125,16 @@ class ProactorBase(object):
             
     def request_accept(self, act, coro):
         return self.request_generic(act, coro, self.perform_accept)
-            
+    
     def request_connect(self, act, coro):
         result = self.try_run_act(act, self.perform_connect)
         if result:
             return result, coro
         else:
             self.add_token(act, coro, self.perform_connect)
+    
+    def request_sendfile(self, act, coro):
+        return self.request_generic(act, coro, self.perform_sendfile)
     
     def request_generic(self, act, coro, perform):
         result = self.multiplex_first and self.try_run_act(act, perform)
@@ -154,7 +157,6 @@ class ProactorBase(object):
         else:
             import warnings
             warnings.warn("%s does not have an registered operation." % coro)
-    
     def try_run_act(self, act, func):
         try:
             return self.run_act(act, func)

@@ -86,7 +86,17 @@ class IOCPProactor(ProactorBase):
         act.sock.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_CONNECT_CONTEXT, "")
         return act
 
+    def perform_sendfile(self, act, overlapped):
+        return win32file.TransmitFile(
+            act.sock, 
+            win32file._get_osfhandle(act.file_handle.fileno()), 
+            act.length or 0, 
+            act.blocksize, overlapped, 0
+        )
 
+    def complete_sendfile(self, act, rc, nbytes):
+        act.sent = nbytes
+        return act
 
     def request_recv(self, act, coro):
         return self.request_generic(act, coro, self.perform_recv, self.complete_recv, )
@@ -103,6 +113,8 @@ class IOCPProactor(ProactorBase):
     def request_connect(self, act, coro):
         return self.request_generic(act, coro, self.perform_connect, self.complete_connect)
         
+    def request_sendfile(self, act, coro):
+        return self.request_generic(act, coro, self.perform_sendfile, self.complete_sendfile)
     #~ @debug(0)
     def request_generic(self, act, coro, perform, complete):
         overlapped = pywintypes.OVERLAPPED() 

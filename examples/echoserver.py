@@ -10,7 +10,7 @@ def server():
     print type(srv)
     adr = ('0.0.0.0', len(sys.argv)>1 and int(sys.argv[1]) or 1200)
     srv.bind(adr)
-    srv.listen(10)
+    srv.listen(64)
     while 1:
         print "Listening on", adr
         conn, addr = yield srv.accept()
@@ -24,7 +24,7 @@ def handler(sock, addr):
     yield fh.flush()
         
     while 1:
-        line = yield fh.readline()
+        line = yield fh.readline(10)
         print `line`
         if line.strip() == 'exit':
             yield fh.write("GOOD BYE")
@@ -35,6 +35,6 @@ def handler(sock, addr):
         yield fh.flush()
 
 print 'Using:', proactors.DefaultProactor.__name__
-m = schedulers.Scheduler(proactor_resolution=.5)
+m = schedulers.Scheduler(proactor_resolution=1, proactor=proactors.has_select())
 m.add(server)
 m.run()

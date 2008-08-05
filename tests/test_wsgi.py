@@ -18,7 +18,7 @@ from cogen.common import *
 from cogen.core.util import debug
 from cogen.web import wsgi, async
 
-from base import priorities, reactors_available
+from base import priorities, proactors_available
 from base_web import WebTest_Base
 
  
@@ -274,21 +274,21 @@ class FileWrapperTest_MixIn:
                 self.failIf("Connection not closed!")
         
     
-for poller_cls in reactors_available:
+for poller_cls in proactors_available:
     for prio_mixin in priorities:
         
-        name = 'LazyStartResponseTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
-        globals()[name] = type(
-            name, 
-            (LazyStartResponseTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
-            {'poller':poller_cls}
-        )
-        name = 'FileWrapperTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
-        globals()[name] = type(
-            name, 
-            (FileWrapperTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
-            {'poller':poller_cls}
-        )
+        #~ name = 'LazyStartResponseTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        #~ globals()[name] = type(
+            #~ name, 
+            #~ (LazyStartResponseTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            #~ {'poller':poller_cls}
+        #~ )
+        #~ name = 'FileWrapperTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        #~ globals()[name] = type(
+            #~ name, 
+            #~ (FileWrapperTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            #~ {'poller':poller_cls}
+        #~ )
         name = 'SimpleAppTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(
             name, 
@@ -296,19 +296,19 @@ for poller_cls in reactors_available:
             {'poller':poller_cls}
         )
         
-        name = 'InputTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
-        globals()[name] = type(
-            name, 
-            (InputTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
-            {'poller':poller_cls}
-        )
+        #~ name = 'InputTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        #~ globals()[name] = type(
+            #~ name, 
+            #~ (InputTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            #~ {'poller':poller_cls}
+        #~ )
         
-        name = 'AsyncInputTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
-        globals()[name] = type(
-            name, 
-            (AsyncInputTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
-            {'poller':poller_cls}
-        )
+        #~ name = 'AsyncInputTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
+        #~ globals()[name] = type(
+            #~ name, 
+            #~ (AsyncInputTest_MixIn, WebTest_Base, prio_mixin, unittest.TestCase),
+            #~ {'poller':poller_cls}
+        #~ )
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

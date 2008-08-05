@@ -81,7 +81,7 @@ class Socket(object):
         self._fd.setblocking(0)
         self._timeout = _TIMEOUT
         self._proactor_added = False
-        
+            
     def recv(self, bufsize, **kws):
         """Receive data from the socket. The return value is a string 
         representing the data received. The amount of data may be less than the
@@ -132,7 +132,7 @@ class Socket(object):
     def connect(self, address, **kws):
         """Connect to a remote socket at _address_. """
         return Connect(self, address, **kws)
-        
+    
     def fileno(self):
         """Return the socket's file descriptor """
         return self._fd.fileno()
@@ -174,7 +174,8 @@ class Socket(object):
         """Set the value of the given socket option. Same as the usual socket 
         method."""
         self._fd.setsockopt(*args)
-        
+    def sendfile(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
+        return SendFile(self._fd, file_handle, sock, offset=None, length=None, blocksize=4096, **kws)
     def __repr__(self):
         return '<socket at 0x%X>' % id(self)
     def __str__(self):
@@ -206,119 +207,54 @@ class SocketOperation(events.TimedOperation):
         
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
+    
     def fileno(self):
-        return self.sock.fileno()
+        return self.sock._fd.fileno()
         
     def cleanup(self, sched, coro):
         return sched.proactor.remove(self, coro)
     
     
-#~ class SendFile(WriteOperation):
-    #~ """
-        #~ Uses underling OS sendfile call or a regular memory copy operation if 
-        #~ there is no sendfile.
-        #~ You can use this as a WriteAll if you specify the length.
-        #~ Usage:
+class SendFile(SocketOperation):
+    """
+        Uses underling OS sendfile (or equivalent) call or a regular memory copy 
+        operation if there is no sendfile.
+        You can use this as a WriteAll if you specify the length.
+        Usage:
             
-        #~ .. sourcecode:: python
-            #~ yield sockets.SendFile(file_object, socket_object, 0) 
-                #~ # will send till send operations return 0
+        .. sourcecode:: python
+            yield sockets.SendFile(file_object, socket_object, 0) 
+                # will send till send operations return 0
                 
-            #~ yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
-                #~ # there will be only one send operation (if successfull)
-                #~ # that meas the whole file will be read in memory if there is 
-                #~ #no sendfile
+            yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
+                # there will be only one send operation (if successfull)
+                # that meas the whole file will be read in memory if there is 
+                #no sendfile
                 
-            #~ yield sockets.SendFile(file_object, socket_object, 0, file_size)
-                #~ # this will hang if we can't read file_size bytes
-                #~ #from the file
+            yield sockets.SendFile(file_object, socket_object, 0, file_size)
+                # this will hang if we can't read file_size bytes
+                #from the file
 
-    #~ """
-    #~ __slots__ = [
-        #~ 'sent', 'file_handle', 'offset', 
-        #~ 'position', 'length', 'blocksize'
-    #~ ]
-    #~ def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
-        #~ super(SendFile, self).__init__(sock, **kws)
-        #~ self.file_handle = file_handle
-        #~ self.offset = self.position = offset or file_handle.tell()
-        #~ self.length = length
-        #~ self.sent = 0
-        #~ self.blocksize = blocksize
-    #~ def send(self, offset, length):
-        #~ if sendfile:
-            #~ offset, sent = sendfile.sendfile(
-                #~ self.sock.fileno(), 
-                #~ self.file_handle.fileno(), 
-                #~ offset, 
-                #~ length
-            #~ )
-        #~ else:
-            #~ self.file_handle.seek(offset)
-            #~ sent = self.sock._fd.send(self.file_handle.read(length))
-        #~ return sent
-        
-    #~ def iocp_send(self, offset, length, overlap):
-        #~ self.file_handle.seek(offset)
-        #~ return win32file.WSASend(self.sock._fd, self.file_handle.read(length), overlap, 0)
-        
-    #~ def iocp(self, overlap):
-        #~ if self.length:
-            #~ if self.blocksize:
-                #~ return self.iocp_send(
-                    #~ self.offset + self.sent, 
-                    #~ min(self.length-self.sent, self.blocksize),
-                    #~ overlap
-                #~ )
-            #~ else:
-                #~ return self.iocp_send(self.offset+self.sent, self.length-self.sent, overlap)
-        #~ else:
-            #~ return self.iocp_send(self.offset+self.sent, self.blocksize, overlap)
-            
-    #~ def iocp_done(self, rc, nbytes):
-        #~ self.sent += nbytes
-
-    #~ def run(self, proactor):
-        #~ if self.length:
-            #~ assert self.sent <= self.length
-        #~ if self.sent == self.length:
-            #~ return self
-            
-        #~ if self.length:
-            #~ if self.blocksize:
-                #~ self.sent += self.send(
-                    #~ self.offset + self.sent, 
-                    #~ min(self.length-self.sent, self.blocksize)
-                #~ )
-            #~ else:
-                #~ self.sent += self.send(self.offset+self.sent, self.length-self.sent)
-            #~ if self.sent == self.length:
-                #~ return self
-        #~ else:
-            #~ if self.blocksize:
-                #~ sent = self.send(self.offset+self.sent, self.blocksize)
-            #~ else:
-                #~ sent = self.send(self.offset+self.sent, self.blocksize)
-                #~ # we would use self.length but we don't have any,
-                #~ #  and we don't know the file's length
-            #~ self.sent += sent
-            #~ if not sent:
-                #~ return self
-        #TODO: test this some more with bad usage cases
-        
-        
-    #~ def __repr__(self):
-        #~ return "<%s at 0x%X %s fh:%s offset:%r len:%s bsz:%s to:%s>" % (
-            #~ self.__class__.__name__, 
-            #~ id(self), 
-            #~ self.sock, 
-            #~ self.file_handle, 
-            #~ self.offset, 
-            #~ self.length, 
-            #~ self.blocksize, 
-            #~ self.timeout
-        #~ )
+    """
+    __slots__ = [
+        'sent', 'file_handle', 'offset', 
+        'position', 'length', 'blocksize'
+    ]
     
+    def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
+        super(SendFile, self).__init__(sock, **kws)
+        self.file_handle = file_handle
+        self.offset = self.position = offset or file_handle.tell()
+        self.length = length
+        self.sent = 0
+        self.blocksize = blocksize
+        
+    def process(self, sched, coro):
+        return sched.proactor.request_sendfile(self, coro)
+    
+    def finalize(self):
+        super(Send, self).finalize()
+        return self.sent
 
 
 class Recv(SocketOperation):
@@ -571,7 +507,8 @@ class _fileobject(object):
                     break
                 buf_len += n
             raise StopIteration("".join(buffers))
-
+    #~ from coroutines import debug_coro
+    #~ @debug_coro
     @coro
     def readline(self, size=-1, **kws):
         data = self._rbuf
