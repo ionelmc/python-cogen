@@ -268,6 +268,7 @@ class Coroutine(events.Operation):
             self.coro,
             self._state_names[self.state]
         )
+    __str__ = __repr__
         
 if __name__ == "__main__":
     @coroutine

@@ -54,9 +54,9 @@ class IOCPProactor(ProactorBase):
     def perform_accept(self, act, overlapped):
         act.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         act.cbuff = win32file.AllocateReadBuffer(64)
-        return win32file.WSA_IO_PENDING, win32file.AcceptEx(
+        return win32file.AcceptEx(
             act.sock._fd.fileno(), act.conn.fileno(), act.cbuff, overlapped
-        )
+        ), 0
             
     def complete_accept(self, act, rc, nbytes):
         act.conn.setblocking(0)
@@ -92,7 +92,7 @@ class IOCPProactor(ProactorBase):
             win32file._get_osfhandle(act.file_handle.fileno()), 
             act.length or 0, 
             act.blocksize, overlapped, 0
-        )
+        ), 0
 
     def complete_sendfile(self, act, rc, nbytes):
         act.sent = nbytes

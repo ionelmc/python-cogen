@@ -11,6 +11,81 @@ from cogen.core.sockets import Socket
 from cogen.core.util import priority, debug
 
 
+def perform_recv(act):
+    act.buff = act.sock._fd.recv(act.len)
+    if act.buff:
+        return act
+    else:
+        raise ConnectionClosed("Empty recv.")
+    
+def perform_send(act):
+    act.sent = act.sock._fd.send(act.buff)
+    return act.sent and act
+    
+def perform_sendall(act):
+    act.sent += act.sock._fd.send(act.buff[act.sent:])
+    return act.sent==len(act.buff) and act
+    
+def perform_accept(act):
+    act.conn, act.addr = act.sock._fd.accept()
+    act.conn.setblocking(0)
+    act.conn = Socket(_sock=act.conn)
+    return act
+        
+def perform_connect(act):
+    if act.connect_attempted:
+        try:
+            act.sock._fd.getpeername()
+        except soerror, exc:
+            if exc[0] not in (errno.EAGAIN, errno.EWOULDBLOCK, 
+                            errno.EINPROGRESS, errno.ENOTCONN):
+                return
+        return act
+    err = act.sock._fd.connect_ex(act.addr)
+    act.connect_attempted = True
+    if err:
+        if err == errno.EISCONN:
+            return act
+        if err not in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
+            raise ConnectionError(err, errno.errorcode[err])
+    else: # err==0 means successful connect
+        return act
+
+def wrapped_sendfile(act, offset, length):
+    if sendfile:
+        offset, sent = sendfile.sendfile(
+            act.sock.fileno(), 
+            act.file_handle.fileno(), 
+            offset, length
+        )
+    else:
+        act.file_handle.seek(offset)
+        sent = act.sock._fd.send(act.file_handle.read(length))
+    return sent
+
+def perform_sendfile(act):
+    if act.length:
+        if act.blocksize:
+            act.sent += wrapped_sendfile(
+                act,
+                act.offset + act.sent, 
+                min(act.length-act.sent, act.blocksize)
+            )
+        else:
+            act.sent += wrapped_sendfile(act, act.offset+act.sent, act.length-act.sent)
+        if act.sent == act.length:
+            return act
+    else:
+        if act.blocksize:
+            sent = wrapped_sendfile(act, act.offset+act.sent, act.blocksize)
+        else:
+            sent = wrapped_sendfile(act, act.offset+act.sent, act.blocksize)
+            # we would use self.length but we don't have any,
+            #  and we don't know the file's length
+        act.sent += sent
+        if not sent:
+            return act
+
 class ProactorBase(object):
     """
     A proactor just checks if there are ready-sockets for the operations.
@@ -33,111 +108,29 @@ class ProactorBase(object):
     def __len__(self):
         return len(self.tokens)
 
-    @staticmethod
-    def perform_recv(act):
-        act.buff = act.sock._fd.recv(act.len)
-        if act.buff:
-            return act
-        else:
-            raise ConnectionClosed("Empty recv.")
-        
-    @staticmethod
-    def perform_send(act):
-        act.sent = act.sock._fd.send(act.buff)
-        return act.sent and act
-        
-    @staticmethod
-    def perform_sendall(act):
-        act.sent += act.sock._fd.send(act.buff[act.sent:])
-        return act.sent==len(act.buff) and act
-        
-    @staticmethod
-    def perform_accept(act):
-        act.conn, act.addr = act.sock._fd.accept()
-        act.conn.setblocking(0)
-        act.conn = Socket(_sock=act.conn)
-        return act
-            
-    @staticmethod
-    def perform_connect(act):
-        if act.connect_attempted:
-            try:
-                act.sock._fd.getpeername()
-            except soerror, exc:
-                if exc[0] not in (errno.EAGAIN, errno.EWOULDBLOCK, 
-                                errno.EINPROGRESS, errno.ENOTCONN):
-                    return
-            return act
-        err = act.sock._fd.connect_ex(act.addr)
-        act.connect_attempted = True
-        if err:
-            if err == errno.EISCONN:
-                return act
-            if err not in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
-                raise ConnectionError(err, errno.errorcode[err])
-        else: # err==0 means successful connect
-            return act
-    
-    @staticmethod
-    @debug(0)
-    def wrapped_sendfile(act, offset, length):
-        if sendfile:
-            offset, sent = sendfile.sendfile(
-                act.sock.fileno(), 
-                act.file_handle.fileno(), 
-                offset, length
-            )
-        else:
-            act.file_handle.seek(offset)
-            sent = act.sock._fd.send(act.file_handle.read(length))
-        return sent
-        
-    def perform_sendfile(self, act):
-        print act
-        if act.length:
-            if act.blocksize:
-                act.sent += self.wrapped_sendfile(
-                    act,
-                    act.offset + act.sent, 
-                    min(act.length-act.sent, act.blocksize)
-                )
-            else:
-                act.sent += self.wrapped_sendfile(act, act.offset+act.sent, act.length-act.sent)
-            if act.sent == act.length:
-                return act
-        else:
-            if act.blocksize:
-                sent = self.wrapped_sendfile(act, act.offset+act.sent, act.blocksize)
-            else:
-                sent = self.wrapped_sendfile(act, act.offset+act.sent, act.blocksize)
-                # we would use self.length but we don't have any,
-                #  and we don't know the file's length
-            act.sent += sent
-            if not sent:
-                return act
         
         
     def request_recv(self, act, coro):
-        return self.request_generic(act, coro, self.perform_recv)
+        return self.request_generic(act, coro, perform_recv)
             
     def request_send(self, act, coro):
-        return self.request_generic(act, coro, self.perform_send)
+        return self.request_generic(act, coro, perform_send)
             
     def request_sendall(self, act, coro):
-        return self.request_generic(act, coro, self.perform_sendall)
+        return self.request_generic(act, coro, perform_sendall)
             
     def request_accept(self, act, coro):
-        return self.request_generic(act, coro, self.perform_accept)
+        return self.request_generic(act, coro, perform_accept)
     
     def request_connect(self, act, coro):
-        result = self.try_run_act(act, self.perform_connect)
+        result = self.try_run_act(act, perform_connect)
         if result:
             return result, coro
         else:
-            self.add_token(act, coro, self.perform_connect)
+            self.add_token(act, coro, perform_connect)
     
     def request_sendfile(self, act, coro):
-        return self.request_generic(act, coro, self.perform_sendfile)
+        return self.request_generic(act, coro, perform_sendfile)
     
     def request_generic(self, act, coro, perform):
         result = self.multiplex_first and self.try_run_act(act, perform)

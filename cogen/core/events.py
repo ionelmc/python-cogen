@@ -21,6 +21,9 @@ class CoroutineException(Exception):
     prio = priority.DEFAULT
     def __init__(self, *args):
         super(CoroutineException, self).__init__(*args)
+    def __str__(self):
+        import traceback
+        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.message))
 
 class ConnectionError(Exception):
     "Raised when a socket has a error flag (in epoll or select)"
@@ -91,7 +94,7 @@ class Operation(object):
         return "<%s at 0x%X with %s>" % (
             self.__class__.__name__,
             id(self),
-            ' '.join("%s:%.20s" % (i, getattr(self, i, 'n/a')) for i in _getslots(self))
+            ' '.join("%s:%.40s" % (i, getattr(self, i, 'n/a')) for i in _getslots(self))
         )
     def __repr__(self):
         return "<%s at 0x%X with %s>" % (
