@@ -204,11 +204,14 @@ class Coroutine(events.Operation):
         if self.debug:
             print 
             if isinstance(op, events.CoroutineException):
-                print 'Running %r with exception:' % self
-                print '[[['
-                import traceback
-                traceback.print_exception(*op.message)
-                print ']]]'
+                print 'Running %r with exception:' % self,
+                if len(op.message) == 3:
+                    print '[[['
+                    import traceback
+                    traceback.print_exception(*op.message)
+                    print ']]]'
+                else:
+                    print op.message
             else:
                 print 'Running %r with: %r' % (self, op)
         global ident

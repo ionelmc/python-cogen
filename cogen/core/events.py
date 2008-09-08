@@ -42,7 +42,7 @@ def _getslots(obj):
     return itertools.chain(
         getattr(obj, '__slots__', []), 
         *(_getslots(i) for i in 
-            hasattr(obj, '__basses__') 
+            hasattr(obj, '__bases__') 
                 and obj.__bases__ 
                 or ()
         )
@@ -94,13 +94,13 @@ class Operation(object):
         return "<%s at 0x%X with %s>" % (
             self.__class__.__name__,
             id(self),
-            ' '.join("%s:%.40s" % (i, getattr(self, i, 'n/a')) for i in _getslots(self))
+            ' '.join("%s:%.40s" % (i, getattr(self, i, 'n/a')) for i in _getslots(self.__class__))
         )
     def __repr__(self):
         return "<%s at 0x%X with %s>" % (
             self.__class__.__name__,
             id(self),
-            ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in _getslots(self))
+            ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in _getslots(self.__class__))
         )
 
 class TimedOperation(Operation):
