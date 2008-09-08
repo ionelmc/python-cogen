@@ -13,6 +13,80 @@ from cogen.core.util import priority, debug
 from cogen.core.sockets import Socket
 from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
 
+def perform_recv(act, overlapped):
+    act.buff = win32file.AllocateReadBuffer(act.len)
+    return win32file.WSARecv(act.sock._fd, act.buff, overlapped, 0)
+
+def complete_recv(act, rc, nbytes):
+    if nbytes:
+        act.buff = act.buff[:nbytes]
+        return act
+    else:
+        raise ConnectionClosed("Empty recv.")
+    
+    
+def perform_send(act, overlapped):
+    return win32file.WSASend(act.sock._fd, act.buff, overlapped, 0)
+
+def complete_send(act, rc, nbytes):
+    act.sent = nbytes
+    return act.sent and act
+    
+    
+def perform_sendall(act, overlapped):
+    return win32file.WSASend(act.sock._fd, act.buff[act.sent:], overlapped, 0)
+
+def complete_sendall(act, rc, nbytes):
+    act.sent += nbytes
+    return act.sent == len(act.buff) and act
+    
+    
+def perform_accept(act, overlapped):
+    act.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    act.cbuff = win32file.AllocateReadBuffer(64)
+    return win32file.AcceptEx(
+        act.sock._fd.fileno(), act.conn.fileno(), act.cbuff, overlapped
+    ), 0
+        
+def complete_accept(act, rc, nbytes):
+    act.conn.setblocking(0)
+    act.conn.setsockopt(
+        socket.SOL_SOCKET, 
+        win32file.SO_UPDATE_ACCEPT_CONTEXT, 
+        struct.pack("I", act.sock.fileno())
+    )
+    family, localaddr, act.addr = win32file.GetAcceptExSockaddrs(
+        act.conn, act.cbuff
+    )
+    act.conn = Socket(_sock=act.conn)
+    return act
+    
+
+def perform_connect(act, overlapped):
+    # ConnectEx requires that the socket be bound beforehand
+    try:
+        # just in case we get a already-bound socket
+        act.sock.bind(('0.0.0.0', 0))
+    except socket.error, exc:
+        if exc[0] not in (errno.EINVAL, errno.WSAEINVAL):
+            raise
+    return win32file.ConnectEx(act.sock, act.addr, overlapped)
+
+def complete_connect(act, rc, nbytes):
+    act.sock.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_CONNECT_CONTEXT, "")
+    return act
+
+def perform_sendfile(act, overlapped):
+    return win32file.TransmitFile(
+        act.sock, 
+        win32file._get_osfhandle(act.file_handle.fileno()), 
+        act.length or 0, 
+        act.blocksize, overlapped, 0
+    ), 0
+
+def complete_sendfile(act, rc, nbytes):
+    act.sent = nbytes
+    return act
 
 class IOCPProactor(ProactorBase):
     def __init__(self, scheduler, res):
@@ -22,110 +96,33 @@ class IOCPProactor(ProactorBase):
             win32file.INVALID_HANDLE_VALUE, None, 0, 0
         ) 
 
-
-    def perform_recv(self, act, overlapped):
-        act.buff = win32file.AllocateReadBuffer(act.len)
-        return win32file.WSARecv(act.sock._fd, act.buff, overlapped, 0)
-    
-    def complete_recv(self, act, rc, nbytes):
-        if nbytes:
-            act.buff = act.buff[:nbytes]
-            return act
-        else:
-            raise ConnectionClosed("Empty recv.")
-        
-        
-    def perform_send(self, act, overlapped):
-        return win32file.WSASend(act.sock._fd, act.buff, overlapped, 0)
-    
-    def complete_send(self, act, rc, nbytes):
-        act.sent = nbytes
-        return act.sent and act
-        
-        
-    def perform_sendall(self, act, overlapped):
-        return win32file.WSASend(act.sock._fd, act.buff[act.sent:], overlapped, 0)
-    
-    def complete_sendall(self, act, rc, nbytes):
-        act.sent += nbytes
-        return act.sent == len(act.buff) and act
-        
-        
-    def perform_accept(self, act, overlapped):
-        act.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        act.cbuff = win32file.AllocateReadBuffer(64)
-        return win32file.AcceptEx(
-            act.sock._fd.fileno(), act.conn.fileno(), act.cbuff, overlapped
-        ), 0
-            
-    def complete_accept(self, act, rc, nbytes):
-        act.conn.setblocking(0)
-        act.conn.setsockopt(
-            socket.SOL_SOCKET, 
-            win32file.SO_UPDATE_ACCEPT_CONTEXT, 
-            struct.pack("I", act.sock.fileno())
-        )
-        family, localaddr, act.addr = win32file.GetAcceptExSockaddrs(
-            act.conn, act.cbuff
-        )
-        act.conn = Socket(_sock=act.conn)
-        return act
-        
-    
-    def perform_connect(self, act, overlapped):
-        # ConnectEx requires that the socket be bound beforehand
-        try:
-            # just in case we get a already-bound socket
-            act.sock.bind(('0.0.0.0', 0))
-        except socket.error, exc:
-            if exc[0] not in (errno.EINVAL, errno.WSAEINVAL):
-                raise
-        return win32file.ConnectEx(act.sock, act.addr, overlapped)
-    
-    def complete_connect(self, act, rc, nbytes):
-        act.sock.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_CONNECT_CONTEXT, "")
-        return act
-
-    def perform_sendfile(self, act, overlapped):
-        return win32file.TransmitFile(
-            act.sock, 
-            win32file._get_osfhandle(act.file_handle.fileno()), 
-            act.length or 0, 
-            act.blocksize, overlapped, 0
-        ), 0
-
-    def complete_sendfile(self, act, rc, nbytes):
-        act.sent = nbytes
-        return act
-
     def request_recv(self, act, coro):
-        return self.request_generic(act, coro, self.perform_recv, self.complete_recv, )
+        return self.request_generic(act, coro, perform_recv, complete_recv, )
             
     def request_send(self, act, coro):
-        return self.request_generic(act, coro, self.perform_send, self.complete_send)
+        return self.request_generic(act, coro, perform_send, complete_send)
             
     def request_sendall(self, act, coro):
-        return self.request_generic(act, coro, self.perform_sendall, self.complete_sendall)
+        return self.request_generic(act, coro, perform_sendall, complete_sendall)
             
     def request_accept(self, act, coro):
-        return self.request_generic(act, coro, self.perform_accept, self.complete_accept)
+        return self.request_generic(act, coro, perform_accept, complete_accept)
             
     def request_connect(self, act, coro):
-        return self.request_generic(act, coro, self.perform_connect, self.complete_connect)
+        return self.request_generic(act, coro, perform_connect, complete_connect)
         
     def request_sendfile(self, act, coro):
-        return self.request_generic(act, coro, self.perform_sendfile, self.complete_sendfile)
-    #~ @debug(0)
+        return self.request_generic(act, coro, perform_sendfile, complete_sendfile)
+    
     def request_generic(self, act, coro, perform, complete):
         overlapped = pywintypes.OVERLAPPED() 
         overlapped.object = act
         self.add_token(act, coro, (overlapped, perform, complete))
         
         rc, nbytes = perform(act, overlapped)
-        #~ print rc, nbytes
         
         if rc == 0:
-            # ah geez, it didn't got in the iocp, we have a result!
+            # ah geez, it didn't got in the iocp, we have a result!"
             win32file.PostQueuedCompletionStatus(
                 self.iocp, nbytes, 0, overlapped
             )
@@ -153,7 +150,6 @@ class IOCPProactor(ProactorBase):
         if act in self.tokens:
             ol, perform, complete = self.tokens[act]
             assert ol is overlap
-            
             if rc == 0:
                 ract = self.try_run_act(act, complete, rc, nbytes)
                 if ract:
