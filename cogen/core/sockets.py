@@ -214,7 +214,7 @@ class SocketOperation(events.TimedOperation):
         return self.sock._fd.fileno()
         
     def cleanup(self, sched, coro):
-        return sched.proactor.remove(self, coro)
+        return sched.proactor.remove_token(self)
     
     
 class SendFile(SocketOperation):
@@ -252,7 +252,7 @@ class SendFile(SocketOperation):
         self.blocksize = blocksize
         
     def process(self, sched, coro):
-        super(SendFile, self).process()
+        super(SendFile, self).process(sched, coro)
         return sched.proactor.request_sendfile(self, coro)
     
     def finalize(self):
@@ -279,7 +279,7 @@ class Recv(SocketOperation):
         self.buff = None
     
     def process(self, sched, coro):
-        super(Recv, self).process()
+        super(Recv, self).process(sched, coro)
         return sched.proactor.request_recv(self, coro)
         
     def finalize(self):
@@ -299,7 +299,7 @@ class Send(SocketOperation):
         self.sent = 0
         
     def process(self, sched, coro):
-        super(Send, self).process()
+        super(Send, self).process(sched, coro)
         return sched.proactor.request_send(self, coro)
     
     def finalize(self):
@@ -318,7 +318,7 @@ class SendAll(SocketOperation):
         self.sent = 0
         
     def process(self, sched, coro):
-        super(SendAll, self).process()
+        super(SendAll, self).process(sched, coro)
         return sched.proactor.request_sendall(self, coro)
     
     def finalize(self):
@@ -336,7 +336,7 @@ class Accept(SocketOperation):
         self.conn = None
         
     def process(self, sched, coro):
-        super(Accept, self).process()
+        super(Accept, self).process(sched, coro)
         return sched.proactor.request_accept(self, coro)
 
     def finalize(self):
@@ -367,7 +367,7 @@ class Connect(SocketOperation):
         self.connect_attempted = False
 
     def process(self, sched, coro):
-        super(Connect, self).process()
+        super(Connect, self).process(sched, coro)
         return sched.proactor.request_connect(self, coro)
         
     def finalize(self):
