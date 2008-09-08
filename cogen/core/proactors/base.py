@@ -150,6 +150,7 @@ class ProactorBase(object):
         if act in self.tokens:
             del self.tokens[act]
             self.unregister_fd(act)
+            return True
         else:
             import warnings
             warnings.warn("%s does not have an registered operation." % coro)
