@@ -238,6 +238,7 @@ class WSGIConnection(object):
     if msg:
       buf.append(msg)
     return sockets.SendAll(self.conn, "".join(buf))
+  
   #~ from cogen.core.coroutines import debug_coroutine
   #~ @debug_coroutine
   @coroutine

@@ -129,7 +129,6 @@ class IOCPProactor(ProactorBase):
         
 
     def register_fd(self, act, performer):
-        #~ print act.sock, act.sock._proactor_added
         if not act.sock._proactor_added:
             win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
             act.sock._proactor_added = True
@@ -220,7 +219,6 @@ class IOCPProactor(ProactorBase):
                                 coro.run_op(op), 
                                 coro
                             )
-                        #~ print op, coro
                         if coro:
                             #TODO, what "op and "
                             if op and (op.prio & priority.CORO):

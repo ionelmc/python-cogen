@@ -244,7 +244,6 @@ class SendFile(SocketOperation):
     ]
     
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
-        print file_handle, sock, offset, length, blocksize
         super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
         self.offset = self.position = offset or file_handle.tell()
