@@ -202,8 +202,15 @@ class Coroutine(events.Operation):
             #~ )
         #~ self.lastop = op
         if self.debug:
-            print
-            print 'Running %s with: %s' % (self, op)
+            print 
+            if isinstance(op, events.CoroutineException):
+                print 'Running %r with exception:' % self
+                print '[[['
+                import traceback
+                traceback.print_exception(*op.message)
+                print ']]]'
+            else:
+                print 'Running %r with: %r' % (self, op)
         global ident
         ident = self
         try:
