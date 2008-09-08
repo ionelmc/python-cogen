@@ -114,7 +114,7 @@ class Socket(object):
         conn, address = yield mysock.accept()
         }}}
         """
-        return Accept(self, **kws)
+        return Accept(self, timeout=self._timeout, **kws)
         
     def close(self, *args):
         """Close the socket. All future operations on the socket object will 
@@ -131,7 +131,7 @@ class Socket(object):
         
     def connect(self, address, **kws):
         """Connect to a remote socket at _address_. """
-        return Connect(self, address, **kws)
+        return Connect(self, address, timeout=self._timeout, **kws)
     
     def fileno(self):
         """Return the socket's file descriptor """
