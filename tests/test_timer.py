@@ -117,7 +117,7 @@ class Timer_MixIn:
         self.assertAlmostEqual(self.msgs[2], 3.0, 1)
         self.assertAlmostEqual(self.msgs[3], 4.0, 1)
         self.assertAlmostEqual(self.msgs[4], 5.0, 1)
-    def xtest_sleep(self):
+    def test_sleep(self):
         self.timo = False
         @coroutine
         def sleepo():

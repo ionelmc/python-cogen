@@ -22,8 +22,13 @@ class SocketTest_MixIn:
     sockets = []
     def setUp(self):
         self.local_addr = ('localhost', random.randint(10000,64000))
-        self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
-                            proactor_resolution=0.01)
+        if self.run_first is None:
+            self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
+                                proactor_resolution=0.01)
+        else:
+            self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
+                                proactor_resolution=0.01, 
+                                proactor_multiplex_first=self.run_first)
         def run():
             try:
                 time.sleep(1)
@@ -50,15 +55,15 @@ class SocketTest_MixIn:
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = (yield srv.accept(prio=self.prio, run_first=self.run_first))
+            conn, addr = (yield srv.accept(prio=self.prio))
             fh = conn.makefile()
-            self.line1 = yield fh.readline(1024, prio=self.prio, run_first=self.run_first) 
-            self.line2 = yield fh.readline(512, prio=self.prio, run_first=self.run_first)
-            self.line3 = yield fh.readline(1512, prio=self.prio, run_first=self.run_first)
+            self.line1 = yield fh.readline(1024, prio=self.prio) 
+            self.line2 = yield fh.readline(512, prio=self.prio)
+            self.line3 = yield fh.readline(1512, prio=self.prio)
             # eat up the remaining data waiting on socket
-            y1 = fh.readline(1024, prio=self.prio, run_first=self.run_first)
-            y2 = fh.readline(1024, prio=self.prio, run_first=self.run_first)
-            y3 = fh.readline(1024, prio=self.prio, run_first=self.run_first)
+            y1 = fh.readline(1024, prio=self.prio)
+            y2 = fh.readline(1024, prio=self.prio)
+            y3 = fh.readline(1024, prio=self.prio)
             a1 = yield y1 
             a2 = yield y2
             a3 = yield y3
@@ -101,9 +106,9 @@ class SocketTest_MixIn:
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first)
-            self.recvobj = yield sockets.Recv(conn, 1024*4, prio=self.prio, run_first=self.run_first)
-            self.recvobj_all = yield sockets.RecvAll(conn, 1024**2-1024*4, prio=self.prio, run_first=self.run_first)
+            conn, addr = yield sockets.Accept(srv, prio=self.prio)
+            self.recvobj = yield sockets.Recv(conn, 1024*4, prio=self.prio)
+            self.recvobj_all = yield sockets.RecvAll(conn, 1024**2-1024*4, prio=self.prio)
             #~ srv.close()
             self.m.stop()
         coro = self.m.add(reader)
@@ -131,9 +136,9 @@ class SocketTest_MixIn:
             try:
                 cli = sockets.Socket()
                 self.sockets.append(cli)
-                conn = yield sockets.Connect(cli, self.local_addr, timeout=0.5, prio=self.prio, run_first=self.run_first)    
-                self.writeobj = yield sockets.Send(conn, 'X'*(1024**2), prio=self.prio, run_first=self.run_first)
-                self.writeobj_all = yield sockets.SendAll(conn, 'Y'*(1024**2), prio=self.prio, run_first=self.run_first)
+                conn = yield sockets.Connect(cli, self.local_addr, timeout=0.5, prio=self.prio)    
+                self.writeobj = yield sockets.Send(conn, 'X'*(1024**2), prio=self.prio)
+                self.writeobj_all = yield sockets.SendAll(conn, 'Y'*(1024**2), prio=self.prio)
                 self.sockets.append(conn)
                 self.sockets.append(cli)
             except:
@@ -185,13 +190,21 @@ class SocketTest_MixIn:
             
 for poller_cls in proactors_available:
     for prio_mixin in priorities:
-        for run_first in (True, False):
-            name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
+        if poller_cls.supports_multiplex_first:
+            for run_first in (True, False):
+                name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
+                globals()[name] = type(
+                    name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
+                    {'poller':poller_cls, 'run_first':run_first}
+                )
+        else:
+            name = 'SocketTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
             globals()[name] = type(
                 name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
-                {'poller':poller_cls, 'run_first':run_first}
+                {'poller':poller_cls, 'run_first':None}
             )
-    
+            
+        
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
     unittest.main()
