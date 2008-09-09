@@ -33,7 +33,7 @@ class Timer_MixIn:
         self.msgs = []
     def tearDown(self):
         self.local_sock.close()
-    def xtest_sock_connect_timeout(self):
+    def test_sock_connect_timeout(self):
         self.ev = threading.Event()
         self.ev.clear()
         @coroutine 
@@ -100,7 +100,9 @@ class Timer_MixIn:
             self.ev.wait()
             time.sleep(0.1)
             self.local_sock = socket.socket()
+            self.local_sock.settimeout(1)
             self.local_sock.connect(self.local_addr)
+
             self.local_sock.getpeername()
             time.sleep(1)
             #~ print self.m.active
@@ -108,26 +110,27 @@ class Timer_MixIn:
         except KeyboardInterrupt:
             self.failIf("Interrupted from the coroutine, something failed.")
         self.m_run.join()
-        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.proactor), 0)
         self.assertEqual(len(self.m.active), 0)
         self.assertAlmostEqual(self.msgs[0], 1.0, 1)
         self.assertAlmostEqual(self.msgs[1], 2.0, 1)
         self.assertAlmostEqual(self.msgs[2], 3.0, 1)
         self.assertAlmostEqual(self.msgs[3], 4.0, 1)
         self.assertAlmostEqual(self.msgs[4], 5.0, 1)
-    def test_sleep(self):
+    def xtest_sleep(self):
         self.timo = False
         @coroutine
         def sleepo():
             yield events.Sleep(1)
-        @debug_coroutine
+        @coroutine
         def timeouto():
             ts = time.time()
             s = sockets.Socket()
             s.bind(self.local_addr)
             s.listen(10)
+            s.settimeout(0.1)
             try:
-                yield s.accept(timeout=0.1)
+                yield s.accept()
             except events.OperationTimeout:
                 self.timo = True
             self.delta = time.time()-ts
