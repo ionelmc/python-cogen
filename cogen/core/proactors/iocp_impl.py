@@ -89,12 +89,17 @@ def complete_sendfile(act, rc, nbytes):
     return act
 
 class IOCPProactor(ProactorBase):
-    def __init__(self, scheduler, res):
-        super(self.__class__, self).__init__(scheduler, res)
+    supports_multiplex_first = False
+    
+    def __init__(self, scheduler, res, **options):
+        super(self.__class__, self).__init__(scheduler, res, **options)
         self.scheduler = scheduler
         self.iocp = win32file.CreateIoCompletionPort(
             win32file.INVALID_HANDLE_VALUE, None, 0, 0
         ) 
+        
+    def set_options(self, **bogus_options):
+        self._warn_bogus_options(**bogus_options) #iocp doesn't have any options
 
     def request_recv(self, act, coro):
         return self.request_generic(act, coro, perform_recv, complete_recv, )

@@ -63,12 +63,20 @@ class Scheduler(object):
     """
     def __init__(self, proactor=DefaultProactor, default_priority=priority.LAST, 
             default_timeout=None, proactor_resolution=.01, proactor_greedy=True,
-            ops_greedy=False):
+            ops_greedy=False, proactor_multiplex_first=None, 
+            proactor_default_size=None):
+            
         self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
         self.signals = collections.defaultdict(collections.deque)
-        self.proactor = proactor(self, proactor_resolution)
+        proactor_options = {}
+        if proactor_multiplex_first is not None:
+            proactor_options['multiplex_first'] = proactor_multiplex_first
+        if proactor_default_size is not None:
+            proactor_options['default_size'] = proactor_default_size
+        self.proactor = proactor(self, proactor_resolution, **proactor_options)
+                                 
         self.default_priority = default_priority
         self.default_timeout = default_timeout
         self.running = False

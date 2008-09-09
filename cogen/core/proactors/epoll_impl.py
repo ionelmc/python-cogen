@@ -6,8 +6,8 @@ from cogen.core import sockets
 from cogen.core.util import priority
 
 class EpollProactor(ProactorBase):
-    def __init__(self, scheduler, res, default_size = 1024):
-        super(self.__class__, self).__init__(scheduler, res)
+    def __init__(self, scheduler, res, default_size=1024, **options):
+        super(self.__class__, self).__init__(scheduler, res, **options)
         self.scheduler = scheduler
         self.epoll_fd = epoll.epoll_create(default_size)
         self.shadow = {}

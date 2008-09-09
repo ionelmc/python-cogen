@@ -96,14 +96,25 @@ class ProactorBase(object):
         'waiting_op', '__len__', 'handle_errored', 'remove', 'run', 
         'handle_events'
     ]
+    supports_multiplex_first = True
     
-    def __init__(self, scheduler, resolution, multiplex_first=True):
+    def __init__(self, scheduler, resolution, **options):
         self.tokens = {}
         self.scheduler = scheduler
         self.resolution = resolution # seconds
         self.m_resolution = resolution*1000 # miliseconds
         self.n_resolution = resolution*1000000000 #nanoseconds
+        self.set_options(**options)
+        
+    def set_options(self, multiplex_first=True, **bogus_options):
         self.multiplex_first = multiplex_first
+        self._warn_bogus_options(**bogus_options)
+        
+    def _warn_bogus_options(self, **opts):
+        if opts:
+            import warnings
+            for i in opts:
+                warnings.warn("Unsupported option %s for %s" % (i, self), stacklevel=2)
 
     def __len__(self):
         return len(self.tokens)

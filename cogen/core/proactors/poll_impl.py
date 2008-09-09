@@ -10,8 +10,8 @@ class PollProactor(ProactorBase):
     POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
     POLL_OUT = select.POLLOUT | POLL_ERR
     
-    def __init__(self, scheduler, res):
-        super(self.__class__, self).__init__(scheduler, res)
+    def __init__(self, scheduler, res, **options):
+        super(self.__class__, self).__init__(scheduler, res, **options)
         self.scheduler = scheduler
         self.poller = select.poll()
         self.shadow = {}

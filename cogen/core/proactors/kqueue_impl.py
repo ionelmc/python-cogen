@@ -7,9 +7,8 @@ from cogen.core.util import priority
 from cogen.core import events
 
 class KQueueProactor(ProactorBase):
-    def __init__(self, scheduler, res, default_size = 1024):
-        super(self.__class__, self).__init__(scheduler, res)
-        self.default_size = default_size
+    def __init__(self, scheduler, res, default_size=1024, **options):
+        super(self.__class__, self).__init__(scheduler, res, **options)
         self.kq = kqueue.kqueue()
     
     def unregister_fd(self, act):
