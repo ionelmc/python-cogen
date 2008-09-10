@@ -164,7 +164,7 @@ class ProactorBase(object):
             return True
         else:
             import warnings
-            warnings.warn("%s does not have an registered operation." % coro)
+            warnings.warn("%s isn't a registered token." % act)
     def try_run_act(self, act, func):
         try:
             return self.run_act(act, func)
@@ -226,6 +226,7 @@ class ProactorBase(object):
         
     def handle_error_event(self, act, detail, exc=ConnectionError):
         del self.tokens[act]
+        self.unregister_fd(act)
         self.scheduler.active.append((
             CoroutineException( (exc, exc(detail)) ), 
             act.coro

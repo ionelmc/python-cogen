@@ -1,7 +1,9 @@
 from __future__ import division
 import epoll, time
 
-from base import ProactorBase
+from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+                                perform_sendall, perform_sendfile, \
+                                perform_connect
 from cogen.core import sockets
 from cogen.core.util import priority
 
@@ -29,8 +31,8 @@ class EpollProactor(ProactorBase):
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
         self.shadow[fileno] = act
-        flag =  epoll.EPOLLIN if performer == self.perform_recv \
-                or performer == self.perform_accept else epoll.EPOLLOUT 
+        flag =  epoll.EPOLLIN if performer == perform_recv \
+                or performer == perform_accept else epoll.EPOLLOUT 
         epoll.epoll_ctl(
             self.epoll_fd, 
             epoll.EPOLL_CTL_MOD if act.sock._proactor_added else epoll.EPOLL_CTL_ADD, 
@@ -59,7 +61,11 @@ class EpollProactor(ProactorBase):
                     self.handle_error_event(act, 'Unknown error.')
                 else:
                     if nr == len_events:
-                        return self.yield_event(act)
+                        ret = self.yield_event(act)
+                        if not ret:
+                            self.shadow[fd] = act
+                            epoll.epoll_ctl(self.epoll_fd, epoll.EPOLL_CTL_MOD, fd, ev | epoll.EPOLLONESHOT)
+                        return ret
                     else:
                         if not self.handle_event(act):
                             self.shadow[fd] = act

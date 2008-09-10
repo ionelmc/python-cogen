@@ -1,7 +1,9 @@
 from __future__ import division
 import kqueue, time, sys
 
-from base import ProactorBase
+from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+                                perform_sendall, perform_sendfile, \
+                                perform_connect
 from cogen.core import sockets
 from cogen.core.util import priority
 from cogen.core import events
@@ -13,8 +15,8 @@ class KQueueProactor(ProactorBase):
     
     def unregister_fd(self, act):
         try:
-            flag =  kqueue.EVFILT_READ if performer == self.perform_recv \
-                    or performer == self.perform_accept else kqueue.EVFILT_WRITE 
+            flag =  kqueue.EVFILT_READ if performer == perform_recv \
+                    or performer == perform_accept else kqueue.EVFILT_WRITE 
             ev = kqueue.EV_SET(fileno, flag, kqueue.EV_DELETE)
             self.kq.kevent(ev)
         except OSError, e:
@@ -23,8 +25,8 @@ class KQueueProactor(ProactorBase):
 
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
-        flag =  kqueue.EVFILT_READ if performer == self.perform_recv \
-                or performer == self.perform_accept else kqueue.EVFILT_WRITE 
+        flag =  kqueue.EVFILT_READ if performer == perform_recv \
+                or performer == perform_accept else kqueue.EVFILT_WRITE 
         ev = kqueue.EV_SET(
             fileno, flag, 
             kqueue.EV_ADD | kqueue.EV_ENABLE | kqueue.EV_ONESHOT

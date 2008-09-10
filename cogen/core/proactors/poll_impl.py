@@ -1,7 +1,9 @@
 from __future__ import division
 import select, time
 
-from base import ProactorBase
+from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+                                perform_sendall, perform_sendfile, \
+                                perform_connect
 from cogen.core import sockets
 from cogen.core.util import priority
 
@@ -18,7 +20,7 @@ class PollProactor(ProactorBase):
 
     def unregister_fd(self, act):
         try:
-            del self.shadow[fileno.sock.fileno()]
+            del self.shadow[act.sock.fileno()]
             self.poller.unregister(act.sock.fileno())
         except KeyError, e:
             import warnings
@@ -26,10 +28,9 @@ class PollProactor(ProactorBase):
                     
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
-        print fileno, act
         self.shadow[fileno] = act
-        flag =  self.POLL_IN if performer == self.perform_recv \
-                or performer == self.perform_accept else epoll.POLL_OUT 
+        flag =  self.POLL_IN if performer == perform_recv \
+                or performer == perform_accept else self.POLL_OUT 
         self.poller.register(fileno, flag | self.POLL_ERR)
         
     def run(self, timeout = 0):
@@ -48,7 +49,6 @@ class PollProactor(ProactorBase):
             events = self.poller.poll(ptimeout)
             len_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
-                print fd, ev
                 act = self.shadow.pop(fd)
                 if ev & select.POLLHUP:
                     self.handle_error_event(act, 'Hang up.', ConnectionClosed)
@@ -61,6 +61,8 @@ class PollProactor(ProactorBase):
                         ret = self.yield_event(act)
                         if ret:
                             self.poller.unregister(fd)
+                        else:
+                            self.shadow[fd] = act
                         return ret
                     else:
                         if self.handle_event(act):
