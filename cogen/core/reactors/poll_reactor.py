@@ -6,10 +6,11 @@ from cogen.core import sockets
 from cogen.core.util import priority
 
 class PollReactor(ReactorBase):
-    POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
-    POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
-    POLL_OUT = select.POLLOUT | POLL_ERR
-    
+    if hasattr(select, 'poll'):
+        POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
+        POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
+        POLL_OUT = select.POLLOUT | POLL_ERR
+        
     def __init__(self, scheduler, res):
         super(self.__class__, self).__init__(scheduler, res)
         self.scheduler = scheduler

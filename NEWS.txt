@@ -1,3 +1,11 @@
+0.1.9:
+
+ * splited platform specific network code in separate modules
+ * improved timeouts to save some memory
+ * added reactor_greedy and ops_greedy options on the scheduler
+ * removed qt reactor
+ * improved the coroutine call
+
 0.1.8:
 
  * added support for ConnectEx (via IOCPProactor)

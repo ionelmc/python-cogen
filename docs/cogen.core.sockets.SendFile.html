@@ -37,6 +37,16 @@
                     </li><li>
                         <a href="cogen.core.reactors.html">cogen.core.reactors</a>
                     </li><li>
+                        <a href="cogen.core.reactors.base.html">cogen.core.reactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.iocp_proactor.html">cogen.core.reactors.iocp_proactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.poll_reactor.html">cogen.core.reactors.poll_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.qt_reactor.html">cogen.core.reactors.qt_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.select_reactor.html">cogen.core.reactors.select_reactor</a>
+                    </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li class="active">
                         <a href="cogen.core.sockets.html">cogen.core.sockets</a>
@@ -91,7 +101,7 @@
                     <li>
                         <a href="cogen.web.async.ReadLine.html#method-cleanup">cleanup</a>
                     </li><li>
-                        <a href="cogen.magic.sync.RunSync.html#method-finalize">finalize</a>
+                        <a href="cogen.core.sockets.SocketOperation.html#method-finalize">finalize</a>
                     </li><li>
                         <a href="cogen.core.sockets.SendFile.html#method-iocp">iocp</a>
                     </li><li>
@@ -107,6 +117,8 @@
                     </li><li>
                         <a href="cogen.core.sockets.SendFile.html#method-send">send</a>
                     </li><li>
+                        <a href="cogen.web.async.ReadLine.html#method-set_timeout">set_timeout</a>
+                    </li><li>
                         <a href="cogen.web.async.ReadLine.html#method-try_run">try_run</a>
                     </li>
                 </ul>
@@ -121,9 +133,15 @@
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-buff">buff</a>
                     </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-coro">coro</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-delta">delta</a>
+                    </li><li>
                         <a href="cogen.core.sockets.SendFile.html#attribute-file_handle">file_handle</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-fileno">fileno</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-last_checkpoint">last_checkpoint</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-last_update">last_update</a>
                     </li><li>
@@ -144,6 +162,8 @@
                         <a href="cogen.web.async.ReadLine.html#attribute-sock">sock</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-state">state</a>
+                    </li><li>
+                        <a href="cogen.web.async.ReadLine.html#attribute-timeout">timeout</a>
                     </li><li>
                         <a href="cogen.web.async.ReadLine.html#attribute-trim">trim</a>
                     </li><li>
@@ -283,6 +303,16 @@ the superclass.</p>
         <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#326">View source</a>
     </li>
 </ul>
+            <h3 id="method-set_timeout">
+                set_timeout
+                <span class="args">(self, val)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/events.py#102">View source</a>
+    </li>
+</ul>
             <h3 id="method-try_run">
                 try_run
                 <span class="args">(self, reactor)</span>
@@ -329,6 +359,24 @@ run this at a later time (when the socket is readable/writeable again).</p>
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
+            <h3 id="attribute-coro">coro</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of coro</h4>
+            <pre class="code"><code>&lt;member 'coro' of 'TimedOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-delta">delta</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of delta</h4>
+            <pre class="code"><code>&lt;member 'delta' of 'TimedOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
             <h3 id="attribute-file_handle">file_handle</h3>
             <div class="docstring rst"></div>
             <h4>Value of file_handle</h4>
@@ -342,6 +390,15 @@ run this at a later time (when the socket is readable/writeable again).</p>
             <div class="docstring rst"></div>
             <h4>Value of fileno</h4>
             <pre class="code"><code>&lt;member 'fileno' of 'SocketOperation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-last_checkpoint">last_checkpoint</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of last_checkpoint</h4>
+            <pre class="code"><code>&lt;member 'last_checkpoint' of 'TimedOperation' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
@@ -432,6 +489,15 @@ run this at a later time (when the socket is readable/writeable again).</p>
             <div class="docstring rst"></div>
             <h4>Value of state</h4>
             <pre class="code"><code>&lt;member 'state' of 'Operation' objects&gt;</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-timeout">timeout</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of timeout</h4>
+            <pre class="code"><code>&lt;member 'timeout' of 'TimedOperation' objects&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
