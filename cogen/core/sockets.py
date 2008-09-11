@@ -90,6 +90,10 @@ class Socket(object):
         
        
     def makefile(self, mode='r', bufsize=-1):
+        """
+        Returns a special fileobject that has corutines instead of the usual
+        read/readline/write methods. Will work in the same manner though.
+        """
         return _fileobject(self, mode, bufsize)
         
     def send(self, data, **kws):
@@ -472,9 +476,9 @@ class _fileobject(object):
             buf_len += len(x)
         return buf_len
 
-    @coro
-    #~ from cogen.core.coroutines import debug_coro
-    #~ @debug_coro
+    #~ @coro
+    from cogen.core.coroutines import debug_coro
+    @debug_coro
     def read(self, size=-1, **kws):
         data = self._rbuf
         if size < 0:

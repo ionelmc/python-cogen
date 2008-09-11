@@ -102,7 +102,7 @@ class IOCPProactor(ProactorBase):
         self._warn_bogus_options(**bogus_options) #iocp doesn't have any options
 
     def request_recv(self, act, coro):
-        return self.request_generic(act, coro, perform_recv, complete_recv, )
+        return self.request_generic(act, coro, perform_recv, complete_recv)
             
     def request_send(self, act, coro):
         return self.request_generic(act, coro, perform_send, complete_send)
@@ -120,6 +120,10 @@ class IOCPProactor(ProactorBase):
         return self.request_generic(act, coro, perform_sendfile, complete_sendfile)
     
     def request_generic(self, act, coro, perform, complete):
+        """
+        Performs an overlapped request (via `perform` callable) and saves
+        the token and the (`overlapped`, `perform`, `complete`) trio.
+        """
         overlapped = pywintypes.OVERLAPPED() 
         overlapped.object = act
         self.add_token(act, coro, (overlapped, perform, complete))
@@ -149,6 +153,10 @@ class IOCPProactor(ProactorBase):
             return CoroutineException(sys.exc_info())
         
     def process_op(self, rc, nbytes, overlap):
+        """
+        Handles the possible completion or re-queueing if conditions haven't 
+        been met (the `complete` callable returns false) of a overlapped request.
+        """
         act = overlap.object
         overlap.object = None
         if act in self.tokens:
@@ -185,6 +193,10 @@ class IOCPProactor(ProactorBase):
             warnings.warn("Unknown token %s" % act)
             
     def run(self, timeout = 0):
+        """
+        Calls GetQueuedCompletionStatus and handles completion via 
+        IOCPProactor.process_op.
+        """
         # same resolution as epoll
         ptimeout = int(
             timeout.days * 86400000 + 

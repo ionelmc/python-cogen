@@ -1,3 +1,8 @@
+0.2.0:
+
+ * rewritten the network code
+ * added support for TransmitFile
+ 
 0.1.8:
 
  * added support for ConnectEx (via IOCPProactor)

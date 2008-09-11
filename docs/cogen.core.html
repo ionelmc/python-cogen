@@ -31,11 +31,19 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.proactors.html">cogen.core.proactors</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
+                    </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
-                    </li><li>
-                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li>
@@ -59,11 +67,11 @@
                     </li><li>
                         <a href="cogen.core.events.html">events</a>
                     </li><li>
+                        <a href="cogen.core.proactors.html">proactors</a>
+                    </li><li>
                         <a href="cogen.core.pubsub.html">pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">queue</a>
-                    </li><li>
-                        <a href="cogen.core.reactors.html">reactors</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">schedulers</a>
                     </li><li>
@@ -169,6 +177,19 @@ return the operation instance.</li>
     </li>
 </ul>
             <h3>
+                <a href="cogen.core.proactors.html">proactors</a>
+            </h3>
+            <div class="docstring rst"><p>Network code.</p>
+</div>
+            <ul class="link-bar">
+    <li>
+        <a href="cogen.core.proactors.html">Details</a>
+    </li>
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#1">View source</a>
+    </li>
+</ul>
+            <h3>
                 <a href="cogen.core.pubsub.html">pubsub</a>
             </h3>
             <div class="docstring rst"></div>
@@ -194,39 +215,6 @@ return the operation instance.</li>
     </li>
 </ul>
             <h3>
-                <a href="cogen.core.reactors.html">reactors</a>
-            </h3>
-            <div class="docstring rst"><p>Network polling code.</p>
-<p>The reactor works in tandem with the socket operations.
-Here's the basic workflow:</p>
-<ul class="simple">
-<li>the coroutine yields a operation</li>
-<li>the scheduler runs that operation (the <a class="reference" href="cogen.core.events.Operation.html#method-process">process</a> method)
-Note: all the socket operations share the same <a class="reference" href="cogen.core.sockets.SocketOperation.html#method-process">process method</a>.<ul>
-<li>if run_first is False then the operation is added in the reactor for
-polling (with the exception that if we have data in out internal buffers
-the operation is runned first)</li>
-<li>if run_first is set (it's default) in the operation then in process
-method the reactor's <a class="reference" href="cogen.core.reactors.ReactorBase#method-run_or_add">run_or_add</a> is called with the
-operation and coroutine</li>
-</ul>
-</li>
-</ul>
-<p>Note: run_first is a optimization hack really, first it tries to run the
-operation (this asumes the sockets are usualy ready) and if it raises any
-exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling
-(via select, epoll, kqueue etc) then the run method will be called only when
-select, epoll, kqueue says that the socket is ready.</p>
-</div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.reactors.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#1">View source</a>
-    </li>
-</ul>
-            <h3>
                 <a href="cogen.core.schedulers.html">schedulers</a>
             </h3>
             <div class="docstring rst"><p>Scheduling framework.</p>
@@ -235,7 +223,7 @@ management of coroutines. Most of the heavy logic is in each operation class.
 See: <a class="reference" href="cogen.core.events.html">events</a> and <a class="reference" href="cogen.core.sockets.html">sockets</a>.
 Most of those operations work with attributes we set in the scheduler.</p>
 <p><cite>cogen</cite> is multi-state. All the state related to coroutines and network is in
-the scheduler and it's associated reactor. That means you could run several
+the scheduler and it's associated proactor. That means you could run several
 cogen schedulers in the same process/thread/whatever.</p>
 <p>There is just one thing that uses global objects - the threadlocal-like local
 object in the coroutines module.  It was actually aded for the wsgiserver

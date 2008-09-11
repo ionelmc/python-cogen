@@ -35,7 +35,7 @@ class PollProactor(ProactorBase):
         
     def run(self, timeout = 0):
         """ 
-        Run a reactor loop and return new socket events. Timeout is a timedelta 
+        Run a proactor loop and return new socket events. Timeout is a timedelta 
         object, 0 if active coros or None. 
         """
         # poll timeout param is a integer number of miliseconds (seconds/1000).

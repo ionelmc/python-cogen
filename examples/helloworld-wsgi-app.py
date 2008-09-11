@@ -13,7 +13,7 @@ import cogen
 from cogen.web.wsgi import WSGIServer
 sched = cogen.core.schedulers.Scheduler(
     default_timeout=-1, 
-    #~ reactor=cogen.core.reactors.PollReactor,
+    #~ proactor=cogen.core.proactors.Pollproactor,
     #~ proactor=cogen.core.proactors.has_select(),
     default_priority=cogen.core.util.priority.FIRST,
     proactor_resolution=1

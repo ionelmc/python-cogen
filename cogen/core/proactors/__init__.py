@@ -1,31 +1,5 @@
 """
-Network polling code.
-
-The proactor works in tandem with the socket operations.
-Here's the basic workflow:
-
-* the coroutine yields a operation
-
-* the scheduler runs that operation (the `process 
-  <cogen.core.events.Operation.html#method-process>`_ method)
-  Note: all the socket operations share the same `process method
-  <cogen.core.sockets.SocketOperation.html#method-process>`_. 
-  
-  * if run_first is False then the operation is added in the proactor for 
-    polling (with the exception that if we have data in out internal buffers
-    the operation is runned first)
-  
-  * if run_first is set (it's default) in the operation then in process 
-    method the proactor's `run_or_add 
-    <cogen.core.proactors.proactorBase#method-run_or_add>`_ is called with the 
-    operation and coroutine
-
-  
-Note: run_first is a optimization hack really, first it tries to run the
-operation (this asumes the sockets are usualy ready) and if it raises any 
-exceptions like EAGAIN, EWOULDBLOCK etc it adds that operation for polling 
-(via select, epoll, kqueue etc) then the run method will be called only when 
-select, epoll, kqueue says that the socket is ready.
+Network code.
 """
 
 def has_select():
@@ -80,12 +54,14 @@ def has_iocp():
         pass
         
 def get_first(*imps):
+    "Returns the first result that evaluates to true from a list of callables."
     for imp in imps:
         proactor = imp()
         if proactor:
             return proactor
 
 def has_any():
+    "Returns the best available proactor implementation for the current platform."
     return get_first(has_iocp, has_kqueue, has_epoll, has_poll, has_select)
          #, has_iocp, has_kqueue, has_epoll, has_poll, has_select)
 

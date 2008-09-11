@@ -52,6 +52,10 @@ def perform_connect(act):
         return act
 
 def wrapped_sendfile(act, offset, length):
+    """
+    Calls the sendfile system call or simulate with file read and socket send if 
+    unavailable.
+    """
     if sendfile:
         offset, sent = sendfile.sendfile(
             act.sock.fileno(), 
@@ -88,8 +92,10 @@ def perform_sendfile(act):
 
 class ProactorBase(object):
     """
-    A proactor just checks if there are ready-sockets for the operations.
-    The operations are not done here, they are done in the socket ops instances.
+    Base class for a proactor implemented with posix-style polling.
+    
+
+
     """
     __doc_all__ = [
         '__init__', 'run_once', 'run_operation', 'run_or_add', 'add', 
@@ -107,10 +113,15 @@ class ProactorBase(object):
         self.set_options(**options)
         
     def set_options(self, multiplex_first=True, **bogus_options):
+        "Takes implementation specific options. To be overriden in a subclass."
         self.multiplex_first = multiplex_first
         self._warn_bogus_options(**bogus_options)
         
     def _warn_bogus_options(self, **opts):
+        """
+        Shows a warning for unsupported options for the current implementation.
+        Called form set_options with remainig unsupported options.
+        """
         if opts:
             import warnings
             for i in opts:
@@ -118,22 +129,30 @@ class ProactorBase(object):
 
     def __len__(self):
         return len(self.tokens)
-
-        
         
     def request_recv(self, act, coro):
+        "Requests a recv for `coro` corutine with parameters and completion \
+        passed via `act`"
         return self.request_generic(act, coro, perform_recv)
             
     def request_send(self, act, coro):
+        "Requests a send for `coro` corutine with parameters and completion \
+        passed via `act`"
         return self.request_generic(act, coro, perform_send)
             
     def request_sendall(self, act, coro):
+        "Requests a sendall for `coro` corutine with parameters and completion \
+        passed via `act`"
         return self.request_generic(act, coro, perform_sendall)
             
     def request_accept(self, act, coro):
+        "Requests a accept for `coro` corutine with parameters and completion \
+        passed via `act`"
         return self.request_generic(act, coro, perform_accept)
     
     def request_connect(self, act, coro):
+        "Requests a connect for `coro` corutine with parameters and completion \
+        passed via `act`"
         result = self.try_run_act(act, perform_connect)
         if result:
             return result, coro
@@ -141,9 +160,22 @@ class ProactorBase(object):
             self.add_token(act, coro, perform_connect)
     
     def request_sendfile(self, act, coro):
+        "Requests a sendfile for `coro` corutine with parameters and completion \
+        passed via `act`"
         return self.request_generic(act, coro, perform_sendfile)
     
     def request_generic(self, act, coro, perform):
+        """
+        Requests an socket operation (in the form of a callable `perform` that 
+        does the actual socket system call) for `coro` corutine with parameters 
+        and completion passed via `act`.
+        
+        The socket operation request parameters are passed in `act`.
+        When request is completed the results will be set in `act`.
+        
+        Note: `act` is usualy a SocketOperation instance and the request_foo 
+        calls are usually made from a Foo subclass.
+        """
         result = self.multiplex_first and self.try_run_act(act, perform)
         if result:
             return result, coro
@@ -152,12 +184,20 @@ class ProactorBase(object):
     
             
     def add_token(self, act, coro, performer):
+        """
+        Adds a completion token `act` in the proactor with associated `coro` 
+        corutine and perform callable.
+        """
         assert act not in self.tokens
         act.coro = coro
         self.tokens[act] = performer
         self.register_fd(act, performer)
         
     def remove_token(self, act):
+        """
+        Remove a token from the proactor.
+        If removal succeeds (the token is in the proactor) return True.
+        """
         if act in self.tokens:
             del self.tokens[act]
             self.unregister_fd(act)
@@ -165,6 +205,7 @@ class ProactorBase(object):
         else:
             import warnings
             warnings.warn("%s isn't a registered token." % act)
+            
     def try_run_act(self, act, func):
         try:
             return self.run_act(act, func)
@@ -184,13 +225,32 @@ class ProactorBase(object):
         
     
     def register_fd(self, act, performer):
+        """
+        Perform additional handling (like register the socket file descriptor in 
+        the poll, epoll, kqueue, iocp etc) when a token is added in the proactor.
+        
+        Overriden in a subclass.
+        """
+        
         pass
         
     def unregister_fd(self, act):
+        """
+        Perform additional handling (like cleanup) when a token is removed from 
+        the proactor.
+        
+        Overriden in a subclass.
+        """
         pass
         
         
     def handle_event(self, act):
+        """
+        Handle completion for a request.
+        
+        Calls the scheduler to run or schedule the associated coroutine.
+        """
+        
         if act in self.tokens:
             coro = act.coro
             op = self.try_run_act(act, self.tokens[act])
@@ -217,6 +277,10 @@ class ProactorBase(object):
         return True
     
     def yield_event(self, act):
+        """
+        Hande completion for a request and return an (op, coro) to be 
+        passed to the scheduler on the last completion loop of a proactor.
+        """
         if act in self.tokens:
             coro = act.coro
             op = self.try_run_act(act, self.tokens[act])
@@ -225,6 +289,10 @@ class ProactorBase(object):
                 return op, coro
         
     def handle_error_event(self, act, detail, exc=ConnectionError):
+        """
+        Handle an errored event. Calls the scheduler to schedule the associated 
+        coroutine.
+        """
         del self.tokens[act]
         self.unregister_fd(act)
         self.scheduler.active.append((

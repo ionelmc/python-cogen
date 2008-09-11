@@ -32,6 +32,10 @@ def coroutine(func):
 coro = coroutine
 
 def debug_coroutine(func):
+    "Same as the `coroutine` decorator but sets the debug flag on."
+    
+    #TODO: extend debugging output to go in a logger.
+    
     def make_new_coroutine(*args, **kws):
         c = Coroutine(func, *args, **kws)
         c.debug = True

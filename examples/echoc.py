@@ -1,7 +1,7 @@
 import sys, os, traceback, socket
 from cogen.common import *
 
-m = Scheduler(reactor_resolution=.5, reactor=reactors.IOCPProactor)
+m = Scheduler(proactor_resolution=.5, proactor=proactors.has_select())
 errors = 0
 recvs = 0
 @coroutine

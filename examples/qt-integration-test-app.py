@@ -1,3 +1,8 @@
+#
+# NOTE: this example is obsolete. Qt reactor was removed in 2.0 - maybe will be 
+#       readded, ask.
+#
+
 import sys
 from PyQt4 import QtGui
 

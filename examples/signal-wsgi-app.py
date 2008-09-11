@@ -35,9 +35,9 @@ from cogen.web.wsgi import WSGIServer
 from cogen.web.async import sync_input
 sched = cogen.core.schedulers.Scheduler(
     default_timeout=None, 
-    #~ reactor=cogen.core.reactors.PollReactor,
+    #~ proactor=cogen.core.proactors.Pollproactor,
     default_priority=cogen.core.util.priority.FIRST,
-    reactor_resolution=1
+    proactor_resolution=1
 )
     
 server = WSGIServer( 
