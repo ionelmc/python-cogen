@@ -37,6 +37,10 @@
                     </li><li>
                         <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
                     </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.kqueue_impl.html">cogen.core.proactors.kqueue_impl</a>
+                    </li><li>
                         <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
@@ -121,12 +125,12 @@ the operation, -1 means no timeout.</li>
         <h2>Constructor</h2>
         <h3 id="constructor">
             __init__
-            <span class="args">(self, proactor=&lt;class 'cogen.core.proactors.epoll_impl.EpollProactor'&gt;, default_priority=0, default_timeout=None, proactor_resolution=0.01, proactor_greedy=True, ops_greedy=False, proactor_multiplex_first=None, proactor_default_size=None)</span>
+            <span class="args">(self, proactor=&lt;class 'cogen.core.proactors.iocp_impl.IOCPProactor'&gt;, default_priority=0, default_timeout=None, proactor_resolution=0.01, proactor_greedy=True, ops_greedy=False, proactor_multiplex_first=None, proactor_default_size=None)</span>
         </h3>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#63">View source</a>
     </li>
 </ul>
     </div>
@@ -141,7 +145,7 @@ the operation, -1 means no timeout.</li>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#100">View source</a>
     </li>
 </ul>
             <h3 id="method-handle_timeouts">
@@ -170,7 +174,7 @@ timeout - well, this is certainly a problem magnet: TODO: fix_finalized)</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#127">View source</a>
     </li>
 </ul>
             <h3 id="method-iter_run">
@@ -185,7 +189,7 @@ require cogen to run in the same thread.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#189">View source</a>
     </li>
 </ul>
             <h3 id="method-next_timer_delta">
@@ -196,7 +200,7 @@ require cogen to run in the same thread.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#111">View source</a>
     </li>
 </ul>
             <h3 id="method-process_op">
@@ -207,7 +211,7 @@ require cogen to run in the same thread.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#173">View source</a>
     </li>
 </ul>
             <h3 id="method-run">
@@ -220,7 +224,7 @@ been called.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#224">View source</a>
     </li>
 </ul>
             <h3 id="method-stop">
@@ -230,7 +234,7 @@ been called.</p>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/schedulers.py#232">View source</a>
     </li>
 </ul>
     </div>

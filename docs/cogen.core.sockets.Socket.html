@@ -37,6 +37,10 @@
                     </li><li>
                         <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
                     </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.kqueue_impl.html">cogen.core.proactors.kqueue_impl</a>
+                    </li><li>
                         <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
@@ -159,7 +163,7 @@ specifying the default protocol.  Keyword arguments are accepted.</p>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#78">View source</a>
     </li>
 </ul>
     </div>
@@ -181,7 +185,7 @@ conn, address = yield mysock.accept()
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#108">View source</a>
     </li>
 </ul>
             <h3 id="method-bind">
@@ -193,7 +197,7 @@ conn, address = yield mysock.accept()
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#129">View source</a>
     </li>
 </ul>
             <h3 id="method-close">
@@ -206,7 +210,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#122">View source</a>
     </li>
 </ul>
             <h3 id="method-connect">
@@ -217,7 +221,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#135">View source</a>
     </li>
 </ul>
             <h3 id="method-fileno">
@@ -228,7 +232,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#139">View source</a>
     </li>
 </ul>
             <h3 id="method-getpeername">
@@ -239,7 +243,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#150">View source</a>
     </li>
 </ul>
             <h3 id="method-getsockname">
@@ -250,7 +254,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#154">View source</a>
     </li>
 </ul>
             <h3 id="method-gettimeout">
@@ -261,7 +265,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#164">View source</a>
     </li>
 </ul>
             <h3 id="method-listen">
@@ -274,7 +278,7 @@ least 1; the maximum value is system-dependent (usually 5).</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#143">View source</a>
     </li>
 </ul>
             <h3 id="method-makefile">
@@ -286,7 +290,7 @@ read/readline/write methods. Will work in the same manner though.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#91">View source</a>
     </li>
 </ul>
             <h3 id="method-recv">
@@ -299,7 +303,7 @@ ammount specified by _bufsize_.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#84">View source</a>
     </li>
 </ul>
             <h3 id="method-send">
@@ -311,7 +315,7 @@ socket. Ammount sent may be less than the data provided.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#98">View source</a>
     </li>
 </ul>
             <h3 id="method-sendall">
@@ -323,7 +327,7 @@ socket. All the data is guaranteed to be sent.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#103">View source</a>
     </li>
 </ul>
             <h3 id="method-sendfile">
@@ -333,7 +337,7 @@ socket. All the data is guaranteed to be sent.</p>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#181">View source</a>
     </li>
 </ul>
             <h3 id="method-setblocking">
@@ -343,7 +347,7 @@ socket. All the data is guaranteed to be sent.</p>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#173">View source</a>
     </li>
 </ul>
             <h3 id="method-setsockopt">
@@ -355,7 +359,7 @@ method.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#176">View source</a>
     </li>
 </ul>
             <h3 id="method-settimeout">
@@ -367,7 +371,7 @@ be a nonnegative float expressing seconds, timedelta or None.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#158">View source</a>
     </li>
 </ul>
             <h3 id="method-shutdown">
@@ -379,7 +383,7 @@ socket method.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#168">View source</a>
     </li>
 </ul>
     </div>

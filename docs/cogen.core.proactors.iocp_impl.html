@@ -7,7 +7,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
-        - Module: proactors</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+        - Module: iocp_impl</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
     <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
     <link rel="stylesheet" href="css/apydia.css" type="text/css" />
     <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
@@ -30,13 +30,13 @@
                         <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
-                    </li><li class="active">
+                    </li><li>
                         <a href="cogen.core.proactors.html">cogen.core.proactors</a>
                     </li><li>
                         <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
                     </li><li>
                         <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
-                    </li><li>
+                    </li><li class="active">
                         <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.kqueue_impl.html">cogen.core.proactors.kqueue_impl</a>
@@ -64,20 +64,10 @@
                 </ul>
             </div>
             <div class="browser-section">
-                <h2>Submodules</h2>
+                <h2>Classes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.proactors.base.html">base</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.epoll_impl.html">epoll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.iocp_impl.html">iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.kqueue_impl.html">kqueue_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.poll_impl.html">poll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.select_impl.html">select_impl</a>
+                        <a href="cogen.core.proactors.iocp_impl.IOCPProactor.html">IOCPProactor</a>
                     </li>
                 </ul>
             </div>
@@ -85,181 +75,178 @@
                 <h2>Functions</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.proactors.html#function-get_first">get_first</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-complete_accept">complete_accept</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html#function-has_any">has_any</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-complete_connect">complete_connect</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html#function-has_epoll">has_epoll</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-complete_recv">complete_recv</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html#function-has_iocp">has_iocp</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-complete_send">complete_send</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html#function-has_kqueue">has_kqueue</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-complete_sendall">complete_sendall</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html#function-has_poll">has_poll</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-complete_sendfile">complete_sendfile</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html#function-has_select">has_select</a>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-perform_accept">perform_accept</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-perform_connect">perform_connect</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-perform_recv">perform_recv</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-perform_send">perform_send</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-perform_sendall">perform_sendall</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.iocp_impl.html#function-perform_sendfile">perform_sendfile</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="content">
     <h1>Module:
-        cogen.core.proactors
+        cogen.core.proactors.iocp_impl
     </h1>
-    <div class="docstring rst"><p>Network code.</p>
-</div>
+    <div class="docstring rst"></div>
     <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#1">View source</a>
-    </li>
-</ul>
-    <div>
-        <h2>Modules</h2>
-            <h3>
-                <a href="cogen.core.proactors.base.html">base</a>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.proactors.base.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/base.py#1">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.proactors.epoll_impl.html">epoll_impl</a>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.proactors.epoll_impl.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/epoll_impl.py#1">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.proactors.iocp_impl.html">iocp_impl</a>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.proactors.iocp_impl.html">Details</a>
-    </li>
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#1">View source</a>
     </li>
 </ul>
+    <div>
+        <h2>Classes</h2>
             <h3>
-                <a href="cogen.core.proactors.kqueue_impl.html">kqueue_impl</a>
+                <a href="cogen.core.proactors.iocp_impl.IOCPProactor.html">IOCPProactor</a>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li>
-        <a href="cogen.core.proactors.kqueue_impl.html">Details</a>
+        <a href="cogen.core.proactors.iocp_impl.IOCPProactor.html">Details</a>
     </li>
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/kqueue_impl.py#1">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.proactors.poll_impl.html">poll_impl</a>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.proactors.poll_impl.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/poll_impl.py#1">View source</a>
-    </li>
-</ul>
-            <h3>
-                <a href="cogen.core.proactors.select_impl.html">select_impl</a>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li>
-        <a href="cogen.core.proactors.select_impl.html">Details</a>
-    </li>
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/select_impl.py#1">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#90">View source</a>
     </li>
 </ul>
     </div>
     <div>
         <h2>Functions</h2>
-            <h3 id="function-get_first">
-                get_first
-                <span class="args">(*imps)</span>
-            </h3>
-            <div class="docstring rst"><p>Returns the first result that evaluates to true from a list of callables.</p>
-</div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#55">View source</a>
-    </li>
-</ul>
-            <h3 id="function-has_any">
-                has_any
-                <span class="args">()</span>
-            </h3>
-            <div class="docstring rst"><p>Returns the best available proactor implementation for the current platform.</p>
-</div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#62">View source</a>
-    </li>
-</ul>
-            <h3 id="function-has_epoll">
-                has_epoll
-                <span class="args">()</span>
+            <h3 id="function-complete_accept">
+                complete_accept
+                <span class="args">(act, rc, nbytes)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#23">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#50">View source</a>
     </li>
 </ul>
-            <h3 id="function-has_iocp">
-                has_iocp
-                <span class="args">()</span>
+            <h3 id="function-complete_connect">
+                complete_connect
+                <span class="args">(act, rc, nbytes)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#41">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#74">View source</a>
     </li>
 </ul>
-            <h3 id="function-has_kqueue">
-                has_kqueue
-                <span class="args">()</span>
+            <h3 id="function-complete_recv">
+                complete_recv
+                <span class="args">(act, rc, nbytes)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#31">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#19">View source</a>
     </li>
 </ul>
-            <h3 id="function-has_poll">
-                has_poll
-                <span class="args">()</span>
+            <h3 id="function-complete_send">
+                complete_send
+                <span class="args">(act, rc, nbytes)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#13">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#30">View source</a>
     </li>
 </ul>
-            <h3 id="function-has_select">
-                has_select
-                <span class="args">()</span>
+            <h3 id="function-complete_sendall">
+                complete_sendall
+                <span class="args">(act, rc, nbytes)</span>
             </h3>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/__init__.py#4">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#38">View source</a>
+    </li>
+</ul>
+            <h3 id="function-complete_sendfile">
+                complete_sendfile
+                <span class="args">(act, rc, nbytes)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#86">View source</a>
+    </li>
+</ul>
+            <h3 id="function-perform_accept">
+                perform_accept
+                <span class="args">(act, overlapped)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#43">View source</a>
+    </li>
+</ul>
+            <h3 id="function-perform_connect">
+                perform_connect
+                <span class="args">(act, overlapped)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#64">View source</a>
+    </li>
+</ul>
+            <h3 id="function-perform_recv">
+                perform_recv
+                <span class="args">(act, overlapped)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#15">View source</a>
+    </li>
+</ul>
+            <h3 id="function-perform_send">
+                perform_send
+                <span class="args">(act, overlapped)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#27">View source</a>
+    </li>
+</ul>
+            <h3 id="function-perform_sendall">
+                perform_sendall
+                <span class="args">(act, overlapped)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#35">View source</a>
+    </li>
+</ul>
+            <h3 id="function-perform_sendfile">
+                perform_sendfile
+                <span class="args">(act, overlapped)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/iocp_impl.py#78">View source</a>
     </li>
 </ul>
     </div>
