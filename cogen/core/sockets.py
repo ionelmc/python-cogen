@@ -476,9 +476,9 @@ class _fileobject(object):
             buf_len += len(x)
         return buf_len
 
-    #~ @coro
-    from cogen.core.coroutines import debug_coro
-    @debug_coro
+    #~ from cogen.core.coroutines import debug_coro
+    #~ @debug_coro
+    @coro
     def read(self, size=-1, **kws):
         data = self._rbuf
         if size < 0:
