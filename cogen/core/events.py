@@ -21,6 +21,9 @@ class CoroutineException(Exception):
     prio = priority.DEFAULT
     def __init__(self, *args):
         super(CoroutineException, self).__init__(*args)
+    def __str__(self):
+        import traceback
+        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.message))
 
 class ConnectionError(Exception):
     "Raised when a socket has a error flag (in epoll or select)"
@@ -32,6 +35,18 @@ class OperationTimeout(Exception):
     """Raised when the timeout for a operation expires. The exception 
     message will be the operation"""
     __doc_all__ = []
+
+
+def _getslots(obj):
+    import itertools
+    return itertools.chain(
+        getattr(obj, '__slots__', []), 
+        *(_getslots(i) for i in 
+            hasattr(obj, '__bases__') 
+                and obj.__bases__ 
+                or ()
+        )
+    )
 
 class Operation(object):
     """All operations derive from this. This base class handles 
@@ -75,7 +90,18 @@ class Operation(object):
         the superclass."""
         self.state = FINALIZED
         return self
-            
+    def __str__(self):
+        return "<%s at 0x%X with %s>" % (
+            self.__class__.__name__,
+            id(self),
+            ' '.join("%s:%.40s" % (i, getattr(self, i, 'n/a')) for i in _getslots(self.__class__))
+        )
+    def __repr__(self):
+        return "<%s at 0x%X with %s>" % (
+            self.__class__.__name__,
+            id(self),
+            ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in _getslots(self.__class__))
+        )
 
 class TimedOperation(Operation):
     """Operations that have a timeout derive from this.

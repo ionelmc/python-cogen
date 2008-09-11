@@ -15,15 +15,20 @@ import thread
 from cStringIO import StringIO
 
 from cogen.common import *
-from base import priorities, reactors_available
+from base import priorities, proactors_available
 from cogen.core.coroutines import debug_coroutine
 
 class SocketTest_MixIn:
     sockets = []
     def setUp(self):
         self.local_addr = ('localhost', random.randint(10000,64000))
-        self.m = Scheduler( default_priority=self.prio, reactor=self.poller, 
-                            reactor_resolution=0.01)
+        if self.run_first is None:
+            self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
+                                proactor_resolution=0.01)
+        else:
+            self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
+                                proactor_resolution=0.01, 
+                                proactor_multiplex_first=self.run_first)
         def run():
             try:
                 time.sleep(1)
@@ -50,30 +55,15 @@ class SocketTest_MixIn:
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = (yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first))
-            self.waitobj = sockets.ReadLine(conn, len=1024, prio=self.prio, run_first=self.run_first) 
-                                    # test for simple readline, 
-                                    #   send data w/o NL, 
-                                    #   check poller, send NL, check again
-            self.recvobj = yield self.waitobj
-            try:
-                # test for readline overflow'
-                self.waitobj2 = yield sockets.ReadLine(
-                    conn, 
-                    len=512, 
-                    prio=self.prio, run_first=self.run_first
-                )
-            except exceptions.OverflowError, e:
-                self.waitobj2 = "OK"
-                self.waitobj_cleanup = yield sockets.Read(
-                    conn, 
-                    len=1024*8, 
-                    prio=self.prio, run_first=self.run_first
-                ) 
-                    # eat up the remaining data waiting on socket
-            y1 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
-            y2 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
-            y3 = sockets.ReadLine(conn, 1024, prio=self.prio, run_first=self.run_first)
+            conn, addr = (yield srv.accept(prio=self.prio))
+            fh = conn.makefile()
+            self.line1 = yield fh.readline(1024, prio=self.prio) 
+            self.line2 = yield fh.readline(512, prio=self.prio)
+            self.line3 = yield fh.readline(1512, prio=self.prio)
+            # eat up the remaining data waiting on socket
+            y1 = fh.readline(1024, prio=self.prio)
+            y2 = fh.readline(1024, prio=self.prio)
+            y3 = fh.readline(1024, prio=self.prio)
             a1 = yield y1 
             a2 = yield y2
             a3 = yield y3
@@ -88,23 +78,23 @@ class SocketTest_MixIn:
         sock.send("X"*512)
         time.sleep(0.5)
         self.assert_(coro not in self.m.active)
-        self.assert_(self.m.poll.waiting_op(coro) is self.waitobj)            
         sock.send("\n")
         time.sleep(0.5)
-        self.assert_(len(self.m.poll)==1)
-        self.assert_(self.waitobj.buff is self.recvobj)
-        self.assertEqual(self.waitobj.buff, "X"*512+"\n")
+        self.assert_(len(self.m.proactor)==1)
+        #~ self.assert_(self.waitobj.buff is self.recvobj)
+        self.assertEqual(self.line1, "X"*512+"\n")
         time.sleep(0.5)
         sock.send("X"*1024)
-
+        
         time.sleep(1.5)
-        self.assertEqual(self.waitobj2, "OK")
+        self.assertEqual(self.line2, "X"*512)
+        sock.send("\n")
         time.sleep(0.5)
         a_line = "X"*64+"\n"
         sock.send(a_line*3)
         self.m_run.join()
         self.assertEqual(self.recvobj2, (a_line,a_line,a_line))
-        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.proactor), 0)
         self.assertEqual(len(self.m.active), 0)
         self.failIf(self.m_run.isAlive())
         
@@ -116,13 +106,9 @@ class SocketTest_MixIn:
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.bind(self.local_addr)
             srv.listen(0)
-            conn, addr = yield sockets.Accept(srv, prio=self.prio, run_first=self.run_first)
-            self.recvobj = yield sockets.Read(conn, 1024*4, prio=self.prio, run_first=self.run_first)
-            self.recvobj_all = yield sockets.ReadAll(
-                conn, 
-                1024**2-1024*4, 
-                prio=self.prio, run_first=self.run_first
-            )
+            conn, addr = yield sockets.Accept(srv, prio=self.prio)
+            self.recvobj = yield sockets.Recv(conn, 1024*4, prio=self.prio)
+            self.recvobj_all = yield sockets.RecvAll(conn, 1024**2-1024*4, prio=self.prio)
             #~ srv.close()
             self.m.stop()
         coro = self.m.add(reader)
@@ -141,7 +127,7 @@ class SocketTest_MixIn:
         self.m_run.join()
         self.assert_(len(self.recvobj)<=1024*4)
         self.assertEqual(len(self.recvobj_all)+len(self.recvobj),1024**2)
-        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.proactor), 0)
         self.assertEqual(len(self.m.active), 0)
         self.failIf(self.m_run.isAlive())
     def test_write_all(self):
@@ -150,10 +136,11 @@ class SocketTest_MixIn:
             try:
                 cli = sockets.Socket()
                 self.sockets.append(cli)
-                obj = yield sockets.Connect(cli, self.local_addr, timeout=0.5)    
-                self.writeobj = yield sockets.Write(obj.sock, 'X'*(1024**2))
-                self.writeobj_all = yield sockets.WriteAll(obj.sock, 'Y'*(1024**2))
-                self.sockets.append(obj.sock)
+                conn = yield sockets.Connect(cli, self.local_addr, timeout=0.5, prio=self.prio)    
+                self.writeobj = yield sockets.Send(conn, 'X'*(1024**2), prio=self.prio)
+                self.writeobj_all = yield sockets.SendAll(conn, 'Y'*(1024**2), prio=self.prio)
+                self.sockets.append(conn)
+                self.sockets.append(cli)
             except:
                 traceback.print_exc()
                 thread.interrupt_main()
@@ -195,21 +182,29 @@ class SocketTest_MixIn:
                     else:
                         raise
             self.assertEqual(self.writeobj+self.writeobj_all, total)
-            self.assertEqual(len(self.m.poll), 0)
+            self.assertEqual(len(self.m.proactor), 0)
             self.assertEqual(len(self.m.active), 0)
             self.failIf(self.m_run.isAlive())
         except KeyboardInterrupt:
             self.failIf("Interrupted from the coroutine, something failed.")
             
-for poller_cls in reactors_available:
+for poller_cls in proactors_available:
     for prio_mixin in priorities:
-        for run_first in (True, False):
-            name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
+        if poller_cls.supports_multiplex_first:
+            for run_first in (True, False):
+                name = 'SocketTest_%s_%s_%s' % (prio_mixin.__name__, poller_cls.__name__, run_first and 'RunFirst' or 'PollFirst')
+                globals()[name] = type(
+                    name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
+                    {'poller':poller_cls, 'run_first':run_first}
+                )
+        else:
+            name = 'SocketTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
             globals()[name] = type(
                 name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
-                {'poller':poller_cls, 'run_first':run_first}
+                {'poller':poller_cls, 'run_first':None}
             )
-    
+            
+        
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
     unittest.main()

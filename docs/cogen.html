@@ -31,11 +31,19 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
+                        <a href="cogen.core.proactors.html">cogen.core.proactors</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
+                    </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
-                    </li><li>
-                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li>
@@ -98,7 +106,7 @@ Roughly the cogen internals works like this:
    |                                                    depening on the op
   op.run()                                               +---------+
    |      socket is ready               add it in        |         |
-   +-------------&lt;------------  ......  the reactor   &lt;--+         |
+   +-------------&lt;------------  ......  the proactor  &lt;--+         |
    |                         later                                 |
    +------&lt;-------------------  ......  add it in some other     &lt;-+
     some event decides                  queue for later run
@@ -107,16 +115,16 @@ Roughly the cogen internals works like this:
 
 The scheduler basicaly does 3 things:
  - runs active (coroutine,operations) pairs (calls process on the op)
- - runs the reactor
+ - runs the proactor
  - checks for timeouts
 
-The reactor basicaly does 2 things:
+The proactor basicaly does 2 things:
  - calls the system to check what descriptors are ready
  - runs the operations that have ready descriptors
 
 The operation does most of the work (via the process, finalize, cleanup,
 run methods):
- - adds itself in the reactor (if it's a socket operation)
+ - adds itself in the proactor (if it's a socket operation)
  - adds itself in some structure to be activated later by some other event
  - adds itself and the coro in the scheduler's active coroutines queue
 

@@ -7,7 +7,7 @@ See: `events <cogen.core.events.html>`_ and `sockets <cogen.core.sockets.html>`_
 Most of those operations work with attributes we set in the scheduler.
 
 `cogen` is multi-state. All the state related to coroutines and network is in 
-the scheduler and it's associated reactor. That means you could run several 
+the scheduler and it's associated proactor. That means you could run several 
 cogen schedulers in the same process/thread/whatever.
 
 There is just one thing that uses global objects - the threadlocal-like local 
@@ -24,7 +24,7 @@ import sys
 import errno
 import select
 
-from cogen.core.reactors import DefaultReactor
+from cogen.core.proactors import DefaultProactor
 from cogen.core import events
 from cogen.core import sockets
 from cogen.core.util import debug, priority
@@ -49,10 +49,10 @@ class Scheduler(object):
     
     .. sourcecode:: python
         
-        mysched = Scheduler(reactor=DefaultReactor, 
+        mysched = Scheduler(proactor=DefaultProactor, 
                 default_priority=priority.LAST, default_timeout=None)
     
-    * reactor: a reactor class to use
+    * proactor: a proactor class to use
     
     * default_priority: a default priority option for operations that do not 
       set it. check `priority <cogen.core.util.priority.html>`_.
@@ -61,35 +61,43 @@ class Scheduler(object):
       the operation, -1 means no timeout.
     
     """
-    def __init__(self, reactor=DefaultReactor, default_priority=priority.LAST, 
-            default_timeout=None, reactor_resolution=.01, reactor_greedy=True,
-            ops_greedy=False):
+    def __init__(self, proactor=DefaultProactor, default_priority=priority.LAST, 
+            default_timeout=None, proactor_resolution=.01, proactor_greedy=True,
+            ops_greedy=False, proactor_multiplex_first=None, 
+            proactor_default_size=None):
+            
         self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
         self.signals = collections.defaultdict(collections.deque)
-        self.poll = reactor(self, reactor_resolution)
+        proactor_options = {}
+        if proactor_multiplex_first is not None:
+            proactor_options['multiplex_first'] = proactor_multiplex_first
+        if proactor_default_size is not None:
+            proactor_options['default_size'] = proactor_default_size
+        self.proactor = proactor(self, proactor_resolution, **proactor_options)
+                                 
         self.default_priority = default_priority
         self.default_timeout = default_timeout
         self.running = False
-        self.reactor_greedy = reactor_greedy
+        self.proactor_greedy = proactor_greedy
         self.ops_greedy = ops_greedy
     def __repr__(self):
-        return "<%s@0x%X active:%s sigwait:%s timeouts:%s poller:%s default_priority:%s default_timeout:%s>" % (
+        return "<%s@0x%X active:%s sigwait:%s timeouts:%s proactor:%s default_priority:%s default_timeout:%s>" % (
             self.__class__.__name__, 
             id(self), 
             len(self.active), 
             len(self.sigwait), 
             len(self.timeouts), 
-            self.poll, 
+            self.proactor, 
             self.default_priority, 
             self.default_timeout
         )
     def __del__(self):
-        if hasattr(self, 'poll'):
-            if hasattr(self.poll, 'scheduler'):
-                del self.poll.scheduler
-            del self.poll
+        if hasattr(self, 'proactor'):
+            if hasattr(self.proactor, 'scheduler'):
+                del self.proactor.scheduler
+            del self.proactor
     def add(self, coro, args=(), kwargs={}, first=True):
         """Add a coroutine in the scheduler. You can add arguments 
         (_args_, _kwargs_) to init the coroutine with."""
@@ -102,7 +110,7 @@ class Scheduler(object):
         return coro
        
     def next_timer_delta(self): 
-        "Returns a timevalue that the reactor will wait on."
+        "Returns a timevalue that the proactor will wait on."
         if self.timeouts and not self.active:
             now = getnow()
             timo = self.timeouts[0].timeout
@@ -184,13 +192,13 @@ class Scheduler(object):
         The actual processing for the main loop is here.
         
         Running the main loop as a generator (where a iteration is a full 
-        sched, reactor and timers/timeouts run) is usefull for interleaving
+        sched, proactor and timers/timeouts run) is usefull for interleaving
         the main loop with other applications that have a blocking main loop and 
         require cogen to run in the same thread.
         """
         self.running = True
         urgent = None
-        while self.running and (self.active or self.poll or self.timeouts or urgent):
+        while self.running and (self.active or self.proactor or self.timeouts or urgent):
             if self.active or urgent:
                 op, coro = urgent or self.active.popleft()
                 urgent = None
@@ -199,9 +207,9 @@ class Scheduler(object):
                     if not op and not coro:
                         break  
             
-            if (self.reactor_greedy or not self.active) and self.poll:
+            if (self.proactor_greedy or not self.active) and self.proactor:
                 try:
-                    urgent = self.poll.run(timeout = self.next_timer_delta())
+                    urgent = self.proactor.run(timeout = self.next_timer_delta())
                 except (OSError, select.error), exc:
                     if exc[0] != errno.EINTR:
                         raise

@@ -12,13 +12,14 @@ import traceback
 import thread
 
 from cogen.common import *
-from base import priorities, reactors_available
+from cogen.core.coroutines import debug_coroutine
+from base import priorities, proactors_available
 
 class Timer_MixIn:
     def setUp(self):
         self.local_addr = ('localhost', random.randint(10000,64000))
-        self.m = Scheduler( default_priority=self.prio, reactor=self.poller,
-                            reactor_resolution=0.05)
+        self.m = Scheduler( default_priority=self.prio, proactor=self.poller,
+                            proactor_resolution=0.05)
         def run():
             try:
                 time.sleep(1)
@@ -48,9 +49,11 @@ class Timer_MixIn:
                 self.msgs.append(time.time() - self.now)
                 cli = sockets.Socket()
                 yield sockets.Connect(cli, self.local_addr, prio = self.prio, timeout=5)
+                cli.settimeout(2)
+                fh = cli.makefile()
                 try:
                     self.now = time.time()
-                    yield sockets.ReadAll(cli, 4096, timeout=2, prio = self.prio)
+                    yield fh.read(4096, prio = self.prio)
                 except events.OperationTimeout:
                     self.msgs.append(time.time() - self.now)
                 
@@ -97,7 +100,9 @@ class Timer_MixIn:
             self.ev.wait()
             time.sleep(0.1)
             self.local_sock = socket.socket()
+            self.local_sock.settimeout(1)
             self.local_sock.connect(self.local_addr)
+
             self.local_sock.getpeername()
             time.sleep(1)
             #~ print self.m.active
@@ -105,7 +110,7 @@ class Timer_MixIn:
         except KeyboardInterrupt:
             self.failIf("Interrupted from the coroutine, something failed.")
         self.m_run.join()
-        self.assertEqual(len(self.m.poll), 0)
+        self.assertEqual(len(self.m.proactor), 0)
         self.assertEqual(len(self.m.active), 0)
         self.assertAlmostEqual(self.msgs[0], 1.0, 1)
         self.assertAlmostEqual(self.msgs[1], 2.0, 1)
@@ -123,8 +128,9 @@ class Timer_MixIn:
             s = sockets.Socket()
             s.bind(self.local_addr)
             s.listen(10)
+            s.settimeout(0.1)
             try:
-                yield s.accept(timeout=0.1)
+                yield s.accept()
             except events.OperationTimeout:
                 self.timo = True
             self.delta = time.time()-ts
@@ -135,7 +141,7 @@ class Timer_MixIn:
         self.assert_(self.timo)
         self.assert_(self.delta < 0.2)
         
-for poller_cls in reactors_available:
+for poller_cls in proactors_available:
     for prio_mixin in priorities:
         name = 'TimerTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)
         globals()[name] = type(

@@ -18,7 +18,7 @@ from cogen.common import *
 from cogen.core.util import debug
 from cogen.web import wsgi, async
 
-from base import priorities, reactors_available
+from base import priorities, proactors_available
 from base_web import WebTest_Base
 
  
@@ -45,7 +45,7 @@ class LazyStartResponseTest_MixIn:
         
     def test_app(self):
         #~ self.conn.set_debuglevel(100)
-        socket.setdefaulttimeout(1)
+        socket.setdefaulttimeout(5)
         self.conn = httplib.HTTPConnection(*self.local_addr)
         self.conn.connect()
         self.conn.request('GET', '/')
@@ -54,7 +54,6 @@ class LazyStartResponseTest_MixIn:
         self.assertEqual(resp, '')
         
 class InputTest_MixIn:
-    #~ @debug(0)
     def app(self, environ, start_response):
         start_response('200 OK', [('Content-type','text/html')])
         return [environ['wsgi.input'].read()]
@@ -70,7 +69,10 @@ class InputTest_MixIn:
         if chunked: f.write("0\r\n")            
         return f.getvalue()
         
-    def test_chunked(self):
+    def rem_test_chunked(self): 
+        # replaced the cogen.web.async.Read operation supporting
+        # chunked input in the proactor refactor with a plain makefile-style
+        # fileobject
         for PSIZE in [10, 100, 1000, 1024]:
             SIZE = 10
             data = self.make_str(SIZE, PSIZE)
@@ -96,11 +98,10 @@ class AsyncInputTest_MixIn:
     middleware = []
     def read_app(self, environ, start_response):
         buff = StringIO()
-        length = 0
-        while 1:
-            yield environ['cogen.input'].Read(self.buffer_length)
+        remaining = content_length = environ['cogen.wsgi'].content_length or 0
+        while remaining:
+            yield environ['cogen.input'].read(min(remaining, self.buffer_length))
             result = environ['cogen.wsgi'].result
-            #~ print len(result)
             if isinstance(result, Exception):
                 import traceback
                 traceback.print_exception(*environ['cogen.wsgi'].exception)
@@ -109,18 +110,15 @@ class AsyncInputTest_MixIn:
                 if not result:
                     break
                 buff.write(result)
-                length += len(result)
+                remaining -= len(result)
         self.result = buff.getvalue()
         yield 'read'
-        
     def readline_app(self, environ, start_response):
         buff = StringIO()
-        length = 0
-        while 1:
-            yield environ['cogen.input'].ReadLine(self.buffer_length)
+        remaining = content_length = environ['cogen.wsgi'].content_length or 0
+        while remaining:
+            yield environ['cogen.input'].readline(min(remaining, self.buffer_length))
             result = environ['cogen.wsgi'].result
-            #~ print 
-            #~ print len(result), `result`
             if isinstance(result, Exception):
                 if isinstance(result, OverflowError):
                     self.overflow = "overflow"
@@ -133,7 +131,7 @@ class AsyncInputTest_MixIn:
                 if not result:
                     break
                 buff.write(result)
-                length += len(result)
+                remaining -= len(result)
         self.result = buff.getvalue()
         yield 'readline'
         
@@ -160,14 +158,15 @@ class AsyncInputTest_MixIn:
         for buffer_length in [10, 100, 400]:
             self.buffer_length = buffer_length
             self.result = None
-            data = self.make_str(3, 400)
+            data = self.make_str(3, 400, chunked=False)
             expectdata = self.make_str(3, 400, chunked=False)
-            self.conn.request('GET', '/read', data, {"Transfer-Encoding": "chunked"})
+            self.conn.request('GET', '/read', data, {"Content-Length": str(len(data))})
             resp = self.conn.getresponse()
             recvdata = resp.read()
-            self.assertEqual(self.result, expectdata)
             self.assertEqual(recvdata, 'read')
-    def test_readline_overflow(self):
+            self.assertEqual(self.result, expectdata)
+    def rem_test_readline_overflow(self):
+        # no more overflwo due to the new fileobject linereader replacement
         self.buffer_length = 512
         data = self.make_str(1, 512, psep="\n", chunked=False)
         self.result = None
@@ -209,6 +208,7 @@ class FileWrapperTest_MixIn:
       
     def test_http10_conn_close(self):
         for sz in [10, 100, 300]:
+            #~ print 'SZ:', sz
             self.conn = httplib.HTTPConnection(*self.local_addr)
             self.conn.connect()
             self.conn._http_vsn = 10
@@ -273,8 +273,9 @@ class FileWrapperTest_MixIn:
             else:
                 self.failIf("Connection not closed!")
         
-    
-for poller_cls in reactors_available:
+import cogen
+#~ for poller_cls in [cogen.core.proactors.has_select()]:#proactors_available:
+for poller_cls in proactors_available:
     for prio_mixin in priorities:
         
         name = 'LazyStartResponseTest_%s_%s' % (prio_mixin.__name__, poller_cls.__name__)

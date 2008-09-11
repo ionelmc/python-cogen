@@ -13,13 +13,14 @@ import cogen
 from cogen.web.wsgi import WSGIServer
 sched = cogen.core.schedulers.Scheduler(
     default_timeout=-1, 
-    #~ reactor=cogen.core.reactors.PollReactor,
+    #~ proactor=cogen.core.proactors.Pollproactor,
+    #~ proactor=cogen.core.proactors.has_select(),
     default_priority=cogen.core.util.priority.FIRST,
-    reactor_resolution=0.05
+    proactor_resolution=1
 )
     
 server = WSGIServer( 
-  ('0.0.0.0', 9001), 
+  ('0.0.0.0', 9021), 
   lorem_ipsum_app, 
   sched, 
   server_name='localhost', 

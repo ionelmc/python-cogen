@@ -32,6 +32,10 @@ def coroutine(func):
 coro = coroutine
 
 def debug_coroutine(func):
+    "Same as the `coroutine` decorator but sets the debug flag on."
+    
+    #TODO: extend debugging output to go in a logger.
+    
     def make_new_coroutine(*args, **kws):
         c = Coroutine(func, *args, **kws)
         c.debug = True
@@ -40,6 +44,7 @@ def debug_coroutine(func):
     make_new_coroutine.__doc__ = func.__doc__
     make_new_coroutine.__module__ = func.__module__ 
     return make_new_coroutine
+debug_coro = debug_coroutine
 
 ident = None
 
@@ -109,7 +114,8 @@ class Coroutine(events.Operation):
             self.exception = ValueError("Bad generator")
             raise self.exception 
         self.coro = coro
-        self.caller = self.prio = None
+        self.caller = None
+        self.prio = priority.FIRST
         self.waiters = []
         self.exception = None
     
@@ -143,6 +149,8 @@ class Coroutine(events.Operation):
             )
         if self.state == self.STATE_NEED_INIT:
             self.caller = coro
+            if coro.debug:
+                self.debug = True
             return None, self
 
         else:
@@ -184,7 +192,8 @@ class Coroutine(events.Operation):
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
-                self, {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state], op,
+                self, isinstance(op, events.CoroutineException) and op or 
+                {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state], op,
                 self._state_names[self.state],
                 self._state_names[self.STATE_COMPLETED]
             )
@@ -197,14 +206,25 @@ class Coroutine(events.Operation):
             #~ )
         #~ self.lastop = op
         if self.debug:
-            print 'Running %s with: %s' % (self, op)
+            print 
+            if isinstance(op, events.CoroutineException):
+                print 'Running %r with exception:' % self,
+                if len(op.message) == 3:
+                    print '[[['
+                    import traceback
+                    traceback.print_exception(*op.message)
+                    print ']]]'
+                else:
+                    print op.message
+            else:
+                print 'Running %r with: %r' % (self, op)
         global ident
         ident = self
         try:
             if self.state == self.STATE_RUNNING:
                 if self.debug:
                     import traceback
-                    print traceback.print_stack(self.coro.gi_frame)
+                    traceback.print_stack(self.coro.gi_frame)
                 if isinstance(op, events.CoroutineException):
                     rop = self.coro.throw(*op.message)
                 else:
@@ -244,6 +264,8 @@ class Coroutine(events.Operation):
             sys.exc_clear()
         finally:
             ident = None
+        if self.debug:
+            print "Yields %s." % rop
         return rop
     def handle_error(self):        
         print>>sys.stderr, '-'*40
@@ -260,6 +282,7 @@ class Coroutine(events.Operation):
             self.coro,
             self._state_names[self.state]
         )
+    __str__ = __repr__
         
 if __name__ == "__main__":
     @coroutine

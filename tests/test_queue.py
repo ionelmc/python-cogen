@@ -112,7 +112,7 @@ class QueueTest_MixIn:
             yield events.Sleep(1)
             yield q.put(2)
 
-        m = Scheduler(reactor_resolution=0.5)
+        m = Scheduler(proactor_resolution=0.5)
         m.add(put)
         m.add(get)
         sys.stderr = StringIO()
