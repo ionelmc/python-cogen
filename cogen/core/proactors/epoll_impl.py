@@ -16,7 +16,7 @@ class EpollProactor(ProactorBase):
                     
     def unregister_fd(self, act):
         try:
-            del self.shadow[fileno.sock.fileno()]
+            del self.shadow[act.sock.fileno()]
         except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
