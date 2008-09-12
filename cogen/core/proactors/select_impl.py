@@ -1,5 +1,6 @@
 from __future__ import division
-import select, time, itertools
+import select, itertools
+from time import sleep
 
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
@@ -52,4 +53,4 @@ class SelectProactor(ProactorBase):
                 last_act = act
             return self.yield_event(last_act)
         else:
-            time.sleep(self.resolution)
+            sleep(min(self.resolution, timeout))

@@ -29,6 +29,14 @@ def has_epoll():
     except ImportError:
         pass
 
+def has_stdlib_epoll():
+    try:
+        from select import epoll
+        import stdlib_epoll_impl
+        return stdlib_epoll_impl.StdlibEpollProactor
+    except ImportError:
+        pass
+
 def has_kqueue():
     try:
         import kqueue
@@ -62,7 +70,6 @@ def get_first(*imps):
 
 def has_any():
     "Returns the best available proactor implementation for the current platform."
-    return get_first(has_iocp, has_kqueue, has_epoll, has_poll, has_select)
-         #, has_iocp, has_kqueue, has_epoll, has_poll, has_select)
+    return get_first(has_iocp, has_kqueue, has_stdlib_epoll, has_epoll, has_poll, has_select)
 
 DefaultProactor = has_any()

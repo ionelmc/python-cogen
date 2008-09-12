@@ -7,6 +7,7 @@ import socket
 import ctypes
 import struct    
 import sys
+from time import sleep
 
 from base import ProactorBase
 from cogen.core.util import priority, debug
@@ -248,4 +249,4 @@ class IOCPProactor(ProactorBase):
                     break
             return urgent
         else:
-            time.sleep(self.resolution)    
+            sleep(min(self.resolution, timeout))

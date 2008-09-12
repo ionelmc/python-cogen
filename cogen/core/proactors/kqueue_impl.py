@@ -1,5 +1,9 @@
+from kqueue import kqueue, EVFILT_READ, EVFILT_WRITE, EV_SET, EV_DELETE, \
+                            EV_ADD, EV_ENABLE, EV_ONESHOT, EV_ERROR
+
 from __future__ import division
-import kqueue, time, sys
+import sys
+from time import sleep
 
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
@@ -11,13 +15,13 @@ from cogen.core import events
 class KQueueProactor(ProactorBase):
     def __init__(self, scheduler, res, default_size=1024, **options):
         super(self.__class__, self).__init__(scheduler, res, **options)
-        self.kq = kqueue.kqueue()
+        self.kq = kqueue()
     
     def unregister_fd(self, act):
         try:
-            flag =  kqueue.EVFILT_READ if performer == perform_recv \
-                    or performer == perform_accept else kqueue.EVFILT_WRITE 
-            ev = kqueue.EV_SET(fileno, flag, kqueue.EV_DELETE)
+            flag =  EVFILT_READ if performer == perform_recv \
+                    or performer == perform_accept else EVFILT_WRITE 
+            ev = EV_SET(fileno, flag, EV_DELETE)
             self.kq.kevent(ev)
         except OSError, e:
             import warnings
@@ -25,11 +29,11 @@ class KQueueProactor(ProactorBase):
 
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
-        flag =  kqueue.EVFILT_READ if performer == perform_recv \
-                or performer == perform_accept else kqueue.EVFILT_WRITE 
-        ev = kqueue.EV_SET(
+        flag =  EVFILT_READ if performer == perform_recv \
+                or performer == perform_accept else EVFILT_WRITE 
+        ev = EV_SET(
             fileno, flag, 
-            kqueue.EV_ADD | kqueue.EV_ENABLE | kqueue.EV_ONESHOT
+            EV_ADD | EV_ENABLE | EV_ONESHOT
         )
         ev.udata = act
         self.kq.kevent(ev)
@@ -57,14 +61,15 @@ class KQueueProactor(ProactorBase):
                 fd = ev.ident
                 act = ev.udata
                 
-                if ev.flags & kqueue.EV_ERROR:
+                if ev.flags & EV_ERROR:
                     self.handle_error_event(act, 'System error %s.'%ev.data)
                 else:
                     if nr == len_events:
                         return self.yield_event(act)
                     else:
                         if not self.handle_event(act):
-                            ev.flags = kqueue.EV_ADD | kqueue.EV_ENABLE | kqueue.EV_ONESHOT
+                            ev.flags = EV_ADD | EV_ENABLE | EV_ONESHOT
                             self.kq.kevent(ev)
-        
+        else:
+            sleep(min(self.resolution, timeout))
             
