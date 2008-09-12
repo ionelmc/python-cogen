@@ -151,7 +151,7 @@ class IOCPProactor(ProactorBase):
         try:
             return func(act, rc, nbytes)
         except:
-            return CoroutineException(sys.exc_info())
+            return CoroutineException(*sys.exc_info())
         
     def process_op(self, rc, nbytes, overlap):
         """

@@ -164,10 +164,10 @@ class Scheduler(object):
                                                     op.cleanup(self, coro):
                 
                 self.active.append((
-                    events.CoroutineException((
+                    events.CoroutineException(
                         events.OperationTimeout, 
                         events.OperationTimeout(op)
-                    )), 
+                    ), 
                     coro
                 ))
     
@@ -183,7 +183,7 @@ class Scheduler(object):
                 result = op.process(self, coro) or (None, None)
             except:
                 op.state = events.ERRORED
-                result = events.CoroutineException(sys.exc_info()), coro
+                result = events.CoroutineException(*sys.exc_info()), coro
             return result
         return None, None
         

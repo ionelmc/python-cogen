@@ -210,7 +210,7 @@ class ProactorBase(object):
         try:
             return self.run_act(act, func)
         except:
-            return CoroutineException(sys.exc_info())
+            return CoroutineException(*sys.exc_info())
             
     def run_act(self, act, func):
         try:
@@ -296,7 +296,7 @@ class ProactorBase(object):
         del self.tokens[act]
         self.unregister_fd(act)
         self.scheduler.active.append((
-            CoroutineException( (exc, exc(detail)) ), 
+            CoroutineException(exc, exc(detail)), 
             act.coro
         ))
     

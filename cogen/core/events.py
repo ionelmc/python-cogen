@@ -19,8 +19,8 @@ class CoroutineException(Exception):
     """This is used intenally to carry exception state in the poller and 
     scheduler."""
     prio = priority.DEFAULT
-    def __init__(self, *args):
-        super(CoroutineException, self).__init__(*args)
+    #~ def __init__(self, *args):
+        #~ super(CoroutineException, self).__init__(*args)
     def __str__(self):
         import traceback
         return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.message))

@@ -209,13 +209,13 @@ class Coroutine(events.Operation):
             print 
             if isinstance(op, events.CoroutineException):
                 print 'Running %r with exception:' % self,
-                if len(op.message) == 3:
+                if len(op.args) == 3:
                     print '[[['
                     import traceback
-                    traceback.print_exception(*op.message)
+                    traceback.print_exception(*op.args)
                     print ']]]'
                 else:
-                    print op.message
+                    print op.args
             else:
                 print 'Running %r with: %r' % (self, op)
         global ident
@@ -226,7 +226,7 @@ class Coroutine(events.Operation):
                     import traceback
                     traceback.print_stack(self.coro.gi_frame)
                 if isinstance(op, events.CoroutineException):
-                    rop = self.coro.throw(*op.message)
+                    rop = self.coro.throw(*op.args)
                 else:
                     rop = self.coro.send(op and op.finalize())
             elif self.state == self.STATE_NEED_INIT:
@@ -247,8 +247,9 @@ class Coroutine(events.Operation):
                 
         except StopIteration, e:
             self.state = self.STATE_COMPLETED
-            self.result = e.message
-            if hasattr(self.coro, 'close'): self.coro.close()
+            self.result = e.args
+            if hasattr(self.coro, 'close'): 
+                self.coro.close()
             rop = self
         except (KeyboardInterrupt, GeneratorExit, SystemExit):
             raise
