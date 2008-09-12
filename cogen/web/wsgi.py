@@ -787,7 +787,7 @@ def server_factory(global_conf, host, port, **options):
       request_queue_size=int(options.get('request_queue_size', 64)),
       sockoper_timeout=float(options.get('sockoper_timeout', 15)),
       sendfile_timeout=float(options.get('sendfile_timeout', 300)),
-      sockaccept_greedy=asbool(options.get('sockoper_run_first', 'false')),
+      sockaccept_greedy=asbool(options.get('sockaccept_greedy', 'false')),
     )
     sched.add(server.serve)
     sched.run()
