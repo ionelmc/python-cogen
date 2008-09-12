@@ -69,19 +69,6 @@ class InputTest_MixIn:
         if chunked: f.write("0\r\n")            
         return f.getvalue()
         
-    def rem_test_chunked(self): 
-        # replaced the cogen.web.async.Read operation supporting
-        # chunked input in the proactor refactor with a plain makefile-style
-        # fileobject
-        for PSIZE in [10, 100, 1000, 1024]:
-            SIZE = 10
-            data = self.make_str(SIZE, PSIZE)
-            self.conn.request('GET', '/', data, {"Transfer-Encoding": "chunked"})
-
-            resp = self.conn.getresponse()
-            recvdata = resp.read()
-            expectdata = self.make_str(SIZE, PSIZE, chunked=False)
-            self.assertEqual(recvdata, expectdata)
     def test_nonchunked(self):
         for PSIZE in [10, 100, 1000, 1024]:
             SIZE = 10
@@ -165,17 +152,6 @@ class AsyncInputTest_MixIn:
             recvdata = resp.read()
             self.assertEqual(recvdata, 'read')
             self.assertEqual(self.result, expectdata)
-    def rem_test_readline_overflow(self):
-        # no more overflwo due to the new fileobject linereader replacement
-        self.buffer_length = 512
-        data = self.make_str(1, 512, psep="\n", chunked=False)
-        self.result = None
-        self.overflow = None
-        self.conn.request('GET', '/readline', data)
-        resp = self.conn.getresponse()
-        recvdata = resp.read()
-        self.assertEqual(self.overflow, 'overflow')
-        self.assertEqual(recvdata, 'readline')
     def test_readline(self):
         self.buffer_length = 512
         data = self.make_str(1, 256, psep="\n", chunked=False)
