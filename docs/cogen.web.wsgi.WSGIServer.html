@@ -35,15 +35,15 @@
                     </li><li>
                         <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
                     </li><li>
-                        <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
-                    </li><li>
                         <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.kqueue_impl.html">cogen.core.proactors.kqueue_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.stdlib_epoll_impl.html">cogen.core.proactors.stdlib_epoll_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.stdlib_kqueue_impl.html">cogen.core.proactors.stdlib_kqueue_impl</a>
                     </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
@@ -105,11 +105,11 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.web.wsgi.WSGIServer.html#attribute-STATE_NEED_INIT">STATE_NEED_INIT</a>
-                    </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-bind_addr">bind_addr</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-environ">environ</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.WSGIServer.html#attribute-kqueue">kqueue</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-protocol">protocol</a>
                     </li>
@@ -225,19 +225,10 @@ response.</td>
     </div>
     <div>
         <h2>Attributes</h2>
-            <h3 id="attribute-STATE_NEED_INIT">STATE_NEED_INIT</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of STATE_NEED_INIT</h4>
-            <pre class="code"><code>0</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
             <h3 id="attribute-bind_addr">bind_addr</h3>
             <div class="docstring rst"></div>
             <h4>Value of bind_addr</h4>
-            <pre class="code"><code>&lt;property object at 0x00DB7B20&gt;</code></pre>
+            <pre class="code"><code>&lt;property object at 0x00DC20F8&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
@@ -250,6 +241,15 @@ response.</td>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-kqueue">kqueue</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of kqueue</h4>
+            <pre class="code"><code>0</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-protocol">protocol</h3>

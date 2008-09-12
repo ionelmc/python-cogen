@@ -35,15 +35,15 @@
                     </li><li>
                         <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
                     </li><li>
-                        <a href="cogen.core.proactors.epoll_impl.html">cogen.core.proactors.epoll_impl</a>
-                    </li><li>
                         <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.kqueue_impl.html">cogen.core.proactors.kqueue_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
                     </li><li>
                         <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.stdlib_epoll_impl.html">cogen.core.proactors.stdlib_epoll_impl</a>
+                    </li><li>
+                        <a href="cogen.core.proactors.stdlib_kqueue_impl.html">cogen.core.proactors.stdlib_kqueue_impl</a>
                     </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
@@ -103,15 +103,11 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_COMPLETED">STATE_COMPLETED</a>
+                        <a href="cogen.core.coroutines.Coroutine.html#attribute-KQ_FILTER_AIO">KQ_FILTER_AIO</a>
                     </li><li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_FAILED">STATE_FAILED</a>
+                        <a href="cogen.core.coroutines.Coroutine.html#attribute-KQ_FILTER_READ">KQ_FILTER_READ</a>
                     </li><li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_FINALIZED">STATE_FINALIZED</a>
-                    </li><li>
-                        <a href="cogen.web.wsgi.WSGIServer.html#attribute-STATE_NEED_INIT">STATE_NEED_INIT</a>
-                    </li><li>
-                        <a href="cogen.core.coroutines.Coroutine.html#attribute-STATE_RUNNING">STATE_RUNNING</a>
+                        <a href="cogen.core.coroutines.Coroutine.html#attribute-KQ_FILTER_WRITE">KQ_FILTER_WRITE</a>
                     </li><li>
                         <a href="cogen.core.coroutines.Coroutine.html#attribute-caller">caller</a>
                     </li><li>
@@ -124,6 +120,10 @@
                         <a href="cogen.core.coroutines.Coroutine.html#attribute-f_args">f_args</a>
                     </li><li>
                         <a href="cogen.core.coroutines.Coroutine.html#attribute-f_kws">f_kws</a>
+                    </li><li>
+                        <a href="cogen.core.coroutines.Coroutine.html#attribute-kevent">kevent</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.WSGIServer.html#attribute-kqueue">kqueue</a>
                     </li><li>
                         <a href="cogen.core.coroutines.Coroutine.html#attribute-lastop">lastop</a>
                     </li><li>
@@ -195,7 +195,7 @@ coroutine, also, we do some exception handling here.</p>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#269">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/coroutines.py#270">View source</a>
     </li>
 </ul>
             <h3 id="method-process">
@@ -245,49 +245,31 @@ which handles it's own completion (resuming the caller and the waiters).</p>
     </div>
     <div>
         <h2>Attributes</h2>
-            <h3 id="attribute-STATE_COMPLETED">STATE_COMPLETED</h3>
+            <h3 id="attribute-KQ_FILTER_AIO">KQ_FILTER_AIO</h3>
             <div class="docstring rst"></div>
-            <h4>Value of STATE_COMPLETED</h4>
-            <pre class="code"><code>2</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-STATE_FAILED">STATE_FAILED</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of STATE_FAILED</h4>
-            <pre class="code"><code>3</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-STATE_FINALIZED">STATE_FINALIZED</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of STATE_FINALIZED</h4>
+            <h4>Value of KQ_FILTER_AIO</h4>
             <pre class="code"><code>4</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
     </li>
 </ul>
-            <h3 id="attribute-STATE_NEED_INIT">STATE_NEED_INIT</h3>
+            <h3 id="attribute-KQ_FILTER_READ">KQ_FILTER_READ</h3>
             <div class="docstring rst"></div>
-            <h4>Value of STATE_NEED_INIT</h4>
-            <pre class="code"><code>0</code></pre>
+            <h4>Value of KQ_FILTER_READ</h4>
+            <pre class="code"><code>2</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
     </li>
 </ul>
-            <h3 id="attribute-STATE_RUNNING">STATE_RUNNING</h3>
+            <h3 id="attribute-KQ_FILTER_WRITE">KQ_FILTER_WRITE</h3>
             <div class="docstring rst"></div>
-            <h4>Value of STATE_RUNNING</h4>
-            <pre class="code"><code>1</code></pre>
+            <h4>Value of KQ_FILTER_WRITE</h4>
+            <pre class="code"><code>3</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-caller">caller</h3>
@@ -344,6 +326,24 @@ which handles it's own completion (resuming the caller and the waiters).</p>
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
     </li>
 </ul>
+            <h3 id="attribute-kevent">kevent</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of kevent</h4>
+            <pre class="code"><code>1</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
+    </li>
+</ul>
+            <h3 id="attribute-kqueue">kqueue</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of kqueue</h4>
+            <pre class="code"><code>0</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
+    </li>
+</ul>
             <h3 id="attribute-lastop">lastop</h3>
             <div class="docstring rst"></div>
             <h4>Value of lastop</h4>
@@ -383,7 +383,7 @@ which handles it's own completion (resuming the caller and the waiters).</p>
             <h3 id="attribute-running">running</h3>
             <div class="docstring rst"></div>
             <h4>Value of running</h4>
-            <pre class="code"><code>&lt;property object at 0x00D5F990&gt;</code></pre>
+            <pre class="code"><code>&lt;property object at 0x00D5FF08&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
