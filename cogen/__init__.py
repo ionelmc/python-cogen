@@ -85,7 +85,7 @@ THE SOFTWARE.
 __author__ = u"Mărieş Ionel Cristian"
 __email__ = "ionel.mc@gmail.com"
 __revision__ = "$Revision$"
-__version__ = '0.1.8'
+__version__ = '0.2.0'
 __svnid__ = "$Id$"
 
 from cogen import core
