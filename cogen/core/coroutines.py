@@ -163,7 +163,7 @@ class Coroutine(events.Operation):
             if self.caller:
                 try:
                     if self.exception:
-                        return events.CoroutineException(self.exception), self.caller
+                        return events.CoroutineException(*self.exception), self.caller
                     else:                
                         return self, self.caller
                 finally:
@@ -247,7 +247,7 @@ class Coroutine(events.Operation):
                 
         except StopIteration, e:
             self.state = self.STATE_COMPLETED
-            self.result = e.args
+            self.result = e.args and e.args[0]
             if hasattr(self.coro, 'close'): 
                 self.coro.close()
             rop = self
