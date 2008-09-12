@@ -1,7 +1,7 @@
+from __future__ import division
 from kqueue import kqueue, EVFILT_READ, EVFILT_WRITE, EV_SET, EV_DELETE, \
                             EV_ADD, EV_ENABLE, EV_ONESHOT, EV_ERROR
 
-from __future__ import division
 import sys
 from time import sleep
 
@@ -16,12 +16,11 @@ class KQueueProactor(ProactorBase):
     def __init__(self, scheduler, res, default_size=1024, **options):
         super(self.__class__, self).__init__(scheduler, res, **options)
         self.kq = kqueue()
+        self.default_size = default_size
     
     def unregister_fd(self, act):
         try:
-            flag =  EVFILT_READ if performer == perform_recv \
-                    or performer == perform_accept else EVFILT_WRITE 
-            ev = EV_SET(fileno, flag, EV_DELETE)
+            ev = EV_SET(act.sock.fileno(), act.flags, EV_DELETE)
             self.kq.kevent(ev)
         except OSError, e:
             import warnings
@@ -29,7 +28,7 @@ class KQueueProactor(ProactorBase):
 
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
-        flag =  EVFILT_READ if performer == perform_recv \
+        act.flags = flag = EVFILT_READ if performer == perform_recv \
                 or performer == perform_accept else EVFILT_WRITE 
         ev = EV_SET(
             fileno, flag, 
@@ -65,7 +64,11 @@ class KQueueProactor(ProactorBase):
                     self.handle_error_event(act, 'System error %s.'%ev.data)
                 else:
                     if nr == len_events:
-                        return self.yield_event(act)
+                        ret = self.yield_event(act)
+                        if not ret:
+                            ev.flags = EV_ADD | EV_ENABLE | EV_ONESHOT
+                            self.kq.kevent(ev)
+                        return ret
                     else:
                         if not self.handle_event(act):
                             ev.flags = EV_ADD | EV_ENABLE | EV_ONESHOT

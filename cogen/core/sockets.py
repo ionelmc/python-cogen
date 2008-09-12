@@ -195,7 +195,7 @@ class SocketOperation(events.TimedOperation):
     `run` method and call the __init__ method of the superclass.
     """
     __slots__ = [
-        'sock', 'last_update', 'coro',
+        'sock', 'last_update', 'coro', 'flags'
     ]
     def __init__(self, sock, **kws):
         """

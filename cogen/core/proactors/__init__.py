@@ -47,6 +47,14 @@ def has_kqueue():
     except ImportError:
         pass
 
+def has_stdlib_kqueue():
+    try:
+        from select import kqueue
+        import stdlib_kqueue_impl
+        return stdlib_kqueue_impl.StdlibKQueueProactor
+    except ImportError:
+        pass
+
 def has_iocp():
     try:
         import win32file
