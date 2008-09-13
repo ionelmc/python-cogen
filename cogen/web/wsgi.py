@@ -775,7 +775,7 @@ def server_factory(global_conf, host, port, **options):
       default_priority=int(options.get('sched_default_priority', priority.FIRST)), 
       default_timeout=float(options.get('sched_default_timeout', 0)),
       proactor_resolution=float(options.get('proactor_resolution', 0.5)),
-      sockoper_run_first=asbool(options.get('sockoper_run_first', 'true')),
+      proactor_multiplex_first=asbool(options.get('proactor_multiplex_first', 'true')),
       proactor_greedy=asbool(options.get('proactor_greedy')),
       ops_greedy=asbool(options.get('ops_greedy'))
     )
