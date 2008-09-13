@@ -82,5 +82,5 @@ class StdlibKQueueProactor(ProactorBase):
                             ev.flags = KQ_EV_ADD | KQ_EV_ONESHOT
                             self.kcontrol((ev,), 0)
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)
             

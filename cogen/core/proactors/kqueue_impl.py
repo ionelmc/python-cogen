@@ -74,5 +74,5 @@ class KQueueProactor(ProactorBase):
                             ev.flags = EV_ADD | EV_ENABLE | EV_ONESHOT
                             self.kq.kevent(ev)
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)
             

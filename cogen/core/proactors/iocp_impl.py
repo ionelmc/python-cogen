@@ -249,4 +249,4 @@ class IOCPProactor(ProactorBase):
                     break
             return urgent
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)

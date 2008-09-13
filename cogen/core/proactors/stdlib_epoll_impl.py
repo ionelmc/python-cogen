@@ -78,5 +78,5 @@ class StdlibEpollProactor(ProactorBase):
                             self.epoll_obj.modify(fd, ev | EPOLLONESHOT)
                 
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)
             # todo; fix this to timeout value

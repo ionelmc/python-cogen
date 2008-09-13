@@ -53,4 +53,4 @@ class SelectProactor(ProactorBase):
                 last_act = act
             return self.yield_event(last_act)
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)

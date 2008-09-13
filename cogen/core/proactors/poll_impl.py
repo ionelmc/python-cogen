@@ -71,4 +71,4 @@ class PollProactor(ProactorBase):
                         else:
                             self.shadow[fd] = act
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)

@@ -77,5 +77,5 @@ class EpollProactor(ProactorBase):
                             epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, ev | EPOLLONESHOT)
                 
         else:
-            sleep(min(self.resolution, timeout))
+            sleep(timeout)
             # todo; fix this to timeout value
