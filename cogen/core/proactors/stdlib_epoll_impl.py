@@ -12,6 +12,7 @@ from cogen.core import sockets
 from cogen.core.util import priority
 
 class StdlibEpollProactor(ProactorBase):
+    "epoll based proactor implementation using python 2.6 select module."
     def __init__(self, scheduler, res, default_size=1024, **options):
         super(self.__class__, self).__init__(scheduler, res, **options)
         self.scheduler = scheduler
@@ -32,8 +33,6 @@ class StdlibEpollProactor(ProactorBase):
             import warnings
             warnings.warn("fd remove error: %r" % e)
     
-    #~ from cogen.core.util import debug
-    #~ @debug(0)
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
         self.shadow[fileno] = act

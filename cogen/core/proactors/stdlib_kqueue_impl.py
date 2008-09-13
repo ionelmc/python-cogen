@@ -17,6 +17,7 @@ from cogen.core.util import priority
 from cogen.core import events
 
 class StdlibKQueueProactor(ProactorBase):
+    "kqueue based proactor implementation using python 2.6 select module."
     def __init__(self, scheduler, res, default_size=1024, **options):
         super(self.__class__, self).__init__(scheduler, res, **options)
         self.kq = kqueue()
