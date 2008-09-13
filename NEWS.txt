@@ -4,6 +4,8 @@
  * some network api was changed (readline was moved in a fileobject class - just
    like python's socket api)
  * added support for TransmitFile
+ * added support for select.epoll and select.epoll in python 2.6
+ 
  
 0.1.9:
 
