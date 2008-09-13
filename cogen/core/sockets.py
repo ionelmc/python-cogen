@@ -218,6 +218,7 @@ class SocketOperation(events.TimedOperation):
         return self.sock._fd.fileno()
         
     def cleanup(self, sched, coro):
+        super(SocketOperation, self).cleanup(sched, coro)
         return sched.proactor.remove_token(self)
     
     
