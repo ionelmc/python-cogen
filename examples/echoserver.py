@@ -24,7 +24,7 @@ def handler(sock, addr):
     yield fh.flush()
         
     while 1:
-        line = yield fh.readline(10)
+        line = yield fh.readline(1024)
         print `line`
         if line.strip() == 'exit':
             yield fh.write("GOOD BYE")
@@ -35,6 +35,6 @@ def handler(sock, addr):
         yield fh.flush()
 
 print 'Using:', proactors.DefaultProactor.__name__
-m = schedulers.Scheduler(proactor_resolution=1, proactor=proactors.has_select())
+m = schedulers.Scheduler()
 m.add(server)
 m.run()
