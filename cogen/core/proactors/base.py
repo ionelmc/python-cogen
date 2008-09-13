@@ -111,7 +111,12 @@ class ProactorBase(object):
         self.m_resolution = resolution*1000 # miliseconds
         self.n_resolution = resolution*1000000000 #nanoseconds
         self.set_options(**options)
-        
+    
+    def __str__(self):
+        return "<%s [%s]>" % (self.__class__.__name__, self.tokens)
+    
+    __repr__ = __str__
+    
     def set_options(self, multiplex_first=True, **bogus_options):
         "Takes implementation specific options. To be overriden in a subclass."
         self.multiplex_first = multiplex_first
