@@ -3,7 +3,7 @@ import events
 from util import priority
 
 class PSPut(events.Operation):
-    __slots__ = ['queue', 'message', 'key']
+    __slots__ = ('queue', 'message', 'key')
     
     def __init__(self, queue, message, key, **kws):
         super(PSPut, self).__init__(**kws)
@@ -35,7 +35,7 @@ class PSPut(events.Operation):
             return None, None
             
 class PSGet(events.TimedOperation):
-    __slots__ = ['queue', 'result', 'key']
+    __slots__ = ('queue', 'result', 'key')
     
     def __init__(self, queue, key, **kws):
         super(PSGet, self).__init__(**kws)
@@ -66,7 +66,7 @@ class PSGet(events.TimedOperation):
             return True
 
 class PSSubscribe(events.Operation):
-    __slots__ = ['queue', 'key']
+    __slots__ = ('queue', 'key')
     
     def __init__(self, queue, key, **kws):
         super(PSSubscribe, self).__init__(**kws)
@@ -79,7 +79,7 @@ class PSSubscribe(events.Operation):
         return self, coro
 
 class PSUnsubscribe(events.Operation):
-    __slots__ = ['queue', 'key']
+    __slots__ = ('queue', 'key')
     
     def __init__(self, queue, key, **kws):
         super(PSSubscribe, self).__init__(**kws)

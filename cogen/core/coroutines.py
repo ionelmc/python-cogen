@@ -91,12 +91,12 @@ class Coroutine(events.Operation):
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, \
         STATE_FAILED, STATE_FINALIZED = range(5)
     _state_names = "NOTSTARTED", "RUNNING", "COMPLETED", "FAILED", "FINALIZED"
-    __slots__ = [ 
+    __slots__ = ( 
         'f_args', 'f_kws', 'name', 'state', 
         'exception', 'coro', 'caller', 'waiters', 'result',
         'prio', 'handle_error', '__weakref__',
         'lastop', 'debug'
-    ]
+    )
     running = property(lambda self: self.state < self.STATE_COMPLETED)
     
     def __init__(self, coro, *args, **kws):

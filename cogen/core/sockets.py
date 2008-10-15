@@ -75,7 +75,7 @@ class Socket(object):
 
     A socket object represents one endpoint of a network connection.
     """
-    __slots__ = ['_fd', '_timeout', '_proactor_added']
+    __slots__ = ('_fd', '_timeout', '_proactor_added')
     def __init__(self, *a, **k):
         self._fd = socket.socket(*a, **k)
         self._fd.setblocking(0)
@@ -194,9 +194,9 @@ class SocketOperation(events.TimedOperation):
     A socket operation should subclass WriteOperation or ReadOperation, define a
     `run` method and call the __init__ method of the superclass.
     """
-    __slots__ = [
+    __slots__ = (
         'sock', 'last_update', 'coro', 'flags'
-    ]
+    )
     def __init__(self, sock, **kws):
         """
         All the socket operations have these generic properties that the 
@@ -243,10 +243,10 @@ class SendFile(SocketOperation):
                 #from the file
 
     """
-    __slots__ = [
+    __slots__ = (
         'sent', 'file_handle', 'offset', 
         'position', 'length', 'blocksize'
-    ]
+    )
     
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         super(SendFile, self).__init__(sock, **kws)
@@ -276,7 +276,7 @@ class Recv(SocketOperation):
     `buffer_length` is max read size, BUT, if if there are buffers from ReadLine 
     return them first.    
     """
-    __slots__ = ['buff', 'len']
+    __slots__ = ('buff', 'len')
         
     def __init__(self, sock, len = 4096, **kws):
         super(Recv, self).__init__(sock, **kws)
@@ -296,7 +296,7 @@ class Send(SocketOperation):
     """
     Write the buffer to the socket and return the number of bytes written.
     """    
-    __slots__ = ['sent', 'buff']
+    __slots__ = ('sent', 'buff')
     
     def __init__(self, sock, buff, **kws):
         super(Send, self).__init__(sock, **kws)
@@ -315,7 +315,7 @@ class SendAll(SocketOperation):
     """
     Run this operation till all the bytes have been written.
     """
-    __slots__ = ['sent', 'buff']
+    __slots__ = ('sent', 'buff')
     
     def __init__(self, sock, buff, **kws):
         super(SendAll, self).__init__(sock, **kws)
@@ -334,7 +334,7 @@ class Accept(SocketOperation):
     """
     Returns a (conn, addr) tuple when the operation completes.
     """
-    __slots__ = ['conn', 'addr', 'cbuff']
+    __slots__ = ('conn', 'addr', 'cbuff')
     
     def __init__(self, sock, **kws):
         super(Accept, self).__init__(sock, **kws)
@@ -361,7 +361,7 @@ class Connect(SocketOperation):
     """
     
     """
-    __slots__ = ['addr', 'conn', 'connect_attempted']
+    __slots__ = ('addr', 'conn', 'connect_attempted')
     
     def __init__(self, sock, addr, **kws):
         """
@@ -397,10 +397,10 @@ class _fileobject(object):
     default_bufsize = 8192
     name = "<socket>"
 
-    __slots__ = ["mode", "bufsize", "softspace",
+    __slots__ = ("mode", "bufsize", "softspace",
                  # "closed" is a property, see below
                  "_sock", "_rbufsize", "_wbufsize", "_rbuf", "_wbuf",
-                 "_close"]
+                 "_close")
 
     def __init__(self, sock, mode='rb', bufsize=-1, close=False):
         self._sock = sock

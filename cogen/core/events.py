@@ -68,7 +68,7 @@ class Operation(object):
     
     Note: you don't really use this, this is for subclassing for other operations.
     """
-    __slots__ = ['prio', 'state']
+    __slots__ = ('prio', 'state')
     
     def __init__(self, prio=priority.DEFAULT):
         self.prio = prio
@@ -124,7 +124,7 @@ class TimedOperation(Operation):
     See: `Operation <cogen.core.events.Operation.html>`_.
     Note: you don't really use this, this is for subclassing for other operations.
     """
-    __slots__ = ['timeout', 'coro', 'weak_timeout', 'delta', 'last_checkpoint']
+    __slots__ = ('timeout', 'coro', 'weak_timeout', 'delta', 'last_checkpoint')
     
     def set_timeout(self, val):
         if val and val != -1 and not isinstance(val, datetime.datetime):
@@ -193,7 +193,7 @@ class WaitForSignal(TimedOperation):
     See: `TimedOperation <cogen.core.events.TimedOperation.html>`_.
     """
         
-    __slots__ = ['name', 'result']
+    __slots__ = ('name', 'result')
     
     def __init__(self, name, **kws):
         super(WaitForSignal, self).__init__(**kws)
@@ -251,7 +251,7 @@ class Signal(Operation):
       
     See: `Operation <cogen.core.events.Operation.html>`_.
     """
-    __slots__ = ['name', 'value', 'len', 'prio', 'result', 'recipients', 'coro']
+    __slots__ = ('name', 'value', 'len', 'prio', 'result', 'recipients', 'coro')
     
     def __init__(self, name, value=None, recipients=0, **kws):
         """All the coroutines waiting for this object will be added back in the
@@ -327,7 +327,7 @@ class OldCall(Operation):
       
     See: `Operation <cogen.core.events.Operation.html>`_.
     """
-    __slots__ = ['coro', 'args', 'kwargs']
+    __slots__ = ('coro', 'args', 'kwargs')
     
     def __init__(self, coro, args=None, kwargs=None, **kws):
         super(Call, self).__init__(**kws)
@@ -367,7 +367,7 @@ class AddCoro(Operation):
     This is similar to Call, but it doesn't pause the current coroutine.
     See: `Operation <cogen.core.events.Operation.html>`_.
     """
-    __slots__ = ['coro', 'args', 'kwargs', 'result']
+    __slots__ = ('coro', 'args', 'kwargs', 'result')
     def __init__(self, coro, args=None, kwargs=None, **kws):
         super(AddCoro, self).__init__(**kws)
         self.coro = coro
@@ -421,7 +421,7 @@ class Join(TimedOperation):
     This will pause the coroutine and resume it when the other coroutine 
     (`ref` in the example) has died.
     """
-    __slots__ = ['coro']
+    __slots__ = ('coro',)
     def __init__(self, coro, **kws):
         super(Join, self).__init__(**kws)
         self.coro = coro
@@ -464,7 +464,7 @@ class Sleep(TimedOperation):
     
     * ts - a timestamp
     """
-    __slots__ = []
+    __slots__ = ()
     def __init__(self, val):
         super(Sleep, self).__init__(timeout=val)
         

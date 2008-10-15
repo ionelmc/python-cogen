@@ -14,7 +14,7 @@ class Empty(Exception):
     pass
 class QGet(events.TimedOperation):
     "A operation for the queue get call."
-    __slots__ = ['queue', 'block', 'caller', 'result', 'waiting']
+    __slots__ = ('queue', 'block', 'caller', 'result', 'waiting')
     def __init__(self, queue, block, **kws):
         super(QGet, self).__init__(**kws)
         self.queue = queue
@@ -72,7 +72,7 @@ class QGet(events.TimedOperation):
         
 class QPut(events.TimedOperation):
     "A operation for the queue put call."
-    __slots__ = ['queue', 'item', 'block', 'caller', 'result', 'waiting']
+    __slots__ = ('queue', 'item', 'block', 'caller', 'result', 'waiting')
     def __init__(self, queue, item, block, **kws):
         super(QPut, self).__init__(**kws)
         self.queue = queue
@@ -130,7 +130,7 @@ class QPut(events.TimedOperation):
         
 class QDone(events.Operation):
     "A operation for the queue done_task call"
-    __slots__ = ['queue']
+    __slots__ = ('queue',)
     
     def __init__(self, queue, **kws):
         super(QDone, self).__init__(**kws)
@@ -147,7 +147,7 @@ class QDone(events.Operation):
         
 class QJoin(events.Operation):
     "A operation for the queue join call."
-    __slots__ = ['queue']
+    __slots__ = ('queue',)
     
     def __init__(self, queue, **kws):
         super(QJoin, self).__init__(**kws)
