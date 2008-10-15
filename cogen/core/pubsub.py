@@ -82,7 +82,7 @@ class PSUnsubscribe(events.Operation):
     __slots__ = ('queue', 'key')
     
     def __init__(self, queue, key, **kws):
-        super(PSSubscribe, self).__init__(**kws)
+        super(PSUnsubscribe, self).__init__(**kws)
         self.queue = queue
         self.key = key
     
