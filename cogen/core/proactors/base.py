@@ -269,7 +269,7 @@ class ProactorBase(object):
                 else:
                     if op.prio & priority.OP:
                         op, coro = self.scheduler.process_op(coro.run_op(op), coro)
-                    if coro:
+                    if coro and op:
                         if op.prio & priority.CORO:
                             self.scheduler.active.appendleft( (op, coro) )
                         else:
