@@ -22,7 +22,7 @@ setup(
     author='Maries Ionel Cristian',
     author_email='ionel.mc@gmail.com',
     url='http://code.google.com/p/cogen/',
-    packages=['cogen', 'cogen.core', 'cogen.web'],
+    packages=['cogen', 'cogen.core', 'cogen.web', 'cogen.core.proactors'],
     zip_safe=True,
     classifiers=[
         'Development Status :: 4 - Beta',
