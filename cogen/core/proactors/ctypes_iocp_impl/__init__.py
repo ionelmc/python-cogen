@@ -1,3 +1,4 @@
+from __future__ import division
 # work in progress
 
 from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   \
@@ -7,7 +8,6 @@ from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   
 from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT
 
 
-from __future__ import division
 import sys
 from time import sleep
 
