@@ -1,8 +1,9 @@
-from ctypes import WINFUNCTYPE
-from ctypes import windll, pythonapi, cast, WinError
-from ctypes import c_int, c_uint, c_long, c_ulong, c_void_p, byref, c_char_p 
-from ctypes import c_ushort, c_ubyte, c_char, WINFUNCTYPE, c_short, c_ubyte
-from ctypes import Structure, Union, py_object, POINTER, pointer, sizeof
+from ctypes import WINFUNCTYPE, GetLastError, \
+            windll, pythonapi, cast, WinError, create_string_buffer, \
+            c_int, c_uint, c_long, c_ulong, c_void_p, byref, c_char_p, \
+            c_ushort, c_ubyte, c_char, WINFUNCTYPE, c_short, c_ubyte, \
+            Structure, Union, py_object, POINTER, pointer, sizeof
+
 from ctypes.wintypes import HANDLE, ULONG, DWORD, BOOL, LPCSTR, LPCWSTR, WinError
 
 from api_consts import *
@@ -11,6 +12,9 @@ import os
 
 NULL = c_ulong()
 SOCKET = SIZE_T = c_uint
+
+LPDWORD = POINTER(DWORD)
+PULONG_PTR = POINTER(c_ulong)
 
 class _US(Structure):
     _fields_ = [
@@ -41,6 +45,8 @@ class OVERLAPPED(Structure):
 
     _anonymous_ = ("u",)
     
+LPOVERLAPPED = POINTER(OVERLAPPED)
+
 class WSABUF(Structure):
     _fields_ = [
         ('len', c_ulong),
@@ -111,7 +117,8 @@ class sockaddr(Structure):
         ('sa_family', c_ushort),
         ('sa_data', c_char * 14)
     ]
-    
+
+ACCEPT_BUFF_SZ = 2*sizeof(sockaddr)
     
 class in_addr(Structure):
     _fields_ = [
@@ -161,7 +168,7 @@ def _error_check(result, func, args):
 def _bool_error_check(result, func, args):
     if not result:
         return GetLastError()
-    return result
+    return 0
     
 CreateIoCompletionPort = windll.kernel32.CreateIoCompletionPort
 CreateIoCompletionPort.argtypes = (HANDLE, HANDLE, POINTER(c_ulong), DWORD)
@@ -225,7 +232,7 @@ WSAIoctl.argtypes = (SOCKET, DWORD, c_void_p, DWORD, c_void_p, DWORD, POINTER(DW
 WSAIoctl.restype = c_int
 WSAIoctl.errcheck = _error_throw
 
-# BOOL = SOCKET s, const struct sockaddr *name, int namelen, PVOID lpSendBuffer,
+# BOOL = SOCKET s, const struct sockaddr *name, int namelen, PVOID lpSendBuffer, DWORD dwSendDataLength, LPDWORD lpdwBytesSent, LPOVERLAPPED lpOverlapped
 ConnectExType = WINFUNCTYPE(BOOL, c_int, POINTER(sockaddr), c_int, c_void_p, DWORD, POINTER(DWORD), POINTER(OVERLAPPED))
 
 def _GetConnectExPtr(given_socket=None):

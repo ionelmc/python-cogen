@@ -68,6 +68,16 @@ def has_iocp():
         return iocp_impl.IOCPProactor
     except ImportError:
         pass
+
+def has_ctypes_iocp():
+    try: 
+        import ctypes
+        import ctypes_iocp_impl
+        return ctypes_iocp_impl.CTYPES_IOCPProactor
+    except ImportError:
+        import traceback
+        traceback.print_exc()
+        pass
         
 def get_first(*imps):
     "Returns the first result that evaluates to true from a list of callables."
@@ -78,6 +88,7 @@ def get_first(*imps):
 
 def has_any():
     "Returns the best available proactor implementation for the current platform."
+    # has_ctypes_iocp, 
     return get_first(has_iocp, has_kqueue, has_stdlib_epoll, has_epoll, has_poll, has_select)
 
 DefaultProactor = has_any()

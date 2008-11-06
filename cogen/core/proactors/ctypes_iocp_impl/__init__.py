@@ -4,21 +4,42 @@ from __future__ import division
 from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   \
                 GetQueuedCompletionStatus, PostQueuedCompletionStatus, CancelIo,\
                 getaddrinfo, getsockopt, WSARecv, WSASend, AcceptEx, WSAIoctl,  \
-                GetAcceptExSockaddrs, ConnectEx, TransmitFile, AllocateBuffer
-from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT
+                GetAcceptExSockaddrs, ConnectEx, TransmitFile, AllocateBuffer, \
+                LPOVERLAPPED, OVERLAPPED, LPDWORD, PULONG_PTR, cast, c_void_p, \
+                byref, c_char_p, create_string_buffer, c_ulong, DWORD, WSABUF, \
+                c_long
+                
+from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT, \
+                INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED
 
 
 import sys
+import socket
+import ctypes
+import struct
+
 from time import sleep
 
-from base import ProactorBase
+from cogen.core.proactors.base import ProactorBase
 from cogen.core.util import priority, debug
 from cogen.core.sockets import Socket
 from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
 
 def perform_recv(act, overlapped):
-    act.buff = AllocateBuffer(act.len)
-    return WSARecv(act.sock._fd, act.buff, overlapped, 0)
+    act.buff = create_string_buffer(act.len)
+    wsabuf = WSABUF()
+    wsabuf.buf = cast(act.buff, c_char_p)
+    wsabuf.len = act.len
+    nbytes = c_ulong()
+    return WSARecv(
+        act.sock._fd.fileno(), # SOCKET s
+        byref(wsabuf), # LPWSABUF lpBuffers
+        1, # DWORD dwBufferCount
+        byref(nbytes), # LPDWORD lpNumberOfBytesRecvd
+        None, # LPDWORD lpFlags
+        overlapped, # LPWSAOVERLAPPED lpOverlapped
+        None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+    ), 0
 
 def complete_recv(act, rc, nbytes):
     if nbytes:
@@ -29,7 +50,19 @@ def complete_recv(act, rc, nbytes):
     
     
 def perform_send(act, overlapped):
-    return WSASend(act.sock._fd, act.buff, overlapped, 0)
+    wsabuf = WSABUF()
+    wsabuf.buf = c_char_p(act.buff)
+    wsabuf.len = len(act.buff)
+    nbytes = c_ulong()
+    return WSASend(
+        act.sock._fd.fileno(), # SOCKET s
+        byref(wsabuf), # LPWSABUF lpBuffers
+        1, # DWORD dwBufferCount
+        byref(nbytes), # LPDWORD lpNumberOfBytesSent
+        0, # DWORD dwFlags
+        overlapped, # LPWSAOVERLAPPED lpOverlapped
+        None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+    ), nbytes.value
 
 def complete_send(act, rc, nbytes):
     act.sent = nbytes
@@ -37,7 +70,19 @@ def complete_send(act, rc, nbytes):
     
     
 def perform_sendall(act, overlapped):
-    return WSASend(act.sock._fd, act.buff[act.sent:], overlapped, 0)
+    wsabuf = WSABUF()
+    wsabuf.buf = c_char_p(act.buff[act.sent:])
+    wsabuf.len = len(act.buff)-act.sent
+    nbytes = c_ulong()
+    return WSASend(
+        act.sock._fd.fileno(), # SOCKET s
+        byref(wsabuf), # LPWSABUF lpBuffers
+        1, # DWORD dwBufferCount
+        byref(nbytes), # LPDWORD lpNumberOfBytesSent
+        0, # DWORD dwFlags
+        overlapped, # LPWSAOVERLAPPED lpOverlapped
+        None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+    ), nbytes.value
 
 def complete_sendall(act, rc, nbytes):
     act.sent += nbytes
@@ -46,9 +91,17 @@ def complete_sendall(act, rc, nbytes):
     
 def perform_accept(act, overlapped):
     act.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    act.cbuff = AllocateBuffer(64)
+    act.cbuff = create_string_buffer(64)
+    # BOOL  
     return AcceptEx(
-        act.sock._fd.fileno(), act.conn.fileno(), act.cbuff, 0, overlapped
+        act.sock._fd.fileno(), # SOCKET sListenSocket
+        act.conn.fileno(), # SOCKET sAcceptSocket
+        cast(act.cbuff, c_void_p), # PVOID lpOutputBuffer
+        0, # DWORD dwReceiveDataLength
+        32, # DWORD dwLocalAddressLength
+        32, # DWORD dwRemoteAddressLength
+        None, # LPDWORD lpdwBytesReceived
+        overlapped # LPOVERLAPPED lpOverlapped
     ), 0
         
 def complete_accept(act, rc, nbytes):
@@ -58,9 +111,12 @@ def complete_accept(act, rc, nbytes):
         SO_UPDATE_ACCEPT_CONTEXT, 
         struct.pack("I", act.sock.fileno())
     )
-    family, localaddr, act.addr = GetAcceptExSockaddrs(
-        act.conn, act.cbuff
-    )
+    # void = PVOID lpOutputBuffer, DWORD dwReceiveDataLength, DWORD dwLocalAddressLength, DWORD dwRemoteAddressLength, LPSOCKADDR *LocalSockaddr, LPINT LocalSockaddrLength, LPSOCKADDR *RemoteSockaddr, LPINT RemoteSockaddrLength
+    act.addr = None, None
+    # TODO, FIXME 
+    #~ family, localaddr, act.addr = GetAcceptExSockaddrs(
+        #~ act.conn, act.cbuff
+    #~ )
     act.conn = Socket(_sock=act.conn)
     return act
     
@@ -73,32 +129,43 @@ def perform_connect(act, overlapped):
     except socket.error, exc:
         if exc[0] not in (errno.EINVAL, errno.WSAEINVAL):
             raise
-    return win32file.ConnectEx(act.sock, act.addr, overlapped)
+    # BOOL = const struct sockaddr *name, int namelen, PVOID lpSendBuffer, DWORD dwSendDataLength, LPDWORD lpdwBytesSent, LPOVERLAPPED lpOverlapped            
+    # TODO, FIXME
+    #~ return win32file.ConnectEx(
+        #~ act.sock._fd.fileno(), # SOCKET s
+        #~ # const struct sockaddr *name
+        #~ act.addr, overlapped
+        
+    #~ )
 
 def complete_connect(act, rc, nbytes):
     act.sock.setsockopt(socket.SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, "")
     return act
 
 def perform_sendfile(act, overlapped):
+    # BOOL 
     return win32file.TransmitFile(
-        act.sock, 
-        win32file._get_osfhandle(act.file_handle.fileno()), 
-        act.length or 0, 
-        act.blocksize, overlapped, 0
+        act.sock._fd.fileno(), # SOCKET hSocket
+        win32file._get_osfhandle(act.file_handle.fileno()), # HANDLE hFile
+        act.length or 0, # DWORD nNumberOfBytesToWrite
+        act.blocksize, # DWORD nNumberOfBytesPerSend
+        overlapped, # LPOVERLAPPED lpOverlapped
+        None, # LPTRANSMIT_FILE_BUFFERS lpTransmitBuffers
+        0 # DWORD dwFlags
     ), 0
 
 def complete_sendfile(act, rc, nbytes):
     act.sent = nbytes
     return act
 
-class IOCPProactor(ProactorBase):
+class CTYPES_IOCPProactor(ProactorBase):
     supports_multiplex_first = False
     
     def __init__(self, scheduler, res, **options):
         super(self.__class__, self).__init__(scheduler, res, **options)
         self.scheduler = scheduler
-        self.iocp = win32file.CreateIoCompletionPort(
-            win32file.INVALID_HANDLE_VALUE, None, 0, 0
+        self.iocp = CreateIoCompletionPort(
+            INVALID_HANDLE_VALUE, 0, None, 0
         ) 
         
     def set_options(self, **bogus_options):
@@ -127,26 +194,30 @@ class IOCPProactor(ProactorBase):
         Performs an overlapped request (via `perform` callable) and saves
         the token and the (`overlapped`, `perform`, `complete`) trio.
         """
-        overlapped = pywintypes.OVERLAPPED() 
+        overlapped = OVERLAPPED() 
         overlapped.object = act
         self.add_token(act, coro, (overlapped, perform, complete))
         
         rc, nbytes = perform(act, overlapped)
-        
+        completion_key = c_long(0)
         if rc == 0:
             # ah geez, it didn't got in the iocp, we have a result!"
-            win32file.PostQueuedCompletionStatus(
-                self.iocp, nbytes, 0, overlapped
+            # BOOL 
+            PostQueuedCompletionStatus(
+                self.iocp, # HANDLE CompletionPort
+                nbytes, # DWORD dwNumberOfBytesTransferred
+                byref(completion_key), # ULONG_PTR dwCompletionKey
+                overlapped # LPOVERLAPPED lpOverlapped
             )
         
 
     def register_fd(self, act, performer):
         if not act.sock._proactor_added:
-            win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
+            CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, None, 0)     
             act.sock._proactor_added = True
     
     def unregister_fd(self, act):
-        win32file.CancelIo(act.sock._fd.fileno()) 
+        CancelIo(act.sock._fd.fileno()) 
     
     
     def try_run_act(self, act, func, rc, nbytes):
@@ -164,12 +235,12 @@ class IOCPProactor(ProactorBase):
         overlap.object = None
         if act in self.tokens:
             ol, perform, complete = self.tokens[act]
-            assert ol is overlap
+            #~ assert ol is overlap, "%r is not %r" % (ol, overlap)
             if rc == 0:
                 ract = self.try_run_act(act, complete, rc, nbytes)
                 if ract:
                     del self.tokens[act] 
-                    win32file.CancelIo(act.sock._fd.fileno()) 
+                    CancelIo(act.sock._fd.fileno()) 
                     return ract, act.coro
                 else:
                     # operation hasn't completed yet (not enough data etc)
@@ -185,12 +256,14 @@ class IOCPProactor(ProactorBase):
                 #    warnings.warn("ERROR_NETNAME_DELETED: %r. Re-registering operation." % op)
                 #    self.registered_ops[op] = self.run_iocp(op, coro)
                 del self.tokens[act]
-                win32file.CancelIo(act.sock._fd.fileno())
-                return CoroutineException((
+                CancelIo(act.sock._fd.fileno())
+                #~ import traceback
+                #~ traceback.print_stack()
+                return CoroutineException(
                     ConnectionError, ConnectionError(
                         (rc, "%s on %r" % (ctypes.FormatError(rc), act))
                     )
-                )), act.coro
+                ), act.coro
         else:
             import warnings
             warnings.warn("Unknown token %s" % act)
@@ -214,10 +287,26 @@ class IOCPProactor(ProactorBase):
             #goes to sleep) and not added in the sched.active queue
             while 1:
                 try:
-                    rc, nbytes, key, overlap = win32file.GetQueuedCompletionStatus(
-                        self.iocp,
+                    poverlapped = LPOVERLAPPED()
+                    nbytes = DWORD()
+                    completion_key = c_ulong()
+                    #~ BOOL WINAPI GetQueuedCompletionStatus(
+                      #~ __in   HANDLE CompletionPort,
+                      #~ __out  LPDWORD lpNumberOfBytes,
+                      #~ __out  PULONG_PTR lpCompletionKey,
+                      #~ __out  LPOVERLAPPED *lpOverlapped,
+                      #~ __in   DWORD dwMilliseconds
+                    #~ );
+
+                    rc = GetQueuedCompletionStatus(
+                        self.iocp, # HANDLE CompletionPort
+                        byref(nbytes), # LPDWORD lpNumberOfBytes
+                        byref(completion_key), # PULONG_PTR lpCompletionKey
+                        byref(poverlapped),
                         0 if urgent else ptimeout
                     )
+                    overlap = poverlapped and poverlapped.contents
+                    nbytes = nbytes.value
                 except RuntimeError:
                     # we will get "This overlapped object has lost all its 
                     # references so was destroyed" when we remove a operation, 
@@ -228,7 +317,7 @@ class IOCPProactor(ProactorBase):
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo
                 #i suppose) evaluating the overlap crashes the interpeter 
                 #with a memory read error
-                if rc != win32file.WSA_OPERATION_ABORTED and overlap:
+                if rc != WSA_OPERATION_ABORTED and overlap:
                     
                     if urgent:
                         op, coro = urgent
