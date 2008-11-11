@@ -61,9 +61,13 @@ class PSGet(events.TimedOperation):
         return self.result
         
     def cleanup(self, sched, coro):
-        if coro in self.queue.active_subscribers:
-            del self.queue.active_subscribers[coro]
-            return True
+        for key in self.queue.active_subscribers:
+            getop, getcoro = self.queue.active_subscribers[key]
+            if coro is getcoro:
+                assert getop is self
+                
+                del self.queue.active_subscribers[key]
+                return True
 
 class PSSubscribe(events.Operation):
     __slots__ = ('queue', 'key')
