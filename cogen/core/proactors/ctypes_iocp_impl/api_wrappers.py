@@ -34,11 +34,8 @@ class OVERLAPPED(Structure):
     _fields_ = [
         ("Internal",        POINTER(ULONG)),
         ("InternalHigh",    POINTER(ULONG)),
-
         ("u",               _U),
-
         ("hEvent",          HANDLE),
-
         # Custom fields.
         ("object",         py_object),
     ]
@@ -208,6 +205,7 @@ WSARecv = windll.ws2_32.WSARecv
 # int = SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount, LPDWORD lpNumberOfBytesRecvd, LPDWORD lpFlags, LPWSAOVERLAPPED lpOverlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
 WSARecv.argtypes = (SOCKET, POINTER(WSABUF), DWORD, POINTER(DWORD), POINTER(DWORD), POINTER(OVERLAPPED), c_void_p)
 WSARecv.restype = c_int
+WSARecv.errcheck = _error_check
 
 WSASend = windll.ws2_32.WSASend
 # int = SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount, LPDWORD lpNumberOfBytesSent, DWORD dwFlags, LPWSAOVERLAPPED lpOverlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
@@ -288,9 +286,17 @@ pythonapi.PyErr_SetFromErrno.restype = py_object
     #~ x = pythonapi.PyBuffer_New(100)
     #~ print `x`
     
-if __name__ == "x__main__":
+if __name__ == "__main__":
+    iocp = CreateIoCompletionPort(
+            INVALID_HANDLE_VALUE, 0, None, 0
+    ) 
+
+    
     import socket
     s = socket.socket()
+    
+    CreateIoCompletionPort(s.fileno(), iocp, None, 0)     
+    
     prot_info = WSAPROTOCOL_INFO()
     prot_info_len = c_int(sizeof(prot_info))
     getsockopt(s.fileno(), SOL_SOCKET, SO_PROTOCOL_INFOA, cast(byref(prot_info), c_char_p), byref(prot_info_len))
@@ -302,7 +308,7 @@ if __name__ == "x__main__":
     
     result = POINTER(addrinfo)()
     
-    getaddrinfo("localhost", "5523", byref(hints), byref(result));
+    getaddrinfo("localhost", "1200", byref(hints), byref(result));
     
     print result.contents.ai_family
     print result.contents.ai_flags
@@ -331,6 +337,58 @@ if __name__ == "x__main__":
     print dir(ConnectEx)
     s.bind(('0.0.0.0', 0))
     print ConnectEx(s.fileno(), result.contents.ai_addr, result.contents.ai_addrlen, None, 0, sent, olap) 
-
-    import time
-    time.sleep(10)
+    
+    poverlapped = LPOVERLAPPED()
+    nbytes = DWORD()
+    completion_key = c_ulong()
+    rc = GetQueuedCompletionStatus(
+                        iocp, # HANDLE CompletionPort
+                        byref(nbytes), # LPDWORD lpNumberOfBytes
+                        byref(completion_key), # PULONG_PTR lpCompletionKey
+                        byref(poverlapped),
+                        1000
+                    )
+    print rc, poverlapped.contents, nbytes
+    
+    buff = create_string_buffer(1000)
+    wsabuf = WSABUF()
+    wsabuf.buf = cast(buff, c_char_p)
+    wsabuf.len = 1000
+    nbytes = c_ulong()
+    flags = c_ulong()
+    
+    
+    overlapped = LPOVERLAPPED()
+    
+    print '>', WSARecv(
+        s.fileno(), # SOCKET s
+        byref(wsabuf), # LPWSABUF lpBuffers
+        1, # DWORD dwBufferCount
+        byref(nbytes), # LPDWORD lpNumberOfBytesRecvd
+        byref(flags), #None, # LPDWORD lpFlags
+        overlapped, # LPWSAOVERLAPPED lpOverlapped
+        None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+    ), 0
+    print WinError()
+    
+    rc = GetQueuedCompletionStatus(
+                        iocp, # HANDLE CompletionPort
+                        byref(nbytes), # LPDWORD lpNumberOfBytes
+                        byref(completion_key), # PULONG_PTR lpCompletionKey
+                        byref(poverlapped),
+                        10000
+                    )
+    print WinError()
+    print rc, poverlapped, nbytes
+    print buff[:]
+    
+    rc = GetQueuedCompletionStatus(
+                        iocp, # HANDLE CompletionPort
+                        byref(nbytes), # LPDWORD lpNumberOfBytes
+                        byref(completion_key), # PULONG_PTR lpCompletionKey
+                        byref(poverlapped),
+                        10000
+                    )
+    print WinError()
+    print rc, poverlapped, nbytes
+    print buff[:]

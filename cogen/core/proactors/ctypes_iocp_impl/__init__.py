@@ -10,7 +10,7 @@ from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   
                 c_long
                 
 from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT, \
-                INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED
+                INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED, WSA_IO_PENDING
 
 
 import sys
@@ -31,12 +31,15 @@ def perform_recv(act, overlapped):
     wsabuf.buf = cast(act.buff, c_char_p)
     wsabuf.len = act.len
     nbytes = c_ulong()
+    flags = c_ulong(0)
+    act.flags = wsabuf, nbytes, flags
+    
     return WSARecv(
         act.sock._fd.fileno(), # SOCKET s
         byref(wsabuf), # LPWSABUF lpBuffers
         1, # DWORD dwBufferCount
         byref(nbytes), # LPDWORD lpNumberOfBytesRecvd
-        None, # LPDWORD lpFlags
+        byref(flags), # LPDWORD lpFlags
         overlapped, # LPWSAOVERLAPPED lpOverlapped
         None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
     ), 0
@@ -54,6 +57,8 @@ def perform_send(act, overlapped):
     wsabuf.buf = c_char_p(act.buff)
     wsabuf.len = len(act.buff)
     nbytes = c_ulong()
+    act.flags = wsabuf, nbytes
+        
     return WSASend(
         act.sock._fd.fileno(), # SOCKET s
         byref(wsabuf), # LPWSABUF lpBuffers
@@ -74,6 +79,8 @@ def perform_sendall(act, overlapped):
     wsabuf.buf = c_char_p(act.buff[act.sent:])
     wsabuf.len = len(act.buff)-act.sent
     nbytes = c_ulong()
+    act.flags = wsabuf, nbytes
+    
     return WSASend(
         act.sock._fd.fileno(), # SOCKET s
         byref(wsabuf), # LPWSABUF lpBuffers
@@ -209,6 +216,8 @@ class CTYPES_IOCPProactor(ProactorBase):
                 byref(completion_key), # ULONG_PTR dwCompletionKey
                 overlapped # LPOVERLAPPED lpOverlapped
             )
+        elif rc != WSA_IO_PENDING:
+            raise ConnectionError(rc, "%s on %r" % (ctypes.FormatError(rc), act))
         
 
     def register_fd(self, act, performer):
