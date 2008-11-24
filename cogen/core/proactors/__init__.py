@@ -58,6 +58,9 @@ def has_stdlib_kqueue():
 def has_iocp():
     try:
         import win32file
+        if not hasattr(win32file, 'ConnextEx'):
+            # we'd better stay away from it till someone adds the ConnectEx
+            return
         import win32event
         import win32api
         import pywintypes
