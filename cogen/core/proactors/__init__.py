@@ -75,8 +75,6 @@ def has_ctypes_iocp():
         import ctypes_iocp_impl
         return ctypes_iocp_impl.CTYPES_IOCPProactor
     except ImportError:
-        import traceback
-        traceback.print_exc()
         pass
         
 def get_first(*imps):
