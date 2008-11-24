@@ -7,10 +7,12 @@ from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   
                 GetAcceptExSockaddrs, ConnectEx, TransmitFile, AllocateBuffer, \
                 LPOVERLAPPED, OVERLAPPED, LPDWORD, PULONG_PTR, cast, c_void_p, \
                 byref, c_char_p, create_string_buffer, c_ulong, DWORD, WSABUF, \
-                c_long
+                c_long, addrinfo_p, getaddrinfo, addrinfo, WSAPROTOCOL_INFO, \
+                c_int, sizeof
                 
 from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT, \
-                INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED, WSA_IO_PENDING
+                INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED, WSA_IO_PENDING, \
+                SOL_SOCKET, SO_PROTOCOL_INFOA
 
 
 import sys
@@ -127,7 +129,6 @@ def complete_accept(act, rc, nbytes):
     act.conn = Socket(_sock=act.conn)
     return act
     
-
 def perform_connect(act, overlapped):
     # ConnectEx requires that the socket be bound beforehand
     try:
@@ -136,14 +137,31 @@ def perform_connect(act, overlapped):
     except socket.error, exc:
         if exc[0] not in (errno.EINVAL, errno.WSAEINVAL):
             raise
-    # BOOL = const struct sockaddr *name, int namelen, PVOID lpSendBuffer, DWORD dwSendDataLength, LPDWORD lpdwBytesSent, LPOVERLAPPED lpOverlapped            
-    # TODO, FIXME
-    #~ return win32file.ConnectEx(
-        #~ act.sock._fd.fileno(), # SOCKET s
-        #~ # const struct sockaddr *name
-        #~ act.addr, overlapped
-        
-    #~ )
+    fileno = act.sock._fd.fileno()
+    
+    prot_info = WSAPROTOCOL_INFO()
+    prot_info_len = c_int(sizeof(prot_info))
+    getsockopt(fileno, SOL_SOCKET, SO_PROTOCOL_INFOA, cast(byref(prot_info), c_char_p), byref(prot_info_len))
+    
+    hints = addrinfo()
+    hints.ai_family = prot_info.iAddressFamily
+    hints.ai_socktype = prot_info.iSocketType
+    hints.ai_protocol = prot_info.iProtocol
+    
+    result = addrinfo_p()
+    getaddrinfo(act.addr[0], str(act.addr[1]), byref(hints), byref(result));
+    
+    act.flags = result
+    
+    #~ act.sock.bind(('0.0.0.0', 0))
+    return ConnectEx(
+        fileno, # SOCKET s
+        result.contents.ai_addr, result.contents.ai_addrlen,
+        None,
+        0,
+        None,
+        overlapped
+    ), 0
 
 def complete_connect(act, rc, nbytes):
     act.sock.setsockopt(socket.SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, "")

@@ -147,6 +147,8 @@ addrinfo._fields_ = [
     ('ai_next', POINTER(addrinfo))
 ]
 
+addrinfo_p = POINTER(addrinfo)
+
 def _error_throw(result, func, args):
     if result:
         raise WinError()
