@@ -10,6 +10,7 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_connect
 from cogen.core import sockets
 from cogen.core.util import priority
+from cogen.core.events import ConnectionClosed
 
 class EpollProactor(ProactorBase):
     def __init__(self, scheduler, res, default_size=1024, **options):
