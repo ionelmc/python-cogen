@@ -98,6 +98,15 @@ class IOCPProactor(ProactorBase):
         self.iocp = win32file.CreateIoCompletionPort(
             win32file.INVALID_HANDLE_VALUE, None, 0, 0
         ) 
+        if not hasattr(win32file, 'ConnextEx'):
+            #todo, move this in iocp class
+            import warnings
+            warnings.warn("IOCPProactor implementation requires a newer pywin32 module (win32file doesn't have ConnectEx).")
+        if not hasattr(win32file, 'TransmitFile'):
+            #todo, move this in iocp class
+            import warnings
+            warnings.warn("IOCPProactor implementation requires a newer pywin32 module (win32file doesn't have TransmitFile).")
+        
         
     def set_options(self, **bogus_options):
         self._warn_bogus_options(**bogus_options) #iocp doesn't have any options

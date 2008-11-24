@@ -210,7 +210,13 @@ class ProactorBase(object):
         else:
             import warnings
             warnings.warn("%s isn't a registered token." % act)
+    
+    def close(self):
+        for act in self.tokens:
+            self.unregister_fd(act)
+        self.tokens.clear()
             
+        
     def try_run_act(self, act, func):
         try:
             return self.run_act(act, func)
