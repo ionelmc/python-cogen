@@ -6,6 +6,8 @@ from ctypes import WINFUNCTYPE, GetLastError, \
 
 from ctypes.wintypes import HANDLE, ULONG, DWORD, BOOL, LPCSTR, LPCWSTR, WinError
 
+from msvcrt import get_osfhandle
+
 from api_consts import *
 
 import os
@@ -250,7 +252,7 @@ ConnectEx = _GetConnectExPtr()
 ConnectEx.errcheck = _bool_error_check
 
 #~ BOOL = SOCKET hSocket, HANDLE hFile, DWORD nNumberOfBytesToWrite, DWORD nNumberOfBytesPerSend, LPOVERLAPPED lpOverlapped,LPTRANSMIT_FILE_BUFFERS lpTransmitBuffers, DWORD dwFlags
-TransmitFileType = WINFUNCTYPE(BOOL, SOCKET, HANDLE, DWORD, DWORD, POINTER(OVERLAPPED), TRANSMIT_FILE_BUFFERS, DWORD)
+TransmitFileType = WINFUNCTYPE(BOOL, SOCKET, HANDLE, DWORD, DWORD, POINTER(OVERLAPPED), POINTER(TRANSMIT_FILE_BUFFERS), DWORD)
 
 def _GetTransmitFilePtr(given_socket=None):
     from socket import socket
@@ -272,7 +274,7 @@ CloseHandle.restype = BOOL
 
 _get_osfhandle = windll.msvcr71._get_osfhandle
 _get_osfhandle.argtypes = (c_int,)
-_get_osfhandle.restype = c_int
+_get_osfhandle.restype = c_long
 
 # Python API
 

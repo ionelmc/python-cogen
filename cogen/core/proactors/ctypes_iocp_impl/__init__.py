@@ -8,7 +8,7 @@ from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   
                 LPOVERLAPPED, OVERLAPPED, LPDWORD, PULONG_PTR, cast, c_void_p, \
                 byref, c_char_p, create_string_buffer, c_ulong, DWORD, WSABUF, \
                 c_long, addrinfo_p, getaddrinfo, addrinfo, WSAPROTOCOL_INFO, \
-                c_int, sizeof, string_at
+                c_int, sizeof, string_at, get_osfhandle
                 
 from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT, \
                 INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED, WSA_IO_PENDING, \
@@ -122,9 +122,10 @@ def complete_accept(act, rc, nbytes):
         SO_UPDATE_ACCEPT_CONTEXT, 
         struct.pack("I", act.sock.fileno())
     )
+    act.addr = act.conn.getpeername()
+    
     # void = PVOID lpOutputBuffer, DWORD dwReceiveDataLength, DWORD dwLocalAddressLength, DWORD dwRemoteAddressLength, LPSOCKADDR *LocalSockaddr, LPINT LocalSockaddrLength, LPSOCKADDR *RemoteSockaddr, LPINT RemoteSockaddrLength
-    act.addr = None, None
-    # TODO, FIXME 
+    # TODO ?
     #~ family, localaddr, act.addr = GetAcceptExSockaddrs(
         #~ act.conn, act.cbuff
     #~ )
@@ -171,9 +172,9 @@ def complete_connect(act, rc, nbytes):
 
 def perform_sendfile(act, overlapped):
     # BOOL 
-    return win32file.TransmitFile(
+    return TransmitFile(
         act.sock._fd.fileno(), # SOCKET hSocket
-        win32file._get_osfhandle(act.file_handle.fileno()), # HANDLE hFile
+        get_osfhandle(act.file_handle.fileno()), # HANDLE hFile
         act.length or 0, # DWORD nNumberOfBytesToWrite
         act.blocksize, # DWORD nNumberOfBytesPerSend
         overlapped, # LPOVERLAPPED lpOverlapped
