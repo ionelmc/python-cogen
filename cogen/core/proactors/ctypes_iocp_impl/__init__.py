@@ -8,7 +8,7 @@ from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   
                 LPOVERLAPPED, OVERLAPPED, LPDWORD, PULONG_PTR, cast, c_void_p, \
                 byref, c_char_p, create_string_buffer, c_ulong, DWORD, WSABUF, \
                 c_long, addrinfo_p, getaddrinfo, addrinfo, WSAPROTOCOL_INFO, \
-                c_int, sizeof
+                c_int, sizeof, string_at
                 
 from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT, \
                 INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED, WSA_IO_PENDING, \
@@ -26,17 +26,16 @@ from cogen.core.proactors.base import ProactorBase
 from cogen.core.util import priority, debug
 from cogen.core.sockets import Socket
 from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
-
 def perform_recv(act, overlapped):
-    act.buff = create_string_buffer(act.len)
     wsabuf = WSABUF()
-    wsabuf.buf = cast(act.buff, c_char_p)
+    buf = create_string_buffer(act.len)
+    wsabuf.buf = cast(buf, c_char_p)
     wsabuf.len = act.len
-    nbytes = c_ulong()
+    nbytes = c_ulong(0)
     flags = c_ulong(0)
-    act.flags = wsabuf, nbytes, flags
+    act.flags = buf
     
-    return WSARecv(
+    rc = WSARecv(
         act.sock._fd.fileno(), # SOCKET s
         byref(wsabuf), # LPWSABUF lpBuffers
         1, # DWORD dwBufferCount
@@ -44,11 +43,13 @@ def perform_recv(act, overlapped):
         byref(flags), # LPDWORD lpFlags
         overlapped, # LPWSAOVERLAPPED lpOverlapped
         None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
-    ), 0
+    )
+    return rc, nbytes.value
 
+#~ @debug(0)
 def complete_recv(act, rc, nbytes):
     if nbytes:
-        act.buff = act.buff[:nbytes]
+        act.buff = act.flags[:nbytes]
         return act
     else:
         raise ConnectionClosed("Empty recv.")
@@ -72,6 +73,7 @@ def perform_send(act, overlapped):
     ), nbytes.value
 
 def complete_send(act, rc, nbytes):
+    act.flags = None
     act.sent = nbytes
     return act.sent and act
     
@@ -91,7 +93,7 @@ def perform_sendall(act, overlapped):
         0, # DWORD dwFlags
         overlapped, # LPWSAOVERLAPPED lpOverlapped
         None # LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
-    ), nbytes.value
+    ), nbytes
 
 def complete_sendall(act, rc, nbytes):
     act.sent += nbytes
@@ -192,6 +194,10 @@ class CTYPES_IOCPProactor(ProactorBase):
         self.iocp = CreateIoCompletionPort(
             INVALID_HANDLE_VALUE, 0, None, 0
         ) 
+    
+    def close(self):
+        super(self.__class__, self).close()
+        CloseHandle(self.iocp)
         
     def set_options(self, **bogus_options):
         self._warn_bogus_options(**bogus_options) #iocp doesn't have any options
@@ -226,14 +232,18 @@ class CTYPES_IOCPProactor(ProactorBase):
         rc, nbytes = perform(act, overlapped)
         completion_key = c_long(0)
         if rc == 0:
-            # ah geez, it didn't got in the iocp, we have a result!"
-            # BOOL 
-            PostQueuedCompletionStatus(
-                self.iocp, # HANDLE CompletionPort
-                nbytes, # DWORD dwNumberOfBytesTransferred
-                byref(completion_key), # ULONG_PTR dwCompletionKey
-                overlapped # LPOVERLAPPED lpOverlapped
-            )
+            # ah geez, it didn't got in the iocp, we have a result!
+            pass
+            
+            
+            # ok this is weird, apparently this doesn't need to be requeued
+            #  - need to investigate why (TODO)
+            #~ PostQueuedCompletionStatus(
+                #~ self.iocp, # HANDLE CompletionPort
+                #~ nbytes, # DWORD dwNumberOfBytesTransferred
+                #~ byref(completion_key), # ULONG_PTR dwCompletionKey
+                #~ overlapped # LPOVERLAPPED lpOverlapped
+            #~ )
         elif rc != WSA_IO_PENDING:
             raise ConnectionError(rc, "%s on %r" % (ctypes.FormatError(rc), act))
         
@@ -298,7 +308,7 @@ class CTYPES_IOCPProactor(ProactorBase):
     def run(self, timeout = 0):
         """
         Calls GetQueuedCompletionStatus and handles completion via 
-        IOCPProactor.process_op.
+        process_op.
         """
         # same resolution as epoll
         ptimeout = int(
@@ -334,7 +344,9 @@ class CTYPES_IOCPProactor(ProactorBase):
                     )
                     overlap = poverlapped and poverlapped.contents
                     nbytes = nbytes.value
-                except RuntimeError:
+                except RuntimeError, e:
+                    import warnings
+                    warnings.warn("RuntimeError(%s) on GetQueuedCompletionStatus." % e)
                     # we will get "This overlapped object has lost all its 
                     # references so was destroyed" when we remove a operation, 
                     # it is garbage collected and the overlapped completes
@@ -344,6 +356,7 @@ class CTYPES_IOCPProactor(ProactorBase):
                 # well, this is a bit weird, if we get a aborted rc (via CancelIo
                 #i suppose) evaluating the overlap crashes the interpeter 
                 #with a memory read error
+                # also, we might get a "wait operation timed out", and no overlap pointer
                 if rc != WSA_OPERATION_ABORTED and overlap:
                     
                     if urgent:
@@ -364,6 +377,8 @@ class CTYPES_IOCPProactor(ProactorBase):
                     if overlap.object:
                         urgent = self.process_op(rc, nbytes, overlap)
                 else:
+                    #~ import warnings
+                    #~ warnings.warn("rc=(%s: %s) overlap=(%s)" % (rc, ctypes.FormatError(rc), overlap))
                     break
             return urgent
         else:

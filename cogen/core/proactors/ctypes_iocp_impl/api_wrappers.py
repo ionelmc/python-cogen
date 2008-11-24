@@ -1,8 +1,8 @@
 from ctypes import WINFUNCTYPE, GetLastError, \
             windll, pythonapi, cast, WinError, create_string_buffer, \
-            c_int, c_uint, c_long, c_ulong, c_void_p, byref, c_char_p, \
             c_ushort, c_ubyte, c_char, WINFUNCTYPE, c_short, c_ubyte, \
-            Structure, Union, py_object, POINTER, pointer, sizeof
+            c_int, c_uint, c_long, c_ulong, c_void_p, byref, c_char_p, \
+            Structure, Union, py_object, POINTER, pointer, sizeof, string_at
 
 from ctypes.wintypes import HANDLE, ULONG, DWORD, BOOL, LPCSTR, LPCWSTR, WinError
 
