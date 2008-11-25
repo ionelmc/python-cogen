@@ -195,10 +195,38 @@ class CTYPES_IOCPProactor(ProactorBase):
         self.iocp = CreateIoCompletionPort(
             INVALID_HANDLE_VALUE, 0, None, 0
         ) 
+        
+    def __del__(self):
+        self.close()
     
     def close(self):
+        if self.iocp:
+            poverlapped = LPOVERLAPPED()
+            nbytes = DWORD()
+            completion_key = c_ulong()
+            while 1:
+                rc = GetQueuedCompletionStatus(
+                    self.iocp, # HANDLE CompletionPort
+                    byref(nbytes), # LPDWORD lpNumberOfBytes
+                    byref(completion_key), # PULONG_PTR lpCompletionKey
+                    byref(poverlapped),
+                    0
+                )
+                if not poverlapped:
+                    break
+                else:
+                    act = poverlapped.contents.object
+                    if act in self.tokens:
+                        del self.tokens[act]
+                    else:
+                        import warnings
+                        warnings.warn("act(%s) not in self.tokens" % act)
+            CloseHandle(self.iocp)
+            self.iocp = None
+            if self.tokens:
+                import warnings
+                warnings.warn("self.tokens still pending: %s" % self.tokens)
         super(self.__class__, self).close()
-        CloseHandle(self.iocp)
         
     def set_options(self, **bogus_options):
         self._warn_bogus_options(**bogus_options) #iocp doesn't have any options
