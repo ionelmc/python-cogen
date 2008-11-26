@@ -58,9 +58,9 @@ def has_stdlib_kqueue():
 def has_iocp():
     try:
         import win32file
-        if not hasattr(win32file, 'ConnextEx'):
+        if not hasattr(win32file, 'ConnectEx'):
             # we'd better stay away from it till someone adds the ConnectEx
-            return
+            pass
         import win32event
         import win32api
         import pywintypes
@@ -89,6 +89,6 @@ def get_first(*imps):
 
 def has_any():
     "Returns the best available proactor implementation for the current platform."
-    return get_first(has_ctypes_iocp, has_iocp, has_kqueue, has_stdlib_epoll, has_epoll, has_poll, has_select)
+    return get_first(has_iocp, has_ctypes_iocp, has_kqueue, has_stdlib_epoll, has_epoll, has_poll, has_select)
 
 DefaultProactor = has_any()
