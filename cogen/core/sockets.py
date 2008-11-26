@@ -300,7 +300,7 @@ class Send(SocketOperation):
     
     def __init__(self, sock, buff, **kws):
         super(Send, self).__init__(sock, **kws)
-        self.buff = buff
+        self.buff = str(buff)
         self.sent = 0
         
     def process(self, sched, coro):
@@ -319,7 +319,7 @@ class SendAll(SocketOperation):
     
     def __init__(self, sock, buff, **kws):
         super(SendAll, self).__init__(sock, **kws)
-        self.buff = buff
+        self.buff = str(buff)
         self.sent = 0
         
     def process(self, sched, coro):
