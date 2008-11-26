@@ -65,7 +65,9 @@ class Scheduler(object):
             default_timeout=None, proactor_resolution=.01, proactor_greedy=True,
             ops_greedy=False, proactor_multiplex_first=None, 
             proactor_default_size=None):
-            
+        
+        if not callable(proactor):
+            raise RuntimeError("Invalid proactor constructor")
         self.timeouts = []
         self.active = collections.deque()
         self.sigwait = collections.defaultdict(collections.deque)
