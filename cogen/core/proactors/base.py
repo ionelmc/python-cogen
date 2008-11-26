@@ -204,8 +204,8 @@ class ProactorBase(object):
         If removal succeeds (the token is in the proactor) return True.
         """
         if act in self.tokens:
-            del self.tokens[act]
             self.unregister_fd(act)
+            del self.tokens[act]
             return True
         else:
             import warnings

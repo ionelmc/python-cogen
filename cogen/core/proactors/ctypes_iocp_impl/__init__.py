@@ -8,7 +8,7 @@ from api_wrappers import _get_osfhandle, CreateIoCompletionPort, CloseHandle,   
                 LPOVERLAPPED, OVERLAPPED, LPDWORD, PULONG_PTR, cast, c_void_p, \
                 byref, c_char_p, create_string_buffer, c_ulong, DWORD, WSABUF, \
                 c_long, addrinfo_p, getaddrinfo, addrinfo, WSAPROTOCOL_INFO, \
-                c_int, sizeof, string_at, get_osfhandle
+                c_int, sizeof, string_at, get_osfhandle, sockaddr_in
                 
 from api_consts import SO_UPDATE_ACCEPT_CONTEXT, SO_UPDATE_CONNECT_CONTEXT, \
                 INVALID_HANDLE_VALUE, WSA_OPERATION_ABORTED, WSA_IO_PENDING, \
@@ -102,16 +102,22 @@ def complete_sendall(act, rc, nbytes):
     
 def perform_accept(act, overlapped):
     act.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    act.cbuff = create_string_buffer(64)
+    act.cbuff = create_string_buffer((sizeof(sockaddr_in) + 16) * 2)
+    nbytes = c_ulong()
+    
+    prot_info = WSAPROTOCOL_INFO()
+    prot_info_len = c_int(sizeof(prot_info))
+    getsockopt(act.sock.fileno(), SOL_SOCKET, SO_PROTOCOL_INFOA, cast(byref(prot_info), c_char_p), byref(prot_info_len))
+    
     # BOOL  
     return AcceptEx(
         act.sock._fd.fileno(), # SOCKET sListenSocket
         act.conn.fileno(), # SOCKET sAcceptSocket
         cast(act.cbuff, c_void_p), # PVOID lpOutputBuffer
         0, # DWORD dwReceiveDataLength
-        32, # DWORD dwLocalAddressLength
-        32, # DWORD dwRemoteAddressLength
-        None, # LPDWORD lpdwBytesReceived
+        prot_info.iMaxSockAddr + 16, # DWORD dwLocalAddressLength
+        prot_info.iMaxSockAddr + 16, # DWORD dwRemoteAddressLength
+        nbytes, # LPDWORD lpdwBytesReceived
         overlapped # LPOVERLAPPED lpOverlapped
     ), 0
         
@@ -218,6 +224,7 @@ class CTYPES_IOCPProactor(ProactorBase):
                     act = poverlapped.contents.object
                     if act in self.tokens:
                         del self.tokens[act]
+                        CancelIo(act.sock._fd.fileno()) 
                     else:
                         import warnings
                         warnings.warn("act(%s) not in self.tokens" % act)
@@ -283,6 +290,8 @@ class CTYPES_IOCPProactor(ProactorBase):
             act.sock._proactor_added = True
     
     def unregister_fd(self, act):
+        overlapped, perform, complete = self.tokens[act]
+        overlapped.object = None
         CancelIo(act.sock._fd.fileno()) 
     
     
@@ -404,6 +413,7 @@ class CTYPES_IOCPProactor(ProactorBase):
                             else:
                                 self.scheduler.active.append( (op, coro) )                     
                     if overlap.object:
+                        assert overlap.object in self.tokens
                         urgent = self.process_op(rc, nbytes, overlap)
                 else:
                     #~ import warnings
