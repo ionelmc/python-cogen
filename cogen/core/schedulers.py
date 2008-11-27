@@ -99,7 +99,9 @@ class Scheduler(object):
         if hasattr(self, 'proactor'):
             if hasattr(self.proactor, 'scheduler'):
                 del self.proactor.scheduler
+            self.proactor.close()
             del self.proactor
+            
     def add(self, coro, args=(), kwargs={}, first=True):
         """Add a coroutine in the scheduler. You can add arguments 
         (_args_, _kwargs_) to init the coroutine with."""
