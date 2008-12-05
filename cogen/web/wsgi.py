@@ -39,7 +39,9 @@ HTTP handling code taken from the CherryPy WSGI server.
 # TODO: better application error reporting for the coroutine extensions
 
 from __future__ import with_statement
-__all__ = ['WSGIFileWrapper', 'WSGIServer', 'WSGIConnection']
+
+__all__ = ['WSGIFileWrapper', 'WSGIServer', 'WSGIConnection', 'server_factory']
+
 from contextlib import closing
 
 import base64
