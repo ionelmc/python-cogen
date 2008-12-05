@@ -1,5 +1,5 @@
 from __future__ import division
-import select
+from select import poll, POLLERR, POLLHUP, POLLNVAL, POLLIN, POLLPRI, POLLOUT
 from time import sleep
 
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
@@ -9,14 +9,14 @@ from cogen.core import sockets
 from cogen.core.util import priority
 
 class PollProactor(ProactorBase):
-    POLL_ERR = select.POLLERR | select.POLLHUP | select.POLLNVAL
-    POLL_IN = select.POLLIN | select.POLLPRI | POLL_ERR
-    POLL_OUT = select.POLLOUT | POLL_ERR
+    POLL_ERR = POLLERR | POLLHUP | POLLNVAL
+    POLL_IN = POLLIN | POLLPRI | POLL_ERR
+    POLL_OUT = POLLOUT | POLL_ERR
     
     def __init__(self, scheduler, res, **options):
         super(self.__class__, self).__init__(scheduler, res, **options)
         self.scheduler = scheduler
-        self.poller = select.poll()
+        self.poller = poll()
         self.shadow = {}
 
     def unregister_fd(self, act):
@@ -51,11 +51,11 @@ class PollProactor(ProactorBase):
             len_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
                 act = self.shadow.pop(fd)
-                if ev & select.POLLHUP:
+                if ev & POLLHUP:
                     self.handle_error_event(act, 'Hang up.', ConnectionClosed)
-                if ev & select.POLLNVAL:
+                if ev & POLLNVAL:
                     self.handle_error_event(act, 'Invalid descriptor.')
-                elif ev & select.POLLERR:
+                elif ev & POLLERR:
                     self.handle_error_event(act, 'Unknown error.')
                 else:
                     if nr == len_events:
