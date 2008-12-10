@@ -9,43 +9,6 @@ import sys
 import events
 from util import debug, priority
 
-def coroutine(func):
-    """ 
-    A decorator function for generators.
-    Example:
-    
-    .. sourcecode:: python
-
-        @coroutine
-        def plain_ol_generator():
-            yield bla
-            yield bla
-            ...
-    
-    """
-    def make_new_coroutine(*args, **kws):
-        return Coroutine(func, *args, **kws)
-    make_new_coroutine.__name__ = func.__name__
-    make_new_coroutine.__doc__ = func.__doc__
-    make_new_coroutine.__module__ = func.__module__ 
-    return make_new_coroutine
-coro = coroutine
-
-def debug_coroutine(func):
-    "Same as the `coroutine` decorator but sets the debug flag on."
-    
-    #TODO: extend debugging output to go in a logger.
-    
-    def make_new_coroutine(*args, **kws):
-        c = Coroutine(func, *args, **kws)
-        c.debug = True
-        return c
-    make_new_coroutine.__name__ = func.__name__
-    make_new_coroutine.__doc__ = func.__doc__
-    make_new_coroutine.__module__ = func.__module__ 
-    return make_new_coroutine
-debug_coro = debug_coroutine
-
 ident = None
 
 class local(object):
@@ -82,7 +45,7 @@ class local(object):
     def __repr__(self):
         return "<coroutine.local at 0x%X %r>"%(id(self), self.__dict__['__objs'])
 
-class Coroutine(events.Operation):
+class CoroutineInstance(events.Operation):
     ''' 
     We need a coroutine wrapper for generators and functions alike because
     we want to run functions that don't return generators just like a
@@ -91,11 +54,10 @@ class Coroutine(events.Operation):
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, \
         STATE_FAILED, STATE_FINALIZED = range(5)
     _state_names = "NOTSTARTED", "RUNNING", "COMPLETED", "FAILED", "FINALIZED"
-    __slots__ = ( 
+    __slots__ = (
         'f_args', 'f_kws', 'name', 'state', 
         'exception', 'coro', 'caller', 'waiters', 'result',
-        'prio', 'handle_error', '__weakref__',
-        'lastop', 'debug'
+        'prio', '__weakref__', 'lastop', 'debug', 'run_op',
     )
     running = property(lambda self: self.state < self.STATE_COMPLETED)
     
@@ -119,14 +81,14 @@ class Coroutine(events.Operation):
         self.waiters = []
         self.exception = None
     
-    def add_waiter(self, coro):
+    def add_waiter(self, coro, op=None):
         assert self.state < self.STATE_COMPLETED
         assert coro not in self.waiters
-        self.waiters.append((self, coro))
+        self.waiters.append((op or self, coro))
 
-    def remove_waiter(self, coro):
+    def remove_waiter(self, coro, op=None):
         try:
-            self.waiters.remove((self, coro))
+            self.waiters.remove((op or self, coro))
         except ValueError:
             pass
         
@@ -140,7 +102,7 @@ class Coroutine(events.Operation):
     def finalize(self):
         self.state = self.STATE_FINALIZED
         return self.result
-        
+    
     def process(self, sched, coro):
         assert self.state < self.STATE_FINALIZED, \
             "%s called, expected state less than %s!" % (
@@ -152,15 +114,15 @@ class Coroutine(events.Operation):
             if coro.debug:
                 self.debug = True
             return None, self
-
         else:
-            if self.waiters:    
-                if sched.default_priority:
-                    sched.active.extendleft(self.waiters)
-                else:
-                    sched.active.extend(self.waiters)
-            self.waiters = []
             if self.caller:
+                if self.waiters:    
+                    if sched.default_priority:
+                        sched.active.extendleft(self.waiters)
+                    else:
+                        sched.active.extend(self.waiters)
+                    self.waiters = None
+                
                 try:
                     if self.exception:
                         return events.CoroutineException(*self.exception), self.caller
@@ -168,7 +130,20 @@ class Coroutine(events.Operation):
                         return self, self.caller
                 finally:
                     self.caller = None
-
+            else:
+                if self.waiters:    
+                    lucky_waiter = self.waiters.pop()
+                    
+                    if sched.default_priority:
+                        sched.active.extendleft(self.waiters)
+                    else:
+                        sched.active.extend(self.waiters)
+                    
+                    self.waiters = []
+                    
+                    return lucky_waiter
+                
+                
     def run_op(self, op): 
         """
         Handle the operation:
@@ -193,7 +168,7 @@ class Coroutine(events.Operation):
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
                 self, isinstance(op, events.CoroutineException) and op or 
-                {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state], op,
+                (hasattr(op, 'state') and {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state] or 'NOP'), op,
                 self._state_names[self.state],
                 self._state_names[self.STATE_COMPLETED]
             )
@@ -272,7 +247,7 @@ class Coroutine(events.Operation):
         print>>sys.stderr, '-'*40
         print>>sys.stderr, 'Exception happened during processing of coroutine.'
         import traceback
-        traceback.print_exc()
+        traceback.print_exception(*self.exception)
         print>>sys.stderr, "Coroutine %s killed. " % self
         print>>sys.stderr, '-'*40
         
@@ -284,11 +259,62 @@ class Coroutine(events.Operation):
             self._state_names[self.state]
         )
     __str__ = __repr__
+
+class Coroutine(object):
+    """ 
+    A decorator function for generators.
+    Example:
+    
+    .. sourcecode:: python
+
+        @coroutine
+        def plain_ol_generator():
+            yield bla
+            yield bla
+            ...
+    
+    """
+    __slots__ = ('wrapped_func', 'constructor')
+    def __init__(self, func, constructor=CoroutineInstance):
+        self.wrapped_func = func
+        self.constructor = constructor
+    
+    def __repr__(self):
+        return "<Coroutine constructor at 0x%08X wrapping %r>" % (
+            id(self), 
+            self.wrapped_func,
+        )
+    __str__ = __repr__
+    
+    def __get__(self, instance, owner):
+        """
+        Previously coroutine was a simple function-based decorator but we needed
+        something like an instance (in order to expose the constructor and so on).
+        Decorating methods with a class, however need that class to be an 
+        descriptor as the __call__ doesn't get automaticaly binded to the instance
+        as functions do - btw, functions are decorators.
+        """
+        return self.__class__(self.wrapped_func.__get__(instance))
         
+    def __call__(self, *args, **kwargs):
+        "Return a CoroutineInstance instance"
+        return self.constructor(self.wrapped_func, *args, **kwargs)
+           
+coro = coroutine = Coroutine
+
+class DebugCoroutine(Coroutine):
+    def __call__(self, *args, **kwargs):
+        "Return a CoroutineInstance instance"
+        inst = self.constructor(self.wrapped_func, *args, **kwargs)
+        inst.debug = True
+        return inst
+
+debug_coro = debug_coroutine = DebugCoroutine
+
 if __name__ == "__main__":
     @coroutine
     def some_func():
         pass
     
     print some_func()
-    print repr(some_func())
+    print repr(some_func)
