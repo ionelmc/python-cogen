@@ -31,23 +31,21 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html">cogen.core.proactors</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_epoll_impl.html">cogen.core.proactors.stdlib_epoll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_kqueue_impl.html">cogen.core.proactors.stdlib_kqueue_impl</a>
-                    </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.base.html">cogen.core.reactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.iocp_proactor.html">cogen.core.reactors.iocp_proactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.poll_reactor.html">cogen.core.reactors.poll_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.qt_reactor.html">cogen.core.reactors.qt_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.select_reactor.html">cogen.core.reactors.select_reactor</a>
                     </li><li class="active">
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li>
@@ -82,7 +80,7 @@ management of coroutines. Most of the heavy logic is in each operation class.
 See: <a class="reference" href="cogen.core.events.html">events</a> and <a class="reference" href="cogen.core.sockets.html">sockets</a>.
 Most of those operations work with attributes we set in the scheduler.</p>
 <p><cite>cogen</cite> is multi-state. All the state related to coroutines and network is in
-the scheduler and it's associated proactor. That means you could run several
+the scheduler and it's associated reactor. That means you could run several
 cogen schedulers in the same process/thread/whatever.</p>
 <p>There is just one thing that uses global objects - the threadlocal-like local
 object in the coroutines module.  It was actually aded for the wsgiserver
@@ -102,11 +100,11 @@ correctly (pylons relies heavily on threadlocals).</p>
             <div class="docstring rst"><p>Basic deque-based scheduler with timeout support and primitive
 prioritisaiton parameters.</p>
 <p>Usage:</p>
-<div class="source"><pre><span class="n">mysched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">proactor</span><span class="o">=</span><span class="n">DefaultProactor</span><span class="p">,</span>
+<div class="source"><pre><span class="n">mysched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">reactor</span><span class="o">=</span><span class="n">DefaultReactor</span><span class="p">,</span>
         <span class="n">default_priority</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">LAST</span><span class="p">,</span> <span class="n">default_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 </pre></div>
 <ul class="simple">
-<li>proactor: a proactor class to use</li>
+<li>reactor: a reactor class to use</li>
 <li>default_priority: a default priority option for operations that do not
 set it. check <a class="reference" href="cogen.core.util.priority.html">priority</a>.</li>
 <li>default_timeout: a default timedelta or number of seconds to wait for

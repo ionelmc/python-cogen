@@ -65,7 +65,7 @@ Typical example:
 """
 
 from cogen.core import schedulers
-from cogen.core import proactors
+from cogen.core import reactors
 from cogen.core import coroutines
 from cogen.core import events
 from cogen.core import sockets

@@ -1,9 +1,8 @@
-try:
-    import psyco
-    psyco.full()
-    print "Psyco on."
-except ImportError:
-    pass
+#~ try:
+    #~ import psyco
+    #~ psyco.full()
+#~ except ImportError:
+    #~ pass
 #~ import cogen
 
 def lorem_ipsum_app(environ, start_response):
@@ -14,39 +13,27 @@ import cogen
 from cogen.web.wsgi import WSGIServer
 sched = cogen.core.schedulers.Scheduler(
     default_timeout=-1, 
+    #~ reactor=cogen.core.reactors.PollReactor,
     default_priority=cogen.core.util.priority.FIRST,
-    proactor=cogen.core.proactors.has_epoll(),
-    proactor_resolution=1,
-    
-    proactor_greedy=False,
-    ops_greedy=True,
-    proactor_multiplex_first=True
+    reactor_resolution=0.05
 )
-print 'Using', sched.proactor.__class__.__name__
     
 server = WSGIServer( 
-  ('0.0.0.0', 9021), 
+  ('0.0.0.0', 9001), 
   lorem_ipsum_app, 
   sched, 
   server_name='localhost', 
   request_queue_size=2048,
-  sockaccept_greedy=False,
-  sockoper_timeout=-1,
-  sendfile_timeout=-1  
+  #~ sockoper_run_first=False
 )
 sched.add(server.serve)
-#~ sched.run()
+sched.run()
 
-def run():
-    try:
-        sched.run()
-    except KeyboardInterrupt:
-        import traceback
-        traceback.print_exc()
-        
-        print sched.proactor.tokens
-        
-run()
+#~ def run():
+    #~ try:
+        #~ sched.run()
+    #~ except KeyboardInterrupt:
+        #~ pass
 ###############        
 #~ import cProfile, os
 #~ cProfile.run("run()", "cprofile.log")

@@ -7,36 +7,36 @@ import datetime
 import sys
 
                 
-def debug(trace=True, backtrace=1, other=None, output=sys.stderr):
+def debug(trace=True, backtrace=1, other=None):
     """A decorator for debugging purposes. Shows the call arguments, result
     and instructions as they are runned."""
     from pprint import pprint
     import traceback
     def debugdeco(func):
         def tracer(frame, event, arg):
-            print>>output, '--- Tracer: %s, %r' % (event, arg)
-            traceback.print_stack(frame, 1, output)
+            print '--- Tracer: %s, %r' % (event, arg)
+            traceback.print_stack(frame, 1)
             return tracer
         def wrapped(*a, **k):
-            print>>output 
-            print>>output, '--- Calling %s.%s with:' % (
+            print 
+            print '--- Calling %s.%s with:' % (
                 getattr(func, '__module__', ''), 
                 func.__name__
             )
             for i in enumerate(a):
-                print>>output, '    | %s: %s' % i
-            print>>output, '    | ',
-            pprint(k, output)
-            print>>output, '    From:'
+                print '    | %s: %s' % i
+            print '    | ',
+            pprint(k)
+            print '    From:'
             for i in traceback.format_stack(sys._getframe(1), backtrace):
-                print>>output, i,
+                print i,
             if other:
-                print>>output, '---      [ %r ]' % (other(func,a,k))
+                print '---      [ %r ]' % (other(func,a,k))
             if trace: sys.settrace(tracer)
             ret = func(*a, **k)
             if trace: sys.settrace(None)
             #~ a = list(a)
-            print>>output, '--- %s.%s returned: %r' % (
+            print '--- %s.%s returned: %r' % (
                 getattr(func, '__module__', ''), 
                 func.__name__, 
                 #~ ret not in a and ret or "ARG%s"%a.index(ret)

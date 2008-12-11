@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+
+<!-- remove old header -->
+
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>cogen API Reference Documentation
+        - Class: KQueueReactor</title><meta name="MSSmartTagsPreventParsing" content="true" /><meta http-equiv="imagetoolbar" content="no" /><link href="css/default.css" rel="stylesheet" type="text/css" /><link href="css/pygments.css" rel="stylesheet" type="text/css" />
+    <!-- <link rel="shortcut icon" href="/images/favicon.ico" type="image/vnd.microsoft.icon"/> -->
+    <link rel="stylesheet" href="css/apydia.css" type="text/css" />
+    <script src="js/jquery-1.2.1.pack.js" type="text/javascript"></script>
+    <script src="js/apydia.js" type="text/javascript"></script>
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <div id="page">
+        <div id="browser">
+            <div class="browser-section">
+                <h2>Module Index</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.html">cogen</a>
+                    </li><li>
+                        <a href="cogen.common.html">cogen.common</a>
+                    </li><li>
+                        <a href="cogen.core.html">cogen.core</a>
+                    </li><li>
+                        <a href="cogen.core.coroutines.html">cogen.core.coroutines</a>
+                    </li><li>
+                        <a href="cogen.core.events.html">cogen.core.events</a>
+                    </li><li>
+                        <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
+                    </li><li>
+                        <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li class="active">
+                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
+                    </li><li>
+                        <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.html">cogen.core.sockets</a>
+                    </li><li>
+                        <a href="cogen.core.util.html">cogen.core.util</a>
+                    </li><li>
+                        <a href="cogen.web.html">cogen.web</a>
+                    </li><li>
+                        <a href="cogen.web.async.html">cogen.web.async</a>
+                    </li><li>
+                        <a href="cogen.web.wsgi.html">cogen.web.wsgi</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>cogen.core.reactors</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.reactors.EpollReactor.html">EpollReactor</a>
+                    </li><li class="active">
+                        <a href="cogen.core.reactors.KQueueReactor.html">KQueueReactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.ReactorBase.html">ReactorBase</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.SelectReactor.html">SelectReactor</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Constructor</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#constructor">__init__</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="browser-section">
+                <h2>Methods</h2>
+                <ul>
+                    <li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#constructor">__init__</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#method-__len__">__len__</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#method-add">add</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.SelectReactor.html#method-handle_errored">handle_errored</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#method-remove">remove</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#method-run">run</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.SelectReactor.html#method-run_once">run_once</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.SelectReactor.html#method-run_operation">run_operation</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.SelectReactor.html#method-run_or_add">run_or_add</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.KQueueReactor.html#method-waiting_op">waiting_op</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="content">
+    <h1>Class: cogen.core.reactors.KQueueReactor</h1>
+    <div class="docstring rst"></div>
+    <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#230">View source</a>
+    </li>
+</ul>
+    <div>
+        <h2>Constructor</h2>
+        <h3 id="constructor">
+            __init__
+            <span class="args">(self, scheduler, res, default_size=1024)</span>
+        </h3>
+        <div class="docstring rst"></div>
+        <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#231">View source</a>
+    </li>
+</ul>
+    </div>
+    <div>
+        <h2>Methods</h2>
+            <h3 id="constructor">
+                __init__
+                <span class="args">(self, scheduler, res, default_size=1024)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#231">View source</a>
+    </li>
+</ul>
+            <h3 id="method-__len__">
+                __len__
+                <span class="args">(self)</span>
+            </h3>
+            <div class="docstring rst"></div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#236">View source</a>
+    </li>
+</ul>
+            <h3 id="method-add">
+                add
+                <span class="args">(self, op, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>~ @debug(0)</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#262">View source</a>
+    </li>
+</ul>
+            <h3 id="method-handle_errored">
+                handle_errored
+                <span class="args">(self, desc, code=None)</span>
+            </h3>
+            <div class="docstring rst"><p>Handles descriptors that have errors.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#153">View source</a>
+    </li>
+</ul>
+            <h3 id="method-remove">
+                remove
+                <span class="args">(self, op, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>~ @debug(0)</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#249">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run">
+                run
+                <span class="args">(self, timeout=0)</span>
+            </h3>
+            <div class="docstring rst"><p>Run a reactor loop and return new socket events. Timeout is a timedelta
+object, 0 if active coros or None.</p>
+<p>kqueue timeout param is a integer number of nanoseconds (seconds/10**9).</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#283">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run_once">
+                run_once
+                <span class="args">(self, fdesc, waiting_ops)</span>
+            </h3>
+            <div class="docstring rst"><p>Run a operation, remove it from the reactor and return the result.
+Called from the main reactor loop.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#93">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run_operation">
+                run_operation
+                <span class="args">(self, op, reactor=True)</span>
+            </h3>
+            <div class="docstring rst"><p>Run the socket op and return result or exception.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#101">View source</a>
+    </li>
+</ul>
+            <h3 id="method-run_or_add">
+                run_or_add
+                <span class="args">(self, op, coro)</span>
+            </h3>
+            <div class="docstring rst"><p>Perform operation and return result or add the operation in
+the reactor if socket isn't ready and return none.
+Called from the scheduller via SocketOperation.process.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#110">View source</a>
+    </li>
+</ul>
+            <h3 id="method-waiting_op">
+                waiting_op
+                <span class="args">(self, testcoro)</span>
+            </h3>
+            <div class="docstring rst"><p>Returns the registered operation for some specified coroutine.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/reactors.py#244">View source</a>
+    </li>
+</ul>
+    </div>
+        </div>
+        <div id="footer">
+            Generated with <a href="http://apydia.ematia.de/" class="extern">
+            Apydia 0.0.3</a>
+        </div>
+    </div>
+</body>
+</html>

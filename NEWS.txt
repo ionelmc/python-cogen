@@ -1,12 +1,3 @@
-0.2.0:
-
- * rewritten the network code
- * some network api was changed (readline was moved in a fileobject class - just
-   like python's socket api)
- * added support for TransmitFile
- * added support for select.epoll and select.epoll in python 2.6
- 
- 
 0.1.9:
 
  * splited platform specific network code in separate modules
@@ -14,7 +5,7 @@
  * added reactor_greedy and ops_greedy options on the scheduler
  * removed qt reactor
  * improved the coroutine call
- 
+
 0.1.8:
 
  * added support for ConnectEx (via IOCPProactor)

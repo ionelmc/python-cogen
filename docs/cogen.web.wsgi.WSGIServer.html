@@ -31,23 +31,21 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html">cogen.core.proactors</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_epoll_impl.html">cogen.core.proactors.stdlib_epoll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_kqueue_impl.html">cogen.core.proactors.stdlib_kqueue_impl</a>
-                    </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.base.html">cogen.core.reactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.iocp_proactor.html">cogen.core.reactors.iocp_proactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.poll_reactor.html">cogen.core.reactors.poll_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.qt_reactor.html">cogen.core.reactors.qt_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.select_reactor.html">cogen.core.reactors.select_reactor</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li>
@@ -105,11 +103,11 @@
                 <h2>Attributes</h2>
                 <ul>
                     <li>
+                        <a href="cogen.web.wsgi.WSGIServer.html#attribute-STATE_NEED_INIT">STATE_NEED_INIT</a>
+                    </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-bind_addr">bind_addr</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-environ">environ</a>
-                    </li><li>
-                        <a href="cogen.web.wsgi.WSGIServer.html#attribute-kqueue">kqueue</a>
                     </li><li>
                         <a href="cogen.web.wsgi.WSGIServer.html#attribute-protocol">protocol</a>
                     </li>
@@ -167,7 +165,7 @@ response.</td>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#537">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#563">View source</a>
     </li>
 </ul>
     <div>
@@ -189,12 +187,12 @@ response.</td>
         <h2>Constructor</h2>
         <h3 id="constructor">
             __init__
-            <span class="args">(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=64, sockoper_timeout=15, sendfile_timeout=-1, sockaccept_greedy=False)</span>
+            <span class="args">(self, bind_addr, wsgi_app, scheduler, server_name=None, request_queue_size=64, sockoper_run_first=True, sockoper_timeout=15, sendfile_timeout=-1, sockaccept_greedy=False)</span>
         </h3>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#576">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#602">View source</a>
     </li>
 </ul>
     </div>
@@ -208,7 +206,7 @@ response.</td>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#725">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/web/wsgi.py#749">View source</a>
     </li>
 </ul>
             <h3 id="method-serve">
@@ -225,10 +223,19 @@ response.</td>
     </div>
     <div>
         <h2>Attributes</h2>
+            <h3 id="attribute-STATE_NEED_INIT">STATE_NEED_INIT</h3>
+            <div class="docstring rst"></div>
+            <h4>Value of STATE_NEED_INIT</h4>
+            <pre class="code"><code>0</code></pre>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
+    </li>
+</ul>
             <h3 id="attribute-bind_addr">bind_addr</h3>
             <div class="docstring rst"></div>
             <h4>Value of bind_addr</h4>
-            <pre class="code"><code>&lt;property object at 0x00DC20F8&gt;</code></pre>
+            <pre class="code"><code>&lt;property object at 0x00DC5C60&gt;</code></pre>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
@@ -241,15 +248,6 @@ response.</td>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
         <a href="http://code.google.com/p/cogen/source/browse/trunk#0">View source</a>
-    </li>
-</ul>
-            <h3 id="attribute-kqueue">kqueue</h3>
-            <div class="docstring rst"></div>
-            <h4>Value of kqueue</h4>
-            <pre class="code"><code>0</code></pre>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/proactors/stdlib_kqueue_impl.py#0">View source</a>
     </li>
 </ul>
             <h3 id="attribute-protocol">protocol</h3>

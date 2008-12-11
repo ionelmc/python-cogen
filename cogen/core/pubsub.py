@@ -3,22 +3,20 @@ import events
 from util import priority
 
 class PSPut(events.Operation):
-    __slots__ = ('queue', 'message', 'key')
+    __slots__ = ['queue', 'message']
     
-    def __init__(self, queue, message, key, **kws):
+    def __init__(self, queue, message, **kws):
         super(PSPut, self).__init__(**kws)
         self.queue = queue
         self.message = message
-        self.key = key
     
     def process(self, sched, coro):
         super(PSPut, self).process(sched, coro)
         self.queue.messages.append(self.message)
         result = [self.message]
-        key = self.key or coro
-        for getkey in self.queue.active_subscribers:
-            self.queue.subscribers[getkey] += 1
-            getop, getcoro = self.queue.active_subscribers[getkey]
+        for getcoro in self.queue.active_subscribers:
+            self.queue.subscribers[getcoro] += 1
+            getop = self.queue.active_subscribers[getcoro]
             getop.result = result
             if getop.prio:
                 sched.active.appendleft((getop, getcoro))
@@ -33,69 +31,47 @@ class PSPut(events.Operation):
             else:
                 sched.active.append((self, coro))
             return None, None
-            
 class PSGet(events.TimedOperation):
-    __slots__ = ('queue', 'result', 'key')
+    __slots__ = ['queue', 'result']
     
-    def __init__(self, queue, key, **kws):
+    def __init__(self, queue, **kws):
         super(PSGet, self).__init__(**kws)
         self.queue = queue
-        self.key = key
     
     def process(self, sched, coro):
         super(PSGet, self).process(sched, coro)
-        key = self.key or coro
-        assert key in self.queue.subscribers
-        level = self.queue.subscribers[key]
+        assert coro in self.queue.subscribers
+        level = self.queue.subscribers[coro]
         queue_level = len(self.queue.messages)
         if level < queue_level:
             self.result = self.queue.messages[level:] if level \
                           else self.queue.messages  
-            self.queue.subscribers[key] = queue_level
+            self.queue.subscribers[coro] = queue_level
             return self, coro
         else:
-            self.queue.active_subscribers[key] = self, coro
+            self.queue.active_subscribers[coro] = self
     
     def finalize(self):
         super(PSGet, self).finalize()
         return self.result
         
     def cleanup(self, sched, coro):
-        for key in self.queue.active_subscribers:
-            getop, getcoro = self.queue.active_subscribers[key]
-            if coro is getcoro:
-                assert getop is self
-                
-                del self.queue.active_subscribers[key]
-                return True
+        if coro in self.queue.active_subscribers:
+            del self.queue.active_subscribers[coro]
+            return True
 
 class PSSubscribe(events.Operation):
-    __slots__ = ('queue', 'key')
+    __slots__ = ['queue']
     
-    def __init__(self, queue, key, **kws):
+    def __init__(self, queue, **kws):
         super(PSSubscribe, self).__init__(**kws)
         self.queue = queue
-        self.key = key
     
     def process(self, sched, coro):
         super(PSSubscribe, self).process(sched, coro)
-        self.queue.subscribers[self.key or coro] = 0
+        self.queue.subscribers[coro] = 0
         return self, coro
-
-class PSUnsubscribe(events.Operation):
-    __slots__ = ('queue', 'key')
     
-    def __init__(self, queue, key, **kws):
-        super(PSUnsubscribe, self).__init__(**kws)
-        self.queue = queue
-        self.key = key
-    
-    def process(self, sched, coro):
-        super(PSSubscribe, self).process(sched, coro)
-        del self.queue.subscribers[self.key or coro]
-        return self, coro
-
-
 class PublishSubscribeQueue:
     """A more robust replacement for the signal operations.
     A coroutine subscribes itself to a PublishSubscribeQueue and get new
@@ -104,28 +80,23 @@ class PublishSubscribeQueue:
     def __init__(self):
         self.messages = []
         self.subscribers = {}
-        self.active_subscribers = {} # holds waiting fetch ops
+        self.active_subscribers = {}
         
-    def publish(self, message, key=None, **kws):
+    def publish(self, message, **kws):
         """Put a message in the queue and updates any coroutine wating with 
         fetch. *works as a coroutine operation*"""
-        return PSPut(self, message, key, **kws)
+        return PSPut(self, message, **kws)
     
-    def subscribe(self, key=None, **kws):
+    def subscribe(self, **kws):
         """Registers the calling coroutine to the queue. Sets the update index 
         to 0 - on fetch, that coroutine will get all the messages from the
         queue. *works as a coroutine operation*"""
-        return PSSubscribe(self, key, **kws)
+        return PSSubscribe(self, **kws)
     
-    def unsubscribe(self, key=None, **kws):
-        """Unregisters the calling coroutine to the queue. """
-        # TODO: unittest
-        return PSUnsubscribe(self, key, **kws)
-    
-    def fetch(self, key=None, **kws):
+    def fetch(self, **kws):
         """Get all the new messages since the last fetch. Returns a list
         of messages. *works as a coroutine operation*"""
-        return PSGet(self, key, **kws)
+        return PSGet(self, **kws)
     
     def compact(self):
         """Compacts the queue: removes all the messages from the queue that

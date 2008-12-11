@@ -5,7 +5,7 @@ from cogen.core import events
 @coroutine
 def foo():
     print 'foo'
-    result = yield bar("ham")
+    result = yield events.Call(bar, args=("ham",))
     print result
 
 @coroutine

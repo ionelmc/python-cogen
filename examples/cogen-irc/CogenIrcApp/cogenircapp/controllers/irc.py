@@ -56,7 +56,6 @@ class Connection:
         The controllers pull method will take the messages from that queue.
         """
         self.sock = sockets.Socket()
-        self.sock.settimeout(self.sock_timo)
         yield events.AddCoro(self.monitor)
         while not self.connected:
             try:
@@ -66,17 +65,16 @@ class Connection:
                 else:
                     addr[1] = int(addr[1])
                 yield self.events.put(('', 'CONNECTING', ''), timeout=self.sock_timo)
-                yield self.sock.connect(tuple(addr))
+                yield self.sock.connect(tuple(addr), timeout=self.sock_timo)
                 self.connected = True
             except events.OperationTimeout, e:
                 yield self.events.put(('', 'CONNECT_TIMEOUT', str(e)), timeout=self.sock_timo)
                 yield events.Sleep(self.reconnect_interval)
                 
         yield self.events.put_nowait(('', 'CONNECTED', ''))
-        fobj = self.sock.makefile()
         while 1:
             try:
-                line = yield fobj.readline(8192)
+                line = yield self.sock.readline(8192)
                 prefix, command, params = parsemsg(line.rstrip('\r\n'))    
                 if command in numeric_events:
                     command = numeric_events[command].upper()
@@ -126,7 +124,7 @@ class IrcController(BaseController):
                         payload = "%s %s%s\r\n" % (cmd, ' '.join(msg), sufix)
                     else:
                         payload = "%s%s\r\n" % (cmd, sufix)
-                    yield request.environ['cogen.call'](conn.sock.sendall)(
+                    yield request.environ['cogen.call'](conn.sock.writeall)(
                             payload.encode('utf-8'))
                     if isinstance(request.environ['cogen.wsgi'].result, Exception):
                         yield simplejson.dumps(('', 'ERROR', str(e)))

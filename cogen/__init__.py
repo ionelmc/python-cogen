@@ -34,7 +34,7 @@ that yield when the operation is ready.
        |                                                    depening on the op      
       op.run()                                               +---------+
        |      socket is ready               add it in        |         |
-       +-------------<------------  ......  the proactor  <--+         |
+       +-------------<------------  ......  the reactor   <--+         |
        |                         later                                 | 
        +------<-------------------  ......  add it in some other     <-+
         some event decides                  queue for later run
@@ -43,16 +43,16 @@ that yield when the operation is ready.
         
     The scheduler basicaly does 3 things:
      - runs active (coroutine,operations) pairs (calls process on the op)
-     - runs the proactor
+     - runs the reactor
      - checks for timeouts
      
-    The proactor basicaly does 2 things:
+    The reactor basicaly does 2 things:
      - calls the system to check what descriptors are ready
      - runs the operations that have ready descriptors
      
     The operation does most of the work (via the process, finalize, cleanup, 
     run methods):
-     - adds itself in the proactor (if it's a socket operation)
+     - adds itself in the reactor (if it's a socket operation)
      - adds itself in some structure to be activated later by some other event
      - adds itself and the coro in the scheduler's active coroutines queue
 
@@ -85,7 +85,7 @@ THE SOFTWARE.
 __author__ = u"Mărieş Ionel Cristian"
 __email__ = "ionel.mc@gmail.com"
 __revision__ = "$Revision$"
-__version__ = '0.2.0'
+__version__ = '0.1.9.1'
 __svnid__ = "$Id$"
 
 from cogen import core

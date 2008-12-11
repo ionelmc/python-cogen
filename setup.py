@@ -22,7 +22,7 @@ setup(
     author='Maries Ionel Cristian',
     author_email='ionel.mc@gmail.com',
     url='http://code.google.com/p/cogen/',
-    packages=['cogen', 'cogen.core', 'cogen.web', 'cogen.core.proactors'],
+    packages=['cogen', 'cogen.core', 'cogen.web', 'cogen.core.reactors'],
     zip_safe=True,
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -56,9 +56,8 @@ setup(
         ]
     },
     install_requires = \
-        (((["py-kqueue>=2.0"] if 'bsd' in sys.platform else []) +
-        (["py-epoll>=1.2"] if 'linux' in sys.platform else [])) \
-            if (sys.version_info[0] == 2 and sys.version_info[1] < 6) else []) +\
+        (["py-kqueue>=2.0"] if 'bsd' in sys.platform else []) +
+        (["py-epoll>=1.2"] if 'linux' in sys.platform else []) +\
         (["py-sendfile>=1.2.2"] if ('linux' in sys.platform) or ('bsd' in sys.platform) else []),
     test_suite='tests'
 )

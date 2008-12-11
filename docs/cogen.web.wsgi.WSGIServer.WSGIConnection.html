@@ -31,23 +31,21 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html">cogen.core.proactors</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_epoll_impl.html">cogen.core.proactors.stdlib_epoll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_kqueue_impl.html">cogen.core.proactors.stdlib_kqueue_impl</a>
-                    </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.base.html">cogen.core.reactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.iocp_proactor.html">cogen.core.reactors.iocp_proactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.poll_reactor.html">cogen.core.reactors.poll_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.qt_reactor.html">cogen.core.reactors.qt_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.select_reactor.html">cogen.core.reactors.select_reactor</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li>
@@ -114,7 +112,7 @@
         <h2>Constructor</h2>
         <h3 id="constructor">
             __init__
-            <span class="args">(self, sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout)</span>
+            <span class="args">(self, sock, wsgi_app, environ, sockoper_run_first, sockoper_timeout, sendfile_timeout)</span>
         </h3>
         <div class="docstring rst"></div>
         <ul class="link-bar">
@@ -175,7 +173,7 @@
             <div class="docstring rst"></div>
             <h4>Value of connection_environ</h4>
             <pre class="code"><code>{'wsgi.errors': &lt;open file '&lt;stderr&gt;', mode 'w' at 0x0097F0B0&gt;,
- 'wsgi.file_wrapper': &lt;class cogen.web.wsgi.WSGIFileWrapper at 0x00D8CDB0&gt;,
+ 'wsgi.file_wrapper': &lt;class cogen.web.wsgi.WSGIFileWrapper at 0x00D8CF00&gt;,
  'wsgi.input': None,
  'wsgi.multiprocess': False,
  'wsgi.multithread': False,

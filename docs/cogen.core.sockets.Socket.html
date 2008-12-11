@@ -31,23 +31,21 @@
                     </li><li>
                         <a href="cogen.core.events.html">cogen.core.events</a>
                     </li><li>
-                        <a href="cogen.core.proactors.html">cogen.core.proactors</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.base.html">cogen.core.proactors.base</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.iocp_impl.html">cogen.core.proactors.iocp_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.poll_impl.html">cogen.core.proactors.poll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.select_impl.html">cogen.core.proactors.select_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_epoll_impl.html">cogen.core.proactors.stdlib_epoll_impl</a>
-                    </li><li>
-                        <a href="cogen.core.proactors.stdlib_kqueue_impl.html">cogen.core.proactors.stdlib_kqueue_impl</a>
-                    </li><li>
                         <a href="cogen.core.pubsub.html">cogen.core.pubsub</a>
                     </li><li>
                         <a href="cogen.core.queue.html">cogen.core.queue</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.html">cogen.core.reactors</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.base.html">cogen.core.reactors.base</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.iocp_proactor.html">cogen.core.reactors.iocp_proactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.poll_reactor.html">cogen.core.reactors.poll_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.qt_reactor.html">cogen.core.reactors.qt_reactor</a>
+                    </li><li>
+                        <a href="cogen.core.reactors.select_reactor.html">cogen.core.reactors.select_reactor</a>
                     </li><li>
                         <a href="cogen.core.schedulers.html">cogen.core.schedulers</a>
                     </li><li class="active">
@@ -71,11 +69,21 @@
                     </li><li>
                         <a href="cogen.core.sockets.Connect.html">Connect</a>
                     </li><li>
+                        <a href="cogen.core.sockets.Read.html">Read</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.ReadAll.html">ReadAll</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.ReadLine.html">ReadLine</a>
+                    </li><li>
                         <a href="cogen.core.sockets.SendFile.html">SendFile</a>
                     </li><li class="active">
                         <a href="cogen.core.sockets.Socket.html">Socket</a>
                     </li><li>
                         <a href="cogen.core.sockets.SocketOperation.html">SocketOperation</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.Write.html">Write</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.WriteAll.html">WriteAll</a>
                     </li>
                 </ul>
             </div>
@@ -109,15 +117,11 @@
                     </li><li>
                         <a href="cogen.core.sockets.Socket.html#method-listen">listen</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.html#method-makefile">makefile</a>
+                        <a href="cogen.core.sockets.Socket.html#method-read">read</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.html#method-recv">recv</a>
+                        <a href="cogen.core.sockets.Socket.html#method-readall">readall</a>
                     </li><li>
-                        <a href="cogen.core.sockets.Socket.html#method-send">send</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.Socket.html#method-sendall">sendall</a>
-                    </li><li>
-                        <a href="cogen.core.sockets.Socket.html#method-sendfile">sendfile</a>
+                        <a href="cogen.core.sockets.Socket.html#method-readline">readline</a>
                     </li><li>
                         <a href="cogen.core.sockets.Socket.html#method-setblocking">setblocking</a>
                     </li><li>
@@ -126,6 +130,10 @@
                         <a href="cogen.core.sockets.Socket.html#method-settimeout">settimeout</a>
                     </li><li>
                         <a href="cogen.core.sockets.Socket.html#method-shutdown">shutdown</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.Socket.html#method-write">write</a>
+                    </li><li>
+                        <a href="cogen.core.sockets.Socket.html#method-writeall">writeall</a>
                     </li>
                 </ul>
             </div>
@@ -151,7 +159,7 @@ specifying the default protocol.  Keyword arguments are accepted.</p>
 </div>
     <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#49">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#47">View source</a>
     </li>
 </ul>
     <div>
@@ -163,7 +171,7 @@ specifying the default protocol.  Keyword arguments are accepted.</p>
         <div class="docstring rst"></div>
         <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#78">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#76">View source</a>
     </li>
 </ul>
     </div>
@@ -185,7 +193,7 @@ conn, address = yield mysock.accept()
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#108">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#115">View source</a>
     </li>
 </ul>
             <h3 id="method-bind">
@@ -197,7 +205,7 @@ conn, address = yield mysock.accept()
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#129">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#136">View source</a>
     </li>
 </ul>
             <h3 id="method-close">
@@ -210,7 +218,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#122">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#129">View source</a>
     </li>
 </ul>
             <h3 id="method-connect">
@@ -221,7 +229,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#135">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#142">View source</a>
     </li>
 </ul>
             <h3 id="method-fileno">
@@ -232,7 +240,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#139">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#146">View source</a>
     </li>
 </ul>
             <h3 id="method-getpeername">
@@ -243,7 +251,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#150">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#157">View source</a>
     </li>
 </ul>
             <h3 id="method-getsockname">
@@ -254,7 +262,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#154">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#161">View source</a>
     </li>
 </ul>
             <h3 id="method-gettimeout">
@@ -265,7 +273,7 @@ flushed). Sockets are automatically closed when they are garbage-collected.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#164">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#171">View source</a>
     </li>
 </ul>
             <h3 id="method-listen">
@@ -278,23 +286,11 @@ least 1; the maximum value is system-dependent (usually 5).</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#143">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#150">View source</a>
     </li>
 </ul>
-            <h3 id="method-makefile">
-                makefile
-                <span class="args">(self, mode='r', bufsize=-1)</span>
-            </h3>
-            <div class="docstring rst"><p>Returns a special fileobject that has corutines instead of the usual
-read/readline/write methods. Will work in the same manner though.</p>
-</div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#91">View source</a>
-    </li>
-</ul>
-            <h3 id="method-recv">
-                recv
+            <h3 id="method-read">
+                read
                 <span class="args">(self, bufsize, **kws)</span>
             </h3>
             <div class="docstring rst"><p>Receive data from the socket. The return value is a string
@@ -303,41 +299,34 @@ ammount specified by _bufsize_.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#84">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#85">View source</a>
     </li>
 </ul>
-            <h3 id="method-send">
-                send
-                <span class="args">(self, data, **kws)</span>
+            <h3 id="method-readall">
+                readall
+                <span class="args">(self, bufsize, **kws)</span>
             </h3>
-            <div class="docstring rst"><p>Send data to the socket. The socket must be connected to a remote
-socket. Ammount sent may be less than the data provided.</p>
+            <div class="docstring rst"><p>Receive data from the socket. The return value is a string
+representing the data received. The amount of data will be the exact
+ammount specified by _bufsize_.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#98">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#91">View source</a>
     </li>
 </ul>
-            <h3 id="method-sendall">
-                sendall
-                <span class="args">(self, data, **kws)</span>
+            <h3 id="method-readline">
+                readline
+                <span class="args">(self, size, **kws)</span>
             </h3>
-            <div class="docstring rst"><p>Send data to the socket. The socket must be connected to a remote
-socket. All the data is guaranteed to be sent.</p>
+            <div class="docstring rst"><p>Receive one line of data from the socket. The return value is a string
+representing the data received. The amount of data will at most
+ammount specified by _size_. If no line separator has been found and the
+ammount received has reached _size_ an OverflowException will be raised.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#103">View source</a>
-    </li>
-</ul>
-            <h3 id="method-sendfile">
-                sendfile
-                <span class="args">(self, file_handle, offset=None, length=None, blocksize=4096, **kws)</span>
-            </h3>
-            <div class="docstring rst"></div>
-            <ul class="link-bar">
-    <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#181">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#97">View source</a>
     </li>
 </ul>
             <h3 id="method-setblocking">
@@ -347,7 +336,7 @@ socket. All the data is guaranteed to be sent.</p>
             <div class="docstring rst"></div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#173">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#180">View source</a>
     </li>
 </ul>
             <h3 id="method-setsockopt">
@@ -359,7 +348,7 @@ method.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#176">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#183">View source</a>
     </li>
 </ul>
             <h3 id="method-settimeout">
@@ -371,7 +360,7 @@ be a nonnegative float expressing seconds, timedelta or None.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#158">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#165">View source</a>
     </li>
 </ul>
             <h3 id="method-shutdown">
@@ -383,7 +372,31 @@ socket method.</p>
 </div>
             <ul class="link-bar">
     <li class="link-to-sourcecode">
-        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#168">View source</a>
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#175">View source</a>
+    </li>
+</ul>
+            <h3 id="method-write">
+                write
+                <span class="args">(self, data, **kws)</span>
+            </h3>
+            <div class="docstring rst"><p>Send data to the socket. The socket must be connected to a remote
+socket. Ammount sent may be less than the data provided.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#105">View source</a>
+    </li>
+</ul>
+            <h3 id="method-writeall">
+                writeall
+                <span class="args">(self, data, **kws)</span>
+            </h3>
+            <div class="docstring rst"><p>Send data to the socket. The socket must be connected to a remote
+socket. All the data is guaranteed to be sent.</p>
+</div>
+            <ul class="link-bar">
+    <li class="link-to-sourcecode">
+        <a href="http://code.google.com/p/cogen/source/browse/trunk/cogen/core/sockets.py#110">View source</a>
     </li>
 </ul>
     </div>
