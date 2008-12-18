@@ -10,7 +10,7 @@ from cStringIO import StringIO
 from cogen.common import *
 from base import priorities
 from cogen.core.util import priority
-from cogen.core.pipe import chunk, Iterate, sentinel
+from cogen.core.pipe import chunk, Iterate, sentinel, IterationStopped
 
 class PipeTest(unittest.TestCase):
     def setUp(self):
@@ -56,7 +56,42 @@ class PipeTest(unittest.TestCase):
         
         self.assertEqual(self.msgs, ['started', 1, 2, 3, 'sig', None, 'end'])
         
-    
+    def test_iter_stop(self):
+        put = self.msgs.append
+        
+        @coroutine
+        def iterable():
+            try:
+                put('started')
+                assert not (yield chunk(1))
+                yield events.WaitForSignal("test_sig")
+                put('sig')
+                assert not (yield chunk(None))
+            except IterationStopped:
+                put("raised")
+                
+        @coroutine
+        def sig1(n):
+            yield events.Signal(n)
+        @coroutine
+        def iterator():
+            it = yield Iterate(iterable)
+            while 1:
+                val = yield it
+                if val is sentinel:
+                    put('end')
+                    break
+                put(val)
+                if val == 1:
+                    yield events.AddCoro(sig1, args=("test_sig",))
+                    yield it.stop()
+                
+        self.m.add(iterator)
+        self.m.run()
+        
+        self.assertEqual(self.msgs, ['started', 1, 'end', 'raised'])
+        
+        
 
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')

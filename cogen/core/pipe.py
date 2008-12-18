@@ -2,28 +2,44 @@ from __future__ import with_statement
 
 """An unidirectional pipe.
 
+Your average example::
 
-with (yield pipe.iterate(c)) as iterable:
-    for i in iterable:
-        data = yield i
+    @coro
+    def iterator():
+        iterator = yield Iterate(producer)
+        while 1:
+            val = yield iterator
+            if val is sentinel:
+                break
+            # do something with val
+        
+    @coro
+    def producer():
+        for i in xrange(100):
+            yield chunk(i)
+
         
 
 """
 from cogen.core import events, coroutines
+
+class IterationStopped(Exception):
+    pass
 
 class IteratedCoroutineInstance(coroutines.CoroutineInstance):
     __slots__ = ('iter_token',)
     def run_op(self, op):
         rop = super(IteratedCoroutineInstance, self).run_op(op)
         if isinstance(rop, chunk):
-            self.iter_token.data = rop
-            return self.iter_token
-        else:
-            return rop    
+            if self.iter_token:
+                self.iter_token.data = rop
+                return self.iter_token
+        return rop    
 
 class IterateToken(events.Operation):
     def __init__(self, iterator):
         self.iterator = iterator
+        self.abort = False
         self.started = False
         self.ended = False
         self.data = None
@@ -44,15 +60,40 @@ class IterateToken(events.Operation):
             self.started = True
             return self
     
+    #~ from cogen.core.util import debug
+    #~ @debug(0)
     def process(self, sched, coro):
-        if self.ended:
-            return None, coro
-        else:
-            if coro is self.coro:
-                return self, self.iterator.coro
+        if self.abort:
+            if self.ended:
+                return self.iterator, coro
             else:
-                return None, self.coro
-
+                self.ended = True
+                self.coro.remove_waiter(coro, self.iterator)
+                
+                sched.active.appendleft((
+                    events.CoroutineException(
+                        IterationStopped, 
+                        IterationStopped(),
+                        None
+                    ), 
+                    self.coro
+                ))
+                return self.iterator, coro
+        else:
+            if self.ended:
+                return None, coro
+            else:
+                if coro is self.coro:
+                    return self, self.iterator.coro
+                else:
+                    return None, self.coro
+    
+    def stop(self):
+        self.abort = True
+        self.coro.iter_token = None
+        
+        return self
+        
 class chunk(object):
     __slots__ = ('value',)
     def __init__(self, data):
@@ -85,22 +126,35 @@ class Iterate(events.Operation):
 
 if __name__ == "__main__":
     from cogen.common import *
-    XXX = 1000000
+    from cogen.core.coroutines import debug_coro
+    XXX = 10000
 
-    @coro
+    @debug_coro
+    #~ @coro
     def iterator():
         iterator = yield Iterate(producer)
         while 1:
+            print "> not"
             val = yield iterator
             if val is sentinel:
                 break
+            if val > 2:
+                yield iterator.stop()
+                print "> breaking"
+                #~ break
             #~ print val
-            
-        yield iterator
+        
+        print "> BROKE"
+        #~ yield events.Sleep(1)
+        yield None
+        #~ yield iterator
+        yield None
+        #~ yield events.Sleep(1)
+        print "> >>>> EXIT"
     @coro
     def producer():
         for i in xrange(XXX):
-            #~ print '>', i
+            print '>', i
             yield chunk(i)
         yield chunk(None)
         
