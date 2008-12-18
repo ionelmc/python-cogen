@@ -23,7 +23,7 @@ class CoroutineException(Exception):
         #~ super(CoroutineException, self).__init__(*args)
     def __str__(self):
         import traceback
-        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.message))
+        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.args))
 
 class ConnectionError(Exception):
     "Raised when a socket has a error flag (in epoll or select)"
