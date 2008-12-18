@@ -744,7 +744,33 @@ def asbool(obj):
             raise ValueError(
                 "String is not true/false: %r" % obj)
     return bool(obj)
-    
+
+class Runner:
+  def __init__(self, host, port, app, options, sched_class=Scheduler, server_class=WSGIServer):
+    self.sched = sched_class(
+      proactor = getattr(proactors, "has_"+options.get('proactor', 'any'))(), 
+      default_priority = int(options.get('sched_default_priority', priority.FIRST)), 
+      default_timeout = float(options.get('sched_default_timeout', 0)),
+      proactor_resolution = float(options.get('proactor_resolution', 0.5)),
+      proactor_multiplex_first = asbool(options.get('proactor_multiplex_first', 'true')),
+      proactor_greedy = asbool(options.get('proactor_greedy')),
+      ops_greedy = asbool(options.get('ops_greedy'))
+    )
+    self.server = server_class(
+      (host, port),
+      app, 
+      self.sched, 
+      server_name=options.get('server_name', host), 
+      request_queue_size=int(options.get('request_queue_size', 64)),
+      sockoper_timeout=float(options.get('sockoper_timeout', 15)),
+      sendfile_timeout=float(options.get('sendfile_timeout', 300)),
+      sockaccept_greedy=asbool(options.get('sockaccept_greedy', 'false')),
+    )
+    self.sched.add(self.server.serve)
+        
+  def run(self):
+    self.sched.run()
+
 def server_factory(global_conf, host, port, **options):
   """Server factory for paste. 
   
@@ -770,28 +796,8 @@ def server_factory(global_conf, host, port, **options):
     pastelocal.local = local
   except ImportError:
     pass
-  
   def serve(app):
-    sched = Scheduler(
-      proactor=getattr(proactors, "has_"+options.get('proactor', 'any'))(), 
-      default_priority=int(options.get('sched_default_priority', priority.FIRST)), 
-      default_timeout=float(options.get('sched_default_timeout', 0)),
-      proactor_resolution=float(options.get('proactor_resolution', 0.5)),
-      proactor_multiplex_first=asbool(options.get('proactor_multiplex_first', 'true')),
-      proactor_greedy=asbool(options.get('proactor_greedy')),
-      ops_greedy=asbool(options.get('ops_greedy'))
-    )
-    server = WSGIServer( 
-      (host, port), 
-      app, 
-      sched, 
-      server_name=options.get('server_name', host), 
-      request_queue_size=int(options.get('request_queue_size', 64)),
-      sockoper_timeout=float(options.get('sockoper_timeout', 15)),
-      sendfile_timeout=float(options.get('sendfile_timeout', 300)),
-      sockaccept_greedy=asbool(options.get('sockaccept_greedy', 'false')),
-    )
-    sched.add(server.serve)
-    sched.run()
+    runner = Runner(host, port, app, options)
+    runner.run()
   return serve
   
