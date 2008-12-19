@@ -85,6 +85,7 @@ Development
 
 Takes place at: http://code.google.com/p/cogen/
 
-Grab the latest and greatest from trunk with::
+Grab the latest and greatest from `trunk http://cogen.googlecode.com/svn/trunk/#egg=cogen-dev>`_ with::
 
     easy_install cogen==dev
+
