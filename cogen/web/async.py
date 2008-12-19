@@ -56,6 +56,13 @@ class COGENCallWrapper(object):
     def __call__(self, obj):
         return COGENOperationCall(self.gate, obj)
 
+class COGENSimpleWrapper(object):
+    def __init__(self, gate):
+        self.gate = gate
+        
+    def __call__(self, obj):
+        self.gate.operation = obj
+
 class COGENOperationCall(object):
     def __init__(self, gate, obj):
         self.gate = gate
@@ -65,8 +72,17 @@ class COGENOperationCall(object):
         self.gate.operation = self.obj(*args, **kwargs)
         return ""
 class COGENProxy:
-    def __init__(self, **kws):
-        self.__dict__.update(kws)
+    __slots__ = (
+        'content_length', 'read_count', 'operation', 'result', 'exception'
+    )
+    
+    def __init__(self, content_length=None, read_count=None, operation=None, result=None, exception=None):
+        self.content_length = content_length
+        self.read_count = read_count
+        self.operation = operation
+        self.result = result
+        self.exception = exception
+        
     def __str__(self):
         return repr(self.__dict__)
 

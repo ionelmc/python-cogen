@@ -45,7 +45,6 @@ __all__ = ['WSGIFileWrapper', 'WSGIServer', 'WSGIConnection', 'server_factory']
 from contextlib import closing
 
 import base64
-import Queue
 import os
 import re
 import rfc822
@@ -395,7 +394,7 @@ class WSGIConnection(object):
           yield self.simple_response("501 Unimplemented")
           self.close_connection = True
           return
-        ENVIRON['cogen.wsgi'] = async.COGENProxy(
+        ENV_COGEN_PROXY = ENVIRON['cogen.wsgi'] = async.COGENProxy(
           content_length = int(ENVIRON.get('CONTENT_LENGTH', None) or 0) or None,
           read_count = 0,
           operation = None,
@@ -404,14 +403,15 @@ class WSGIConnection(object):
         )
         ENVIRON['cogen.http_connection'] = self
         ENVIRON['cogen.core'] = async.COGENOperationWrapper(
-          ENVIRON['cogen.wsgi'], 
+          ENV_COGEN_PROXY, 
           core
         )
-        ENVIRON['cogen.call'] = async.COGENCallWrapper(ENVIRON['cogen.wsgi'])
+        ENVIRON['cogen.call'] = async.COGENCallWrapper(ENV_COGEN_PROXY)
         ENVIRON['cogen.input'] = async.COGENOperationWrapper(
-          ENVIRON['cogen.wsgi'], 
+          ENV_COGEN_PROXY, 
           self.connfh
         )
+        ENVIRON['cogen.yield'] = async.COGENSimpleWrapper(ENV_COGEN_PROXY)
         response = self.wsgi_app(ENVIRON, self.start_response)
         #~ print 'WSGI RESPONSE:', response
         try:
@@ -475,18 +475,18 @@ class WSGIConnection(object):
                     self.sent_headers = True
                     yield sockets.SendAll(self.conn,
                           self.render_headers()+self.write_buffer.getvalue())
-                if ENVIRON['cogen.wsgi'].operation:
-                  op = ENVIRON['cogen.wsgi'].operation
-                  ENVIRON['cogen.wsgi'].operation = None
+                if ENV_COGEN_PROXY.operation:
+                  op = ENV_COGEN_PROXY.operation
+                  ENV_COGEN_PROXY.operation = None
                   try:
                     #~ print 'WSGI OP:', op
-                    ENVIRON['cogen.wsgi'].result = yield op
+                    ENV_COGEN_PROXY.exception = None
+                    ENV_COGEN_PROXY.result = yield op
                     #~ print 'WSGI OP RESULT:',ENVIRON['cogen.wsgi'].result
                   except:
                     #~ print 'WSGI OP EXCEPTION:', sys.exc_info()
-                    ENVIRON['cogen.wsgi'].exception = sys.exc_info()
-                    ENVIRON['cogen.wsgi'].result = \
-                      ENVIRON['cogen.wsgi'].exception[1]
+                    ENV_COGEN_PROXY.exception = sys.exc_info()
+                    ENV_COGEN_PROXY.result = ENV_COGEN_PROXY.exception[1]
                   del op
         finally:
           if hasattr(response, 'close'):
