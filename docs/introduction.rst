@@ -42,7 +42,7 @@ yield statement.
 
 What happens behind the scenes: mysock.recv(1024) actually returns a special object
 that gets passed to the framework and instructs it what to do with the coroutine.
-It's like a request object. **There objects are named *Operations* in cogen.**
+It's like a request object. There objects are named Operations in cogen (see :class:`~cogen.core.events.Operation`).
 
 Calling other coroutines
 ------------------------

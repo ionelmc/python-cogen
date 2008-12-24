@@ -86,7 +86,7 @@ when there&#8217;s data available on that socket and pass the available data thr
 yield statement.</p>
 <p>What happens behind the scenes: mysock.recv(1024) actually returns a special object
 that gets passed to the framework and instructs it what to do with the coroutine.
-It&#8217;s like a request object. <strong>There objects are named *Operations* in cogen.</strong></p>
+It&#8217;s like a request object. There objects are named Operations in cogen (see <a title="cogen.core.events.Operation" class="reference external" href="modules/cogen.core.events.html#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>).</p>
 </div>
 <div class="section" id="calling-other-coroutines">
 <h2>Calling other coroutines<a class="headerlink" href="#calling-other-coroutines" title="Permalink to this headline">¶</a></h2>
