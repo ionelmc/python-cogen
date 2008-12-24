@@ -26,8 +26,7 @@ example:
     # ...
 """
 __all__ = [
-    'LazyStartResponseMiddleware', 'SynchronousInputMiddleware', 'Read',
-    'ReadLine'
+    'LazyStartResponseMiddleware', 'SynchronousInputMiddleware'
 ]
 
 

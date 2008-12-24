@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.coroutines" href="cogen.core.coroutines.html" />
+    <link rel="prev" title="Core" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.coroutines.html" title="cogen.core.coroutines"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Core"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core</span></tt><a class="headerlink" href="#module-cogen.core" title="Permalink to this headline">¶</a></h1>
+<p>This is a library for network oriented, coroutine based programming. 
+The interfaces and events/operations aim to mimic some of the regular thread 
+and socket features.</p>
+<p>cogen uses the <a class="reference external" href="http://www.python.org/dev/peps/pep-0342/">enhanced generators</a>
+in python 2.5. These generators are bidirectional: they allow to pass values in 
+and out of the generator. The whole framework is based on this.</p>
+<p>The generator yields a <cite>Operation</cite> instance and will receive the result from 
+that yield when the operation is ready.</p>
+<p>Example:</p>
+<div class="highlight-python"><pre>@coroutine
+def mycoro(bla):
+    yield &lt;operation&gt;
+    yield &lt;operation&gt;</pre>
+</div>
+<ul class="simple">
+<li>the <cite>operation</cite> instructs the scheduler what to do with the 
+coroutine: suspend it till someting happens, add another coro in 
+the scheduler, raise a event and so on.</li>
+<li>the <cite>operations</cite> are split up in 2 modules: events and sockets<ul>
+<li>the <cite>operations</cite> from sockets are related to network, like reading and 
+writing, and these are done asynchronously but your code in the 
+coroutine will see them as a regular synchronous or blocking call.</li>
+<li>the <cite>operations</cite> from events are related to signals and 
+coroutine/scheduler management.</li>
+</ul>
+</li>
+<li>if a <cite>operation</cite> has a result associated then the yield will return that 
+result (eg. a string or a (connection, address) tuple) otherwise it will 
+return the operation instance.</li>
+</ul>
+<div class="highlight-python"><pre>Roughly the cogen internals works like this:
+
++------------------------+
+| @coroutine             |
+| def foo():             |
+|     ...                |             op.process(sched, coro)
+|  +-&gt;result = yield op--|----------------+------------+
+|  |  ...                |                |            |  
++--|---------------------+    +---------------+  +---------------------+      
+   |                          | the operation |  | the operation can't |
+  result = op.finalize()      | is ready      |  | complete right now  |
+   |                          +------|--------+  +----------|----------+
+  scheduler runs foo                 |                      |
+   |                                 |                      |
+  foo gets in the active             |                      |
+  coroutines queue                   |                      |
+   |                                 |                      |
+   +----------------------&lt;----------+                      |
+   |                                                    depening on the op      
+  op.run()                                               +---------+
+   |      socket is ready               add it in        |         |
+   +-------------&lt;------------  ......  the proactor  &lt;--+         |
+   |                         later                                 | 
+   +------&lt;-------------------  ......  add it in some other     &lt;-+
+    some event decides                  queue for later run
+    this op is ready
+    
+    
+The scheduler basicaly does 3 things:
+ - runs active (coroutine,operations) pairs (calls process on the op)
+ - runs the proactor
+ - checks for timeouts
+ 
+The proactor basicaly does 2 things:
+ - calls the system to check what descriptors are ready
+ - runs the operations that have ready descriptors
+ 
+The operation does most of the work (via the process, finalize, cleanup, 
+run methods):
+ - adds itself in the proactor (if it's a socket operation)
+ - adds itself in some structure to be activated later by some other event
+ - adds itself and the coro in the scheduler's active coroutines queue
+
+The coroutine decorator wrappes foo in a Coroutine class that does some
+niceties like exception handling, getting the result from finalize() etc.</pre>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html" title="previous chapter">Core</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.coroutines.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.coroutines</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.coroutines.html" title="cogen.core.coroutines"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Core"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

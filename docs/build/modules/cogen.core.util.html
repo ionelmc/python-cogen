@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.util &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.web" href="cogen.web.html" />
+    <link rel="prev" title="cogen.core.sockets" href="cogen.core.sockets.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.web.html" title="cogen.web"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.sockets.html" title="cogen.core.sockets"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.util">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.util</span></tt><a class="headerlink" href="#module-cogen.core.util" title="Permalink to this headline">¶</a></h1>
+<p>Mischelaneous or common.</p>
+<dl class="function">
+<dt id="cogen.core.util.debug">
+<!--[cogen.core.util.debug]--><tt class="descclassname">cogen.core.util.</tt><tt class="descname">debug</tt><big>(</big><em>trace=True</em>, <em>backtrace=1</em>, <em>other=None</em>, <em>output=&lt;open file '&lt;stderr&gt;'</em>, <em>mode 'w' at 0x019230C0&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.util.debug" title="Permalink to this definition">¶</a></dt>
+<dd>A decorator for debugging purposes. Shows the call arguments, result
+and instructions as they are runned.</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.util.priority">
+<!--[cogen.core.util.priority]-->class <tt class="descclassname">cogen.core.util.</tt><tt class="descname">priority</tt><a class="headerlink" href="#cogen.core.util.priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>How these priority flags are interpreted depends largely on the operation 
+(since that&#8217;s where these are checked).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Property</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>DEFAULT</td>
+<td>Use the default_priority set in the Scheduler</td>
+</tr>
+<tr><td>LAST,</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>NOPRIO</td>
+<td>Allways scheduler the operation/coroutine at the end of the queue</td>
+</tr>
+<tr><td>CORO</td>
+<td>Favor the coroutine - if it&#8217;s the case.</td>
+</tr>
+<tr><td>OP</td>
+<td>Favor the operation - if it&#8217;s the case.</td>
+</tr>
+<tr><td>FIRST,</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>PRIO</td>
+<td>Allways schedule with priority</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.sockets.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.sockets</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.web.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.web</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.util.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.web.html" title="cogen.web"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.sockets.html" title="cogen.core.sockets"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

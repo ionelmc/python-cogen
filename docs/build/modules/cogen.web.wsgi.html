@@ -1,0 +1,234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.web.wsgi &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="prev" title="cogen.web.async" href="cogen.web.async.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.web.async.html" title="cogen.web.async"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.web.wsgi">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.web.wsgi</span></tt><a class="headerlink" href="#module-cogen.web.wsgi" title="Permalink to this headline">¶</a></h1>
+<p>This wsgi server is a single threaded, single process server that interleaves 
+the iterations of the wsgi apps - I could add a threadpool for blocking apps in 
+the future.</p>
+<p>If you don&#8217;t return iterators from apps and return lists you&#8217;ll get, at most,
+the performance of a server that processes requests sequentialy.</p>
+<p>On the other hand this server has coroutine extensions that suppose to support 
+use of middleware in your application.</p>
+<p>Example app with coroutine extensions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">wait_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+  <span class="n">start_response</span><span class="p">(</span><span class="s">&#39;200 OK&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span><span class="s">&#39;text/html&#39;</span><span class="p">)])</span>
+  <span class="k">yield</span> <span class="s">&quot;I&#39;m waiting for some signal&quot;</span>
+  <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">&quot;abc&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">yield</span> <span class="s">&quot;Your time is up !&quot;</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">yield</span> <span class="s">&quot;Someone signaled me: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><cite>environ[&#8216;cogen&#8217;].core</cite> is actualy a wrapper that sets 
+<cite>environ[&#8216;cogen&#8217;].operation</cite> with the called object and returns a empty 
+string. This should penetrate most of the middleware - according to the wsgi 
+spec, middleware should pass a empty string if it doesn&#8217;t have anything to 
+return on that specific iteration point, or, in other words, the length of the
+app iter returned by middleware should be at least that of the app.</li>
+<li>the wsigi server will set <cite>environ[&#8216;cogen&#8217;].result</cite> with the result of the 
+operation and <cite>environ[&#8216;cogen&#8217;].exception</cite> with the details of the 
+exception - if any: <cite>(exc_type, exc_value, traceback_object)</cite>.</li>
+</ul>
+<p>HTTP handling code taken from the CherryPy WSGI server.</p>
+<dl class="class">
+<dt id="cogen.web.wsgi.WSGIServer">
+<!--[cogen.web.wsgi.WSGIServer]-->class <tt class="descclassname">cogen.web.wsgi.</tt><tt class="descname">WSGIServer</tt><big>(</big><em>bind_addr</em>, <em>wsgi_app</em>, <em>scheduler</em>, <em>server_name=None</em>, <em>request_queue_size=64</em>, <em>sockoper_timeout=15</em>, <em>sendfile_timeout=-1</em>, <em>sockaccept_greedy=False</em><big>)</big><a class="headerlink" href="#cogen.web.wsgi.WSGIServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>An HTTP server for WSGI.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>bind_addr</td>
+<td><p class="first">The interface on which to listen for connections.
+For TCP sockets, a (host, port) tuple. Host values may
+be any IPv4 or IPv6 address, or any valid hostname.
+The string &#8216;localhost&#8217; is a synonym for &#8216;127.0.0.1&#8217; (or
+&#8216;::1&#8217;, if your hosts file prefers IPv6).
+The string &#8216;0.0.0.0&#8217; is a special IPv4 entry meaning
+&#8220;any active interface&#8221; (INADDR_ANY), and &#8216;::&#8217; is the
+similar IN6ADDR_ANY for IPv6. The empty string or None
+are not allowed.</p>
+<p class="last">For UNIX sockets, supply the filename as a string.</p>
+</td>
+</tr>
+<tr><td>wsgi_app</td>
+<td>the WSGI &#8216;application callable&#8217;; multiple WSGI
+applications may be passed as (path_prefix, app) pairs.</td>
+</tr>
+<tr><td>server_name</td>
+<td>the string to set for WSGI&#8217;s SERVER_NAME environ entry.
+Defaults to socket.gethostname().</td>
+</tr>
+<tr><td>request_queue_size</td>
+<td>the &#8216;backlog&#8217; argument to socket.listen();
+specifies the maximum number of queued connections
+(default 5).</td>
+</tr>
+<tr><td>protocol</td>
+<td>the version string to write in the Status-Line of all
+HTTP responses. For example, &#8220;HTTP/1.1&#8221; (the default).
+This also limits the supported features used in the
+response.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogen.web.wsgi.WSGIServer.bind">
+<!--[cogen.web.wsgi.WSGIServer.bind]--><tt class="descname">bind</tt><big>(</big><em>family</em>, <em>type</em>, <em>proto=0</em><big>)</big><a class="headerlink" href="#cogen.web.wsgi.WSGIServer.bind" title="Permalink to this definition">¶</a></dt>
+<dd>Create (or recreate) the actual socket object.</dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.web.wsgi.WSGIServer.bind_addr">
+<!--[cogen.web.wsgi.WSGIServer.bind_addr]--><tt class="descname">bind_addr</tt><a class="headerlink" href="#cogen.web.wsgi.WSGIServer.bind_addr" title="Permalink to this definition">¶</a></dt>
+<dd><p>The interface on which to listen for connections.</p>
+<p>For TCP sockets, a (host, port) tuple. Host values may be any IPv4
+or IPv6 address, or any valid hostname. The string &#8216;localhost&#8217; is a
+synonym for &#8216;127.0.0.1&#8217; (or &#8216;::1&#8217;, if your hosts file prefers IPv6).
+The string &#8216;0.0.0.0&#8217; is a special IPv4 entry meaning &#8220;any active
+interface&#8221; (INADDR_ANY), and &#8216;::&#8217; is the similar IN6ADDR_ANY for
+IPv6. The empty string or None are not allowed.</p>
+<p>For UNIX sockets, supply the filename as a string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.web.wsgi.WSGIServer.serve">
+<!--[cogen.web.wsgi.WSGIServer.serve]--><tt class="descname">serve</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.web.wsgi.WSGIServer.serve" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator function for generators.
+Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">plain_ol_generator</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cogen.web.wsgi.server_factory">
+<!--[cogen.web.wsgi.server_factory]--><tt class="descclassname">cogen.web.wsgi.</tt><tt class="descname">server_factory</tt><big>(</big><em>global_conf</em>, <em>host</em>, <em>port</em>, <em>**options</em><big>)</big><a class="headerlink" href="#cogen.web.wsgi.server_factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Server factory for paste.</p>
+<dl class="docutils">
+<dt>Options are:</dt>
+<dd><ul class="first last simple">
+<li>proactor: class name to use from cogen.core.proactors 
+(default: DefaultProactor - best available proactor for current platform)</li>
+<li>proactor_resolution: float</li>
+<li>sched_default_priority: int (see cogen.core.util.priority)</li>
+<li>sched_default_timeout: float (default: 0 - no timeout)</li>
+<li>server_name: str</li>
+<li>request_queue_size: int</li>
+<li>sockoper_timeout: float (default: 15 - operations timeout in 15 seconds), 
+-1 (no timeout), 0 (use scheduler&#8217;s default), &gt;0 (seconds)</li>
+<li>sendfile_timeout: float (default: 300) - same as sockoper_timeout, 
+only applied to sendfile operations (wich might need a much higher timeout 
+value)</li>
+<li>sockaccept_greedy: bool</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.web.async.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.web.async</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.web.wsgi.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.web.async.html" title="cogen.web.async"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

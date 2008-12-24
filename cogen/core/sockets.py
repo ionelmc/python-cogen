@@ -1,14 +1,14 @@
 """
 Socket-only coroutine operations and `Socket` wrapper.
 Really - the only thing you need to know for most stuff is 
-the `Socket <cogen.core.sockets.Socket.html>`_ class.
+the :class:`~cogen.core.sockets.Socket` class.
 """
 
 #TODO: how to deal with requets that have unicode params
 
 __all__ = [
-    'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Read',
-    'ReadAll', 'ReadLine', 'Write', 'WriteAll','Accept','Connect', 
+    'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Recv',
+    'Send', 'SendAll','Accept','Connect', 
     'SocketOperation'
 ]
 
@@ -30,11 +30,6 @@ import events
 from util import debug, priority, fmt_list
 from coroutines import coro, debug_coro
 getnow = datetime.datetime.now
-
-try:
-    import sendfile
-except ImportError:
-    sendfile = None
     
 _TIMEOUT = None
 
@@ -224,23 +219,22 @@ class SocketOperation(events.TimedOperation):
     
 class SendFile(SocketOperation):
     """
-        Uses underling OS sendfile (or equivalent) call or a regular memory copy 
-        operation if there is no sendfile.
-        You can use this as a WriteAll if you specify the length.
-        Usage:
+    Uses underling OS sendfile (or equivalent) call or a regular memory copy 
+    operation if there is no sendfile.
+    You can use this as a WriteAll if you specify the length.
+    Usage::
+        
+        yield sockets.SendFile(file_object, socket_object, 0) 
+            # will send till send operations return 0
             
-        .. sourcecode:: python
-            yield sockets.SendFile(file_object, socket_object, 0) 
-                # will send till send operations return 0
-                
-            yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
-                # there will be only one send operation (if successfull)
-                # that meas the whole file will be read in memory if there is 
-                #no sendfile
-                
-            yield sockets.SendFile(file_object, socket_object, 0, file_size)
-                # this will hang if we can't read file_size bytes
-                #from the file
+        yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
+            # there will be only one send operation (if successfull)
+            # that meas the whole file will be read in memory if there is 
+            #no sendfile
+            
+        yield sockets.SendFile(file_object, socket_object, 0, file_size)
+            # this will hang if we can't read file_size bytes
+            #from the file
 
     """
     __slots__ = (

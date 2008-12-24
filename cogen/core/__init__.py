@@ -1,10 +1,16 @@
-"""
-This module holds the essential stuff.
+'''
+This is a library for network oriented, coroutine based programming. 
+The interfaces and events/operations aim to mimic some of the regular thread 
+and socket features. 
 
-Programming with this library should be straghtforward. A coroutine is just 
-a generator wrapped in a operation handling class:
+cogen uses the `enhanced generators <http://www.python.org/dev/peps/pep-0342/>`_
+in python 2.5. These generators are bidirectional: they allow to pass values in 
+and out of the generator. The whole framework is based on this.
 
-.. sourcecode:: python
+The generator yields a `Operation` instance and will receive the result from 
+that yield when the operation is ready.
+
+Example::
 
     @coroutine
     def mycoro(bla):
@@ -28,41 +34,56 @@ a generator wrapped in a operation handling class:
   result (eg. a string or a (connection, address) tuple) otherwise it will 
   return the operation instance.
 
-Typical example:
 
-.. sourcecode:: python
+::
+    
+    Roughly the cogen internals works like this:
 
-    import sys, os
-    from cogen.common import *
+    +------------------------+
+    | @coroutine             |
+    | def foo():             |
+    |     ...                |             op.process(sched, coro)
+    |  +->result = yield op--|----------------+------------+
+    |  |  ...                |                |            |  
+    +--|---------------------+    +---------------+  +---------------------+      
+       |                          | the operation |  | the operation can't |
+      result = op.finalize()      | is ready      |  | complete right now  |
+       |                          +------|--------+  +----------|----------+
+      scheduler runs foo                 |                      |
+       |                                 |                      |
+      foo gets in the active             |                      |
+      coroutines queue                   |                      |
+       |                                 |                      |
+       +----------------------<----------+                      |
+       |                                                    depening on the op      
+      op.run()                                               +---------+
+       |      socket is ready               add it in        |         |
+       +-------------<------------  ......  the proactor  <--+         |
+       |                         later                                 | 
+       +------<-------------------  ......  add it in some other     <-+
+        some event decides                  queue for later run
+        this op is ready
+        
+        
+    The scheduler basicaly does 3 things:
+     - runs active (coroutine,operations) pairs (calls process on the op)
+     - runs the proactor
+     - checks for timeouts
+     
+    The proactor basicaly does 2 things:
+     - calls the system to check what descriptors are ready
+     - runs the operations that have ready descriptors
+     
+    The operation does most of the work (via the process, finalize, cleanup, 
+    run methods):
+     - adds itself in the proactor (if it's a socket operation)
+     - adds itself in some structure to be activated later by some other event
+     - adds itself and the coro in the scheduler's active coroutines queue
 
-    @coroutine
-    def server():
-        srv = sockets.Socket()
-        srv.setblocking(0)
-        srv.bind(('localhost',777))
-        srv.listen(10)
-        while 1:
-            print "Listening..."
-            conn, addr = yield sockets.Accept(srv)
-            print "Connection from %s:%s" % addr
-            m.add(handler, conn, addr)
-            
-    @coroutine
-    def handler(sock, addr):
-        yield sockets.Write(sock, "WELCOME TO ECHO SERVER !\\r\\n")
-        while 1:
-            line = yield sockets.ReadLine(sock, 8192)
-            if line.strip() == 'exit':
-                yield sockets.Write(sock, "GOOD BYE")
-                sock.close()
-                return
-                
-            yield sockets.Write(sock, line)
-            
-    m = Scheduler()
-    m.add(server)
-    m.run()
-"""
+    The coroutine decorator wrappes foo in a Coroutine class that does some
+    niceties like exception handling, getting the result from finalize() etc.
+
+'''
 
 from cogen.core import schedulers
 from cogen.core import proactors

@@ -1,0 +1,371 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.events &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.proactors" href="cogen.core.proactors.html" />
+    <link rel="prev" title="cogen.core.coroutines" href="cogen.core.coroutines.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.html" title="cogen.core.proactors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.coroutines.html" title="cogen.core.coroutines"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.events">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.events</span></tt><a class="headerlink" href="#module-cogen.core.events" title="Permalink to this headline">¶</a></h1>
+<p>Base events (coroutine operations) and coroutine exceptions.</p>
+<dl class="exception">
+<dt id="cogen.core.events.CoroutineException">
+<!--[cogen.core.events.CoroutineException]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">CoroutineException</tt><a class="headerlink" href="#cogen.core.events.CoroutineException" title="Permalink to this definition">¶</a></dt>
+<dd>This is used intenally to carry exception state in the poller and 
+scheduler.</dd></dl>
+
+<dl class="exception">
+<dt id="cogen.core.events.ConnectionError">
+<!--[cogen.core.events.ConnectionError]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">ConnectionError</tt><a class="headerlink" href="#cogen.core.events.ConnectionError" title="Permalink to this definition">¶</a></dt>
+<dd>Raised when a socket has a error flag (in epoll or select)</dd></dl>
+
+<dl class="exception">
+<dt id="cogen.core.events.ConnectionClosed">
+<!--[cogen.core.events.ConnectionClosed]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">ConnectionClosed</tt><a class="headerlink" href="#cogen.core.events.ConnectionClosed" title="Permalink to this definition">¶</a></dt>
+<dd>Raised when the other peer has closed connection.</dd></dl>
+
+<dl class="exception">
+<dt id="cogen.core.events.OperationTimeout">
+<!--[cogen.core.events.OperationTimeout]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">OperationTimeout</tt><a class="headerlink" href="#cogen.core.events.OperationTimeout" title="Permalink to this definition">¶</a></dt>
+<dd>Raised when the timeout for a operation expires. The exception 
+message will be the operation</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.WaitForSignal">
+<!--[cogen.core.events.WaitForSignal]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">WaitForSignal</tt><big>(</big><em>name</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.WaitForSignal" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coroutine will resume when the same object is Signaled.</p>
+<p>Eg:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span> 
+    <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+    <span class="n">weak_timeout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>name - a object to wait on, can use strings for this - string used to 
+wait is equal to the string used to signal.</li>
+<li>value - a object sent with the signal. 
+See: <a title="cogen.core.events.Signal" class="reference internal" href="#cogen.core.events.Signal"><tt class="xref docutils literal"><span class="pre">Signal</span></tt></a></li>
+</ul>
+<p>See: <a title="cogen.core.events.TimedOperation" class="reference internal" href="#cogen.core.events.TimedOperation"><tt class="xref docutils literal"><span class="pre">TimedOperation</span></tt></a>.</p>
+<dl class="method">
+<dt id="cogen.core.events.WaitForSignal.cleanup">
+<!--[cogen.core.events.WaitForSignal.cleanup]--><tt class="descname">cleanup</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.WaitForSignal.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd>Remove this coro from the waiting for signal queue.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.events.WaitForSignal.process">
+<!--[cogen.core.events.WaitForSignal.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.WaitForSignal.process" title="Permalink to this definition">¶</a></dt>
+<dd>Add the calling coro in a waiting for signal queue.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.Signal">
+<!--[cogen.core.events.Signal]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">Signal</tt><big>(</big><em>name</em>, <em>value=None</em>, <em>recipients=0</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.Signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will resume the coroutines that where paused with WaitForSignal.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">nr</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span> 
+    <span class="n">value</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>nr - the number of coroutines woken up</li>
+<li>name - object that coroutines wait on, can be a string</li>
+<li>value - object that the waiting coros recieve when they are resumed.</li>
+</ul>
+<p>See: <a title="cogen.core.events.Operation" class="reference internal" href="#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>.</p>
+<dl class="method">
+<dt id="cogen.core.events.Signal.process">
+<!--[cogen.core.events.Signal.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.Signal.process" title="Permalink to this definition">¶</a></dt>
+<dd>If there aren&#8217;t enough coroutines waiting for the signal as the 
+recipicient param add the calling coro in another queue to be activated
+later, otherwise activate the waiting coroutines.</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.events.Call">
+<!--[cogen.core.events.Call]--><tt class="descclassname">cogen.core.events.</tt><tt class="descname">Call</tt><big>(</big><em>coro</em>, <em>args=None</em>, <em>kwargs=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.Call" title="Permalink to this definition">¶</a></dt>
+<dd><p>You don&#8217;t need to use this. You can just yield the called coroutine:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">mycoro</span><span class="p">(</span> <span class="p">[</span><span class="n">arguments</span><span class="p">]</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Compared to <a title="cogen.core.events.OldCall" class="reference internal" href="#cogen.core.events.OldCall"><tt class="xref docutils literal"><span class="pre">OldCall</span></tt></a>, 
+instead of returning an Operation object it returns the 
+new Coroutine directly that will act as a Call operation in it&#8217;s pre-init 
+state. This is faster for 2 reasons: avoids one Operation instatiation and 
+avoids pushing and poping the new coroutine on the active coros queue.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.AddCoro">
+<!--[cogen.core.events.AddCoro]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">AddCoro</tt><big>(</big><em>coro</em>, <em>args=None</em>, <em>kwargs=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.AddCoro" title="Permalink to this definition">¶</a></dt>
+<dd><p>A operation for adding a coroutine in the scheduler.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">AddCoro</span><span class="p">(</span><span class="n">some_coro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{})</span>
+</pre></div>
+</div>
+<p>This is similar to Call, but it doesn&#8217;t pause the current coroutine.
+See: <a title="cogen.core.events.Operation" class="reference internal" href="#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>.</p>
+<dl class="method">
+<dt id="cogen.core.events.AddCoro.finalize">
+<!--[cogen.core.events.AddCoro.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.events.AddCoro.finalize" title="Permalink to this definition">¶</a></dt>
+<dd>Return a reference to the instance of the newly added coroutine.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.events.AddCoro.process">
+<!--[cogen.core.events.AddCoro.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.AddCoro.process" title="Permalink to this definition">¶</a></dt>
+<dd>Add the given coroutine in the scheduler.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.Join">
+<!--[cogen.core.events.Join]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">Join</tt><big>(</big><em>coro</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.Join" title="Permalink to this definition">¶</a></dt>
+<dd><p>A operation for waiting on a coroutine.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">coro_a</span><span class="p">():</span>
+    <span class="n">return_value</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Join</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+    
+    
+<span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">coro_b</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="s">&quot;bla&quot;</span>
+    <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">(</span><span class="s">&quot;some return value&quot;</span><span class="p">)</span>
+
+<span class="n">ref</span> <span class="o">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_b</span><span class="p">)</span>
+<span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">coro_a</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will pause the coroutine and resume it when the other coroutine 
+(<cite>ref</cite> in the example) has died.</p>
+<dl class="method">
+<dt id="cogen.core.events.Join.cleanup">
+<!--[cogen.core.events.Join.cleanup]--><tt class="descname">cleanup</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.Join.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd>Remove the calling coro from the waiting list.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.events.Join.process">
+<!--[cogen.core.events.Join.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.Join.process" title="Permalink to this definition">¶</a></dt>
+<dd>Add the calling coroutine as a waiter in the coro we want to join.
+Also, doesn&#8217;t keep the called active (we&#8217;ll be activated back when the
+joined coro dies).</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.Sleep">
+<!--[cogen.core.events.Sleep]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">Sleep</tt><big>(</big><em>val</em><big>)</big><a class="headerlink" href="#cogen.core.events.Sleep" title="Permalink to this definition">¶</a></dt>
+<dd><p>A operation to pausing the coroutine for a specified amount of time.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">time_object</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>time_object - a datetime or timedelta object, or a number of seconds</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">timestamp</span><span class="o">=</span><span class="n">ts</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ts - a timestamp</li>
+</ul>
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.Operation">
+<!--[cogen.core.events.Operation]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">Operation</tt><big>(</big><em>prio=-1</em><big>)</big><a class="headerlink" href="#cogen.core.events.Operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>All operations derive from this. This base class handles 
+the priority flag.</p>
+<p>Eg:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">Operation</span><span class="p">(</span><span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>prio - a priority constant, where the coro is appended on the active 
+coroutine queue and how the coroutine is runned depend on this.</li>
+</ul>
+<p>If you need something that can&#8217;t be done in a coroutine fashion you 
+probabily need to subclass this and make a custom operation for your
+issue.</p>
+<p>Note: you don&#8217;t really use this, this is for subclassing for other operations.</p>
+<dl class="method">
+<dt id="cogen.core.events.Operation.finalize">
+<!--[cogen.core.events.Operation.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.events.Operation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd>Called just before the Coroutine wrapper passes the operation back
+in the generator. Return value is the value actualy sent in the 
+generator. Subclasses might overwrite this method and call it from
+the superclass.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.events.Operation.process">
+<!--[cogen.core.events.Operation.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.Operation.process" title="Permalink to this definition">¶</a></dt>
+<dd>This is called when the operation is to be processed by the 
+scheduler. Code here works modifies the scheduler and it&#8217;s usualy 
+very crafty. Subclasses usualy overwrite this method and call it from
+the superclass.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.TimedOperation">
+<!--[cogen.core.events.TimedOperation]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">TimedOperation</tt><big>(</big><em>timeout=None</em>, <em>weak_timeout=True</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.TimedOperation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operations that have a timeout derive from this.</p>
+<p>Eg:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">TimedOperation</span><span class="p">(</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+    <span class="n">weak_timeout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>timeout - can be a float/int (number of seconds) or a timedelta or a datetime value
+if it&#8217;s a datetime the timeout will occur on that moment</li>
+<li>weak_timeout - strong timeouts just happen when specified, weak_timeouts
+get delayed if some action happens (eg: new but not enough data recieved)</li>
+</ul>
+<p>See: <a title="cogen.core.events.Operation" class="reference internal" href="#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>.
+Note: you don&#8217;t really use this, this is for subclassing for other operations.</p>
+<dl class="method">
+<dt id="cogen.core.events.TimedOperation.cleanup">
+<!--[cogen.core.events.TimedOperation.cleanup]--><tt class="descname">cleanup</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.TimedOperation.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd>Clean up after a timeout. Implemented in ops that need cleanup.
+If return value evaluated to false the sched won&#8217;t raise the timeout in 
+the coroutine.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.events.TimedOperation.process">
+<!--[cogen.core.events.TimedOperation.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.TimedOperation.process" title="Permalink to this definition">¶</a></dt>
+<dd>Add the timeout in the scheduler, check for defaults.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.events.OldCall">
+<!--[cogen.core.events.OldCall]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">OldCall</tt><big>(</big><em>coro</em>, <em>args=None</em>, <em>kwargs=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.OldCall" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will pause the current coroutine, add a new coro in the scheduler and 
+resume the callee when it returns.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>mycoro - the coroutine to add.</li>
+<li>args, kwargs - params to call the coroutine with</li>
+<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the 
+scheduler queue</li>
+</ul>
+<p>See: <a title="cogen.core.events.Operation" class="reference internal" href="#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>.</p>
+<dl class="method">
+<dt id="cogen.core.events.OldCall.process">
+<!--[cogen.core.events.OldCall.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.OldCall.process" title="Permalink to this definition">¶</a></dt>
+<dd>Add the called coro in the sched and set the calling coroutine as
+the caller in the called coro (the called coro will activate the calling
+coro when it dies).</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.coroutines.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.coroutines</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.proactors.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.proactors</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.events.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.html" title="cogen.core.proactors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.coroutines.html" title="cogen.core.coroutines"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

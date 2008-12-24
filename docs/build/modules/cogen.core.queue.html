@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.queue &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.schedulers" href="cogen.core.schedulers.html" />
+    <link rel="prev" title="cogen.core.pubsub" href="cogen.core.pubsub.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.schedulers.html" title="cogen.core.schedulers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.pubsub.html" title="cogen.core.pubsub"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.queue">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.queue</span></tt><a class="headerlink" href="#module-cogen.core.queue" title="Permalink to this headline">¶</a></h1>
+<p>Port of Queue.Queue from the python standard library.</p>
+<dl class="class">
+<dt id="cogen.core.queue.Queue">
+<!--[cogen.core.queue.Queue]-->class <tt class="descclassname">cogen.core.queue.</tt><tt class="descname">Queue</tt><big>(</big><em>maxsize=0</em><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class attempts to mimic the exact functionality of the 
+python standard library Queue.Queue class, but with a coroutine context:</p>
+<ul class="simple">
+<li>the queue calls return coroutine operations</li>
+</ul>
+<p>So, to use this you write someting like:</p>
+<div class="highlight-python"><pre>@coroutine
+def foo():
+    q = cogen.core.queue.Queue(&lt;size&gt;)
+    yield q.put(123)
+    val = yield q.get()</pre>
+</div>
+<dl class="method">
+<dt id="cogen.core.queue.Queue.empty">
+<!--[cogen.core.queue.Queue.empty]--><tt class="descname">empty</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.empty" title="Permalink to this definition">¶</a></dt>
+<dd>Return True if the queue is empty, False otherwise (not reliable!).</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.full">
+<!--[cogen.core.queue.Queue.full]--><tt class="descname">full</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.full" title="Permalink to this definition">¶</a></dt>
+<dd>Return True if the queue is full, False otherwise (not reliable!).</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.get">
+<!--[cogen.core.queue.Queue.get]--><tt class="descname">get</tt><big>(</big><em>block=True</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and return an item from the queue.</p>
+<p>If optional args &#8216;block&#8217; is true and &#8216;timeout&#8217; is None (the default),
+block if necessary until an item is available. If &#8216;timeout&#8217; is
+a positive number, it blocks at most &#8216;timeout&#8217; seconds and raises
+the Empty exception if no item was available within that time.
+Otherwise (&#8216;block&#8217; is false), return an item if one is immediately
+available, else raise the Empty exception (&#8216;timeout&#8217; is ignored
+in that case).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.get_nowait">
+<!--[cogen.core.queue.Queue.get_nowait]--><tt class="descname">get_nowait</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.get_nowait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and return an item from the queue without blocking.</p>
+<p>Only get an item if one is immediately available. Otherwise
+raise the Empty exception.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.join">
+<!--[cogen.core.queue.Queue.join]--><tt class="descname">join</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Blocks until all items in the Queue have been gotten and processed.</p>
+<p>The count of unfinished tasks goes up whenever an item is added to the
+queue. The count goes down whenever a consumer thread calls task_done()
+to indicate the item was retrieved and all work on it is complete.</p>
+<p>When the count of unfinished tasks drops to zero, join() unblocks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.put">
+<!--[cogen.core.queue.Queue.put]--><tt class="descname">put</tt><big>(</big><em>item</em>, <em>block=True</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put an item into the queue.</p>
+<p>If optional args &#8216;block&#8217; is true and &#8216;timeout&#8217; is None (the default),
+block if necessary until a free slot is available. If &#8216;timeout&#8217; is
+a positive number, it blocks at most &#8216;timeout&#8217; seconds and raises
+the Full exception if no free slot was available within that time.
+Otherwise (&#8216;block&#8217; is false), put an item on the queue if a free slot
+is immediately available, else raise the Full exception (&#8216;timeout&#8217;
+is ignored in that case).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.put_nowait">
+<!--[cogen.core.queue.Queue.put_nowait]--><tt class="descname">put_nowait</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.put_nowait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put an item into the queue without blocking.</p>
+<p>Only enqueue the item if a free slot is immediately available.
+Otherwise raise the Full exception.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.qsize">
+<!--[cogen.core.queue.Queue.qsize]--><tt class="descname">qsize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.qsize" title="Permalink to this definition">¶</a></dt>
+<dd>Return the approximate size of the queue (not reliable!).</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.queue.Queue.task_done">
+<!--[cogen.core.queue.Queue.task_done]--><tt class="descname">task_done</tt><big>(</big><em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.queue.Queue.task_done" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that a formerly enqueued task is complete.</p>
+<p>Used by Queue consumer threads.  For each get() used to fetch a task,
+a subsequent call to task_done() tells the queue that the processing
+on the task is complete.</p>
+<p>If a join() is currently blocking, it will resume when all items
+have been processed (meaning that a task_done() call was received
+for every item that had been put() into the queue).</p>
+<p>Raises a ValueError if called more times than there were items
+placed in the queue.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.pubsub.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.pubsub</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.schedulers.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.schedulers</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.queue.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.schedulers.html" title="cogen.core.schedulers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.pubsub.html" title="cogen.core.pubsub"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

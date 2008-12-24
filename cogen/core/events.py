@@ -121,7 +121,7 @@ class TimedOperation(Operation):
     * weak_timeout - strong timeouts just happen when specified, weak_timeouts
       get delayed if some action happens (eg: new but not enough data recieved)
     
-    See: `Operation <cogen.core.events.Operation.html>`_.
+    See: :class:`Operation`.
     Note: you don't really use this, this is for subclassing for other operations.
     """
     __slots__ = ('timeout', 'coro', 'weak_timeout', 'delta', 'last_checkpoint')
@@ -188,9 +188,9 @@ class WaitForSignal(TimedOperation):
       wait is equal to the string used to signal.
       
     * value - a object sent with the signal. 
-      See: `Signal <cogen.core.events.Signal.html>`_
+      See: :class:`Signal`
       
-    See: `TimedOperation <cogen.core.events.TimedOperation.html>`_.
+    See: :class:`TimedOperation`.
     """
         
     __slots__ = ('name', 'result')
@@ -249,7 +249,7 @@ class Signal(Operation):
     * name - object that coroutines wait on, can be a string 
     * value - object that the waiting coros recieve when they are resumed.
       
-    See: `Operation <cogen.core.events.Operation.html>`_.
+    See: :class:`Operation`.
     """
     __slots__ = ('name', 'value', 'len', 'prio', 'result', 'recipients', 'coro')
     
@@ -299,7 +299,7 @@ def Call(coro, args=None, kwargs=None, **kws):
         result = yield mycoro( [arguments] )
     
     
-    Compared to `OldCall <cogen.core.events.OldCall.html>`_, 
+    Compared to :class:`OldCall`, 
     instead of returning an Operation object it returns the 
     new Coroutine directly that will act as a Call operation in it's pre-init 
     state. This is faster for 2 reasons: avoids one Operation instatiation and 
@@ -325,7 +325,7 @@ class OldCall(Operation):
     * if `prio` is set the new coroutine will be added in the top of the 
       scheduler queue
       
-    See: `Operation <cogen.core.events.Operation.html>`_.
+    See: :class:`Operation`.
     """
     __slots__ = ('coro', 'args', 'kwargs')
     
@@ -365,7 +365,7 @@ class AddCoro(Operation):
         yield events.AddCoro(some_coro, args=(), kwargs={})
         
     This is similar to Call, but it doesn't pause the current coroutine.
-    See: `Operation <cogen.core.events.Operation.html>`_.
+    See: :class:`Operation`.
     """
     __slots__ = ('coro', 'args', 'kwargs', 'result')
     def __init__(self, coro, args=None, kwargs=None, **kws):

@@ -3,7 +3,7 @@ Scheduling framework.
 
 The scheduler handles the timeouts, run the operations and does very basic 
 management of coroutines. Most of the heavy logic is in each operation class.
-See: `events <cogen.core.events.html>`_ and `sockets <cogen.core.sockets.html>`_.
+See: :mod:`cogen.core.events` and :mod:`cogen.core.sockets`.
 Most of those operations work with attributes we set in the scheduler.
 
 `cogen` is multi-state. All the state related to coroutines and network is in 
@@ -55,7 +55,7 @@ class Scheduler(object):
     * proactor: a proactor class to use
     
     * default_priority: a default priority option for operations that do not 
-      set it. check `priority <cogen.core.util.priority.html>`_.
+      set it. check :class:`cogen.core.util.priority`.
       
     * default_timeout: a default timedelta or number of seconds to wait for 
       the operation, -1 means no timeout.

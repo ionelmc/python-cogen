@@ -1,7 +1,7 @@
 """ 
 Coroutine related boilerplate and wrappers.
 """
-__all__ = ['local', 'coroutine', 'Coroutine']
+__all__ = ['local', 'coro', 'CoroutineInstance']
 
 import types
 import sys
@@ -294,7 +294,7 @@ class Coroutine(object):
         descriptor as the __call__ doesn't get automaticaly binded to the instance
         as functions do - btw, functions are decorators.
         """
-        return self.__class__(self.wrapped_func.__get__(instance))
+        return self.__class__(self.wrapped_func.__get__(instance or owner))
         
     def __call__(self, *args, **kwargs):
         "Return a CoroutineInstance instance"

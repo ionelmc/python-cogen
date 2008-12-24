@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.proactors.base &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.proactors.select_impl" href="cogen.core.proactors.select_impl.html" />
+    <link rel="prev" title="cogen.core.proactors" href="cogen.core.proactors.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.select_impl.html" title="cogen.core.proactors.select_impl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.html" title="cogen.core.proactors"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.proactors.base">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.proactors.base</span></tt><a class="headerlink" href="#module-cogen.core.proactors.base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="cogen.core.proactors.base.ProactorBase">
+<!--[cogen.core.proactors.base.ProactorBase]-->class <tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">ProactorBase</tt><big>(</big><em>scheduler</em>, <em>resolution</em>, <em>**options</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for a proactor implemented with posix-style polling.</p>
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.add_token">
+<!--[cogen.core.proactors.base.ProactorBase.add_token]--><tt class="descname">add_token</tt><big>(</big><em>act</em>, <em>coro</em>, <em>performer</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.add_token" title="Permalink to this definition">¶</a></dt>
+<dd>Adds a completion token <cite>act</cite> in the proactor with associated <cite>coro</cite> 
+corutine and perform callable.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.handle_error_event">
+<!--[cogen.core.proactors.base.ProactorBase.handle_error_event]--><tt class="descname">handle_error_event</tt><big>(</big><em>act</em>, <em>detail</em>, <em>exc=&lt;class 'cogen.core.events.ConnectionError'&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.handle_error_event" title="Permalink to this definition">¶</a></dt>
+<dd>Handle an errored event. Calls the scheduler to schedule the associated 
+coroutine.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.handle_event">
+<!--[cogen.core.proactors.base.ProactorBase.handle_event]--><tt class="descname">handle_event</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.handle_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle completion for a request.</p>
+<p>Calls the scheduler to run or schedule the associated coroutine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.register_fd">
+<!--[cogen.core.proactors.base.ProactorBase.register_fd]--><tt class="descname">register_fd</tt><big>(</big><em>act</em>, <em>performer</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.register_fd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform additional handling (like register the socket file descriptor in 
+the poll, epoll, kqueue, iocp etc) when a token is added in the proactor.</p>
+<p>Overriden in a subclass.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.remove_token">
+<!--[cogen.core.proactors.base.ProactorBase.remove_token]--><tt class="descname">remove_token</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.remove_token" title="Permalink to this definition">¶</a></dt>
+<dd>Remove a token from the proactor.
+If removal succeeds (the token is in the proactor) return True.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_accept">
+<!--[cogen.core.proactors.base.ProactorBase.request_accept]--><tt class="descname">request_accept</tt><big>(</big><em>act</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_accept" title="Permalink to this definition">¶</a></dt>
+<dd>Requests a accept for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_connect">
+<!--[cogen.core.proactors.base.ProactorBase.request_connect]--><tt class="descname">request_connect</tt><big>(</big><em>act</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_connect" title="Permalink to this definition">¶</a></dt>
+<dd>Requests a connect for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_generic">
+<!--[cogen.core.proactors.base.ProactorBase.request_generic]--><tt class="descname">request_generic</tt><big>(</big><em>act</em>, <em>coro</em>, <em>perform</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_generic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests an socket operation (in the form of a callable <cite>perform</cite> that 
+does the actual socket system call) for <cite>coro</cite> corutine with parameters 
+and completion passed via <cite>act</cite>.</p>
+<p>The socket operation request parameters are passed in <cite>act</cite>.
+When request is completed the results will be set in <cite>act</cite>.</p>
+<p>Note: <cite>act</cite> is usualy a SocketOperation instance and the request_foo 
+calls are usually made from a Foo subclass.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_recv">
+<!--[cogen.core.proactors.base.ProactorBase.request_recv]--><tt class="descname">request_recv</tt><big>(</big><em>act</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_recv" title="Permalink to this definition">¶</a></dt>
+<dd>Requests a recv for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_send">
+<!--[cogen.core.proactors.base.ProactorBase.request_send]--><tt class="descname">request_send</tt><big>(</big><em>act</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_send" title="Permalink to this definition">¶</a></dt>
+<dd>Requests a send for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_sendall">
+<!--[cogen.core.proactors.base.ProactorBase.request_sendall]--><tt class="descname">request_sendall</tt><big>(</big><em>act</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_sendall" title="Permalink to this definition">¶</a></dt>
+<dd>Requests a sendall for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.request_sendfile">
+<!--[cogen.core.proactors.base.ProactorBase.request_sendfile]--><tt class="descname">request_sendfile</tt><big>(</big><em>act</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.request_sendfile" title="Permalink to this definition">¶</a></dt>
+<dd>Requests a sendfile for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.set_options">
+<!--[cogen.core.proactors.base.ProactorBase.set_options]--><tt class="descname">set_options</tt><big>(</big><em>multiplex_first=True</em>, <em>**bogus_options</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.set_options" title="Permalink to this definition">¶</a></dt>
+<dd>Takes implementation specific options. To be overriden in a subclass.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.unregister_fd">
+<!--[cogen.core.proactors.base.ProactorBase.unregister_fd]--><tt class="descname">unregister_fd</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.unregister_fd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform additional handling (like cleanup) when a token is removed from 
+the proactor.</p>
+<p>Overriden in a subclass.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.yield_event">
+<!--[cogen.core.proactors.base.ProactorBase.yield_event]--><tt class="descname">yield_event</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.yield_event" title="Permalink to this definition">¶</a></dt>
+<dd>Hande completion for a request and return an (op, coro) to be 
+passed to the scheduler on the last completion loop of a proactor.</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.wrapped_sendfile">
+<!--[cogen.core.proactors.base.wrapped_sendfile]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">wrapped_sendfile</tt><big>(</big><em>act</em>, <em>offset</em>, <em>length</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.wrapped_sendfile" title="Permalink to this definition">¶</a></dt>
+<dd>Calls the sendfile system call or simulate with file read and socket send if 
+unavailable.</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.proactors.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.proactors</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.proactors.select_impl.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.proactors.select_impl</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.proactors.base.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.select_impl.html" title="cogen.core.proactors.select_impl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.html" title="cogen.core.proactors"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

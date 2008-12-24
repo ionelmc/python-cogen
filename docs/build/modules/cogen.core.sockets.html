@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.sockets &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.util" href="cogen.core.util.html" />
+    <link rel="prev" title="cogen.core.schedulers" href="cogen.core.schedulers.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.util.html" title="cogen.core.util"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.schedulers.html" title="cogen.core.schedulers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.sockets">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.sockets</span></tt><a class="headerlink" href="#module-cogen.core.sockets" title="Permalink to this headline">¶</a></h1>
+<p>Socket-only coroutine operations and <cite>Socket</cite> wrapper.
+Really - the only thing you need to know for most stuff is 
+the <a title="cogen.core.sockets.Socket" class="reference internal" href="#cogen.core.sockets.Socket"><tt class="xref docutils literal"><span class="pre">Socket</span></tt></a> class.</p>
+<dl class="function">
+<dt id="cogen.core.sockets.setdefaulttimeout">
+<!--[cogen.core.sockets.setdefaulttimeout]--><tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">setdefaulttimeout</tt><big>(</big><em>timeout</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.setdefaulttimeout" title="Permalink to this definition">¶</a></dt>
+<dd>Set the default timeout used by the socket wrapper 
+(<a class="reference external" href="cogen.core.sockets.Socket.html">Socket</a> class)</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.Socket">
+<!--[cogen.core.sockets.Socket]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Socket</tt><big>(</big><em>*a</em>, <em>**k</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for socket objects, sets nonblocking mode and
+adds some internal bufers and wrappers. Regular calls to the usual 
+socket methods return operations for use in a coroutine.</p>
+<p>So you use this in a coroutine like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sock</span> <span class="o">=</span> <span class="n">Socket</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span> <span class="c"># just like the builtin socket module</span>
+<span class="k">yield</span> <span class="n">sock</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">1024</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Constructor details:</p>
+<div class="highlight-python"><pre>Socket([family[, type[, proto]]]) -&gt; socket object</pre>
+</div>
+<p>Open a socket of the given type.  The family argument specifies the
+address family; it defaults to AF_INET.  The type argument specifies
+whether this is a stream (SOCK_STREAM, this is the default)
+or datagram (SOCK_DGRAM) socket.  The protocol argument defaults to 0,
+specifying the default protocol.  Keyword arguments are accepted.</p>
+<p>A socket object represents one endpoint of a network connection.</p>
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.accept">
+<!--[cogen.core.sockets.Socket.accept]--><tt class="descname">accept</tt><big>(</big><em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accept a connection. The socket must be bound to an address and 
+listening for connections. The return value is a pair (conn, address) 
+where conn is a new socket object usable to send and receive data on the 
+connection, and address is the address bound to the socket on the other 
+end of the connection.</p>
+<p>Example:
+{{{
+conn, address = yield mysock.accept()
+}}}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.bind">
+<!--[cogen.core.sockets.Socket.bind]--><tt class="descname">bind</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.bind" title="Permalink to this definition">¶</a></dt>
+<dd>Bind the socket to _address_. The socket must not already be bound. 
+(The format of _address_ depends on the address family)</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.close">
+<!--[cogen.core.sockets.Socket.close]--><tt class="descname">close</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.close" title="Permalink to this definition">¶</a></dt>
+<dd>Close the socket. All future operations on the socket object will 
+fail. The remote end will receive no more data (after queued data is 
+flushed). Sockets are automatically closed when they are garbage-collected.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.connect">
+<!--[cogen.core.sockets.Socket.connect]--><tt class="descname">connect</tt><big>(</big><em>address</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.connect" title="Permalink to this definition">¶</a></dt>
+<dd>Connect to a remote socket at _address_.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.fileno">
+<!--[cogen.core.sockets.Socket.fileno]--><tt class="descname">fileno</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.fileno" title="Permalink to this definition">¶</a></dt>
+<dd>Return the socket&#8217;s file descriptor</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.getpeername">
+<!--[cogen.core.sockets.Socket.getpeername]--><tt class="descname">getpeername</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.getpeername" title="Permalink to this definition">¶</a></dt>
+<dd>Return the remote address to which the socket is connected.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.getsockname">
+<!--[cogen.core.sockets.Socket.getsockname]--><tt class="descname">getsockname</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.getsockname" title="Permalink to this definition">¶</a></dt>
+<dd>Return the socket&#8217;s own address.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.gettimeout">
+<!--[cogen.core.sockets.Socket.gettimeout]--><tt class="descname">gettimeout</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.gettimeout" title="Permalink to this definition">¶</a></dt>
+<dd>Return the associated timeout value.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.listen">
+<!--[cogen.core.sockets.Socket.listen]--><tt class="descname">listen</tt><big>(</big><em>backlog</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.listen" title="Permalink to this definition">¶</a></dt>
+<dd>Listen for connections made to the socket. The _backlog_ argument 
+specifies the maximum number of queued connections and should be at 
+least 1; the maximum value is system-dependent (usually 5).</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.makefile">
+<!--[cogen.core.sockets.Socket.makefile]--><tt class="descname">makefile</tt><big>(</big><em>mode='r'</em>, <em>bufsize=-1</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.makefile" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a special fileobject that has corutines instead of the usual
+read/readline/write methods. Will work in the same manner though.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.recv">
+<!--[cogen.core.sockets.Socket.recv]--><tt class="descname">recv</tt><big>(</big><em>bufsize</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.recv" title="Permalink to this definition">¶</a></dt>
+<dd>Receive data from the socket. The return value is a string 
+representing the data received. The amount of data may be less than the
+ammount specified by _bufsize_.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.send">
+<!--[cogen.core.sockets.Socket.send]--><tt class="descname">send</tt><big>(</big><em>data</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.send" title="Permalink to this definition">¶</a></dt>
+<dd>Send data to the socket. The socket must be connected to a remote 
+socket. Ammount sent may be less than the data provided.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.sendall">
+<!--[cogen.core.sockets.Socket.sendall]--><tt class="descname">sendall</tt><big>(</big><em>data</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.sendall" title="Permalink to this definition">¶</a></dt>
+<dd>Send data to the socket. The socket must be connected to a remote 
+socket. All the data is guaranteed to be sent.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.setsockopt">
+<!--[cogen.core.sockets.Socket.setsockopt]--><tt class="descname">setsockopt</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.setsockopt" title="Permalink to this definition">¶</a></dt>
+<dd>Set the value of the given socket option. Same as the usual socket 
+method.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.settimeout">
+<!--[cogen.core.sockets.Socket.settimeout]--><tt class="descname">settimeout</tt><big>(</big><em>to</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.settimeout" title="Permalink to this definition">¶</a></dt>
+<dd>Set a timeout on blocking socket operations. The value argument can 
+be a nonnegative float expressing seconds, timedelta or None.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.shutdown">
+<!--[cogen.core.sockets.Socket.shutdown]--><tt class="descname">shutdown</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd>Shut down one or both halves of the connection. Same as the usual 
+socket method.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.SendFile">
+<!--[cogen.core.sockets.SendFile]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SendFile</tt><big>(</big><em>file_handle</em>, <em>sock</em>, <em>offset=None</em>, <em>length=None</em>, <em>blocksize=4096</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses underling OS sendfile (or equivalent) call or a regular memory copy 
+operation if there is no sendfile.
+You can use this as a WriteAll if you specify the length.
+Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="n">file_object</span><span class="p">,</span> <span class="n">socket_object</span><span class="p">,</span> <span class="mf">0</span><span class="p">)</span> 
+    <span class="c"># will send till send operations return 0</span>
+    
+<span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="n">file_object</span><span class="p">,</span> <span class="n">socket_object</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="n">blocksize</span><span class="o">=</span><span class="mf">0</span><span class="p">)</span>
+    <span class="c"># there will be only one send operation (if successfull)</span>
+    <span class="c"># that meas the whole file will be read in memory if there is </span>
+    <span class="c">#no sendfile</span>
+    
+<span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">SendFile</span><span class="p">(</span><span class="n">file_object</span><span class="p">,</span> <span class="n">socket_object</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="n">file_size</span><span class="p">)</span>
+    <span class="c"># this will hang if we can&#39;t read file_size bytes</span>
+    <span class="c">#from the file</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.Recv">
+<!--[cogen.core.sockets.Recv]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Recv</tt><big>(</big><em>sock</em>, <em>len=4096</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Recv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">socket_object</span><span class="p">,</span> <span class="n">buffer_length</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><cite>buffer_length</cite> is max read size, BUT, if if there are buffers from ReadLine 
+return them first.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.Send">
+<!--[cogen.core.sockets.Send]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Send</tt><big>(</big><em>sock</em>, <em>buff</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Send" title="Permalink to this definition">¶</a></dt>
+<dd>Write the buffer to the socket and return the number of bytes written.</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.SendAll">
+<!--[cogen.core.sockets.SendAll]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SendAll</tt><big>(</big><em>sock</em>, <em>buff</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendAll" title="Permalink to this definition">¶</a></dt>
+<dd>Run this operation till all the bytes have been written.</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.Accept">
+<!--[cogen.core.sockets.Accept]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Accept</tt><big>(</big><em>sock</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Accept" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a (conn, addr) tuple when the operation completes.</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.Connect">
+<!--[cogen.core.sockets.Connect]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Connect</tt><big>(</big><em>sock</em>, <em>addr</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.sockets.SocketOperation">
+<!--[cogen.core.sockets.SocketOperation]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SocketOperation</tt><big>(</big><em>sock</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SocketOperation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a generic class for a operation that involves some socket call.</p>
+<p>A socket operation should subclass WriteOperation or ReadOperation, define a
+<cite>run</cite> method and call the __init__ method of the superclass.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.schedulers.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.schedulers</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.util.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.util</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.sockets.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.util.html" title="cogen.core.util"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.schedulers.html" title="cogen.core.schedulers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

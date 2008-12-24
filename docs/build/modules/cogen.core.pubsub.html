@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.pubsub &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.queue" href="cogen.core.queue.html" />
+    <link rel="prev" title="cogen.core.proactors.select_impl" href="cogen.core.proactors.select_impl.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.queue.html" title="cogen.core.queue"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.select_impl.html" title="cogen.core.proactors.select_impl"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.pubsub">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.pubsub</span></tt><a class="headerlink" href="#module-cogen.core.pubsub" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="cogen.core.pubsub.PublishSubscribeQueue">
+<!--[cogen.core.pubsub.PublishSubscribeQueue]-->class <tt class="descclassname">cogen.core.pubsub.</tt><tt class="descname">PublishSubscribeQueue</tt><a class="headerlink" href="#cogen.core.pubsub.PublishSubscribeQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A more robust replacement for the signal operations.
+A coroutine subscribes itself to a PublishSubscribeQueue and get new
+published messages with _fetch_ method.</p>
+<dl class="method">
+<dt id="cogen.core.pubsub.PublishSubscribeQueue.compact">
+<!--[cogen.core.pubsub.PublishSubscribeQueue.compact]--><tt class="descname">compact</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.pubsub.PublishSubscribeQueue.compact" title="Permalink to this definition">¶</a></dt>
+<dd>Compacts the queue: removes all the messages from the queue that
+have been fetched by all the subscribed coroutines. 
+Returns the number of messages that have been removed.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pubsub.PublishSubscribeQueue.fetch">
+<!--[cogen.core.pubsub.PublishSubscribeQueue.fetch]--><tt class="descname">fetch</tt><big>(</big><em>key=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.pubsub.PublishSubscribeQueue.fetch" title="Permalink to this definition">¶</a></dt>
+<dd>Get all the new messages since the last fetch. Returns a list
+of messages. <em>works as a coroutine operation</em></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pubsub.PublishSubscribeQueue.publish">
+<!--[cogen.core.pubsub.PublishSubscribeQueue.publish]--><tt class="descname">publish</tt><big>(</big><em>message</em>, <em>key=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.pubsub.PublishSubscribeQueue.publish" title="Permalink to this definition">¶</a></dt>
+<dd>Put a message in the queue and updates any coroutine wating with 
+fetch. <em>works as a coroutine operation</em></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pubsub.PublishSubscribeQueue.subscribe">
+<!--[cogen.core.pubsub.PublishSubscribeQueue.subscribe]--><tt class="descname">subscribe</tt><big>(</big><em>key=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.pubsub.PublishSubscribeQueue.subscribe" title="Permalink to this definition">¶</a></dt>
+<dd>Registers the calling coroutine to the queue. Sets the update index 
+to 0 - on fetch, that coroutine will get all the messages from the
+queue. <em>works as a coroutine operation</em></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pubsub.PublishSubscribeQueue.unsubscribe">
+<!--[cogen.core.pubsub.PublishSubscribeQueue.unsubscribe]--><tt class="descname">unsubscribe</tt><big>(</big><em>key=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.pubsub.PublishSubscribeQueue.unsubscribe" title="Permalink to this definition">¶</a></dt>
+<dd>Unregisters the calling coroutine to the queue.</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.proactors.select_impl.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.proactors.select_impl</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.queue.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.queue</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.pubsub.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.queue.html" title="cogen.core.queue"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.select_impl.html" title="cogen.core.proactors.select_impl"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

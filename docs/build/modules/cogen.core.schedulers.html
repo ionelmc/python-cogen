@@ -1,0 +1,193 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.schedulers &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.sockets" href="cogen.core.sockets.html" />
+    <link rel="prev" title="cogen.core.queue" href="cogen.core.queue.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.sockets.html" title="cogen.core.sockets"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.queue.html" title="cogen.core.queue"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.schedulers">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.schedulers</span></tt><a class="headerlink" href="#module-cogen.core.schedulers" title="Permalink to this headline">¶</a></h1>
+<p>Scheduling framework.</p>
+<p>The scheduler handles the timeouts, run the operations and does very basic 
+management of coroutines. Most of the heavy logic is in each operation class.
+See: <a title="" class="reference external" href="cogen.core.events.html#module-cogen.core.events"><tt class="xref docutils literal"><span class="pre">cogen.core.events</span></tt></a> and <a title="" class="reference external" href="cogen.core.sockets.html#module-cogen.core.sockets"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets</span></tt></a>.
+Most of those operations work with attributes we set in the scheduler.</p>
+<p><cite>cogen</cite> is multi-state. All the state related to coroutines and network is in 
+the scheduler and it&#8217;s associated proactor. That means you could run several 
+cogen schedulers in the same process/thread/whatever.</p>
+<p>There is just one thing that uses global objects - the threadlocal-like local 
+object in the coroutines module.  It was actually aded for the wsgiserver 
+factory that monkey patches the threadlocal module in order to make pylons run
+correctly (pylons relies heavily on threadlocals).</p>
+<dl class="class">
+<dt id="cogen.core.schedulers.Scheduler">
+<!--[cogen.core.schedulers.Scheduler]-->class <tt class="descclassname">cogen.core.schedulers.</tt><tt class="descname">Scheduler</tt><big>(</big><em>proactor=&lt;class 'cogen.core.proactors.ctypes_iocp_impl.CTYPES_IOCPProactor'&gt;</em>, <em>default_priority=0</em>, <em>default_timeout=None</em>, <em>proactor_resolution=0.01</em>, <em>proactor_greedy=True</em>, <em>ops_greedy=False</em>, <em>proactor_multiplex_first=None</em>, <em>proactor_default_size=None</em><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic deque-based scheduler with timeout support and primitive 
+prioritisaiton parameters.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mysched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">proactor</span><span class="o">=</span><span class="n">DefaultProactor</span><span class="p">,</span> 
+        <span class="n">default_priority</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">LAST</span><span class="p">,</span> <span class="n">default_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>proactor: a proactor class to use</li>
+<li>default_priority: a default priority option for operations that do not 
+set it. check <a title="cogen.core.util.priority" class="reference external" href="cogen.core.util.html#cogen.core.util.priority"><tt class="xref docutils literal"><span class="pre">cogen.core.util.priority</span></tt></a>.</li>
+<li>default_timeout: a default timedelta or number of seconds to wait for 
+the operation, -1 means no timeout.</li>
+</ul>
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.add">
+<!--[cogen.core.schedulers.Scheduler.add]--><tt class="descname">add</tt><big>(</big><em>coro</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>first=True</em><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.add" title="Permalink to this definition">¶</a></dt>
+<dd>Add a coroutine in the scheduler. You can add arguments 
+(_args_, _kwargs_) to init the coroutine with.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.handle_timeouts">
+<!--[cogen.core.schedulers.Scheduler.handle_timeouts]--><tt class="descname">handle_timeouts</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.handle_timeouts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle timeouts. Raise timeouted operations with a OperationTimeout 
+in the associated coroutine (if they are still alive and the operation
+hasn&#8217;t actualy sucessfuly completed) or, if the operation has a 
+weak_timeout flag, update the timeout point and add it back in the 
+heapq.</p>
+<p>weak_timeout notes:</p>
+<ul class="simple">
+<li>weak_timeout means a last_update attribute is updated with
+a timestamp of the last activity in the operation - for example, a
+may recieve new data and not complete (not enough data, etc)</li>
+<li>if there was activity since the last time we&#8217;ve cheched this 
+timeout we push it back in the heapq with a timeout value we&#8217;ll check 
+it again</li>
+</ul>
+<p>Also, we call a cleanup on the op, only if cleanup return true we raise 
+the timeout (finalized isn&#8217;t enough to check if the op has completed 
+since finalized is set when the operation gets back in the coro - and
+it might still be in the Scheduler.active queue when we get to this 
+timeout - well, this is certainly a problem magnet: TODO: fix_finalized)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.iter_run">
+<!--[cogen.core.schedulers.Scheduler.iter_run]--><tt class="descname">iter_run</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.iter_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual processing for the main loop is here.</p>
+<p>Running the main loop as a generator (where a iteration is a full 
+sched, proactor and timers/timeouts run) is usefull for interleaving
+the main loop with other applications that have a blocking main loop and 
+require cogen to run in the same thread.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.next_timer_delta">
+<!--[cogen.core.schedulers.Scheduler.next_timer_delta]--><tt class="descname">next_timer_delta</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.next_timer_delta" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a timevalue that the proactor will wait on.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.process_op">
+<!--[cogen.core.schedulers.Scheduler.process_op]--><tt class="descname">process_op</tt><big>(</big><em>op</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.process_op" title="Permalink to this definition">¶</a></dt>
+<dd>Process a (op, coro) pair and return another pair. Handles exceptions.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.run">
+<!--[cogen.core.schedulers.Scheduler.run]--><tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.run" title="Permalink to this definition">¶</a></dt>
+<dd>This is the main loop.
+This loop will exit when there are no more coroutines to run or stop has
+been called.</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.queue.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.queue</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.sockets.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.sockets</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.schedulers.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.sockets.html" title="cogen.core.sockets"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.queue.html" title="cogen.core.queue"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>
