@@ -3,3 +3,5 @@
 
 .. automodule:: cogen.core.coroutines
     :members:
+    :undoc-members:
+    :show-inheritance:

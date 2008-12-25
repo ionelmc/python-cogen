@@ -56,6 +56,11 @@
 Really - the only thing you need to know for most stuff is 
 the <a title="cogen.core.sockets.Socket" class="reference internal" href="#cogen.core.sockets.Socket"><tt class="xref docutils literal"><span class="pre">Socket</span></tt></a> class.</p>
 <dl class="function">
+<dt id="cogen.core.sockets.getdefaulttimeout">
+<!--[cogen.core.sockets.getdefaulttimeout]--><tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">getdefaulttimeout</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.getdefaulttimeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="cogen.core.sockets.setdefaulttimeout">
 <!--[cogen.core.sockets.setdefaulttimeout]--><tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">setdefaulttimeout</tt><big>(</big><em>timeout</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.setdefaulttimeout" title="Permalink to this definition">¶</a></dt>
 <dd>Set the default timeout used by the socket wrapper 
@@ -64,7 +69,8 @@ the <a title="cogen.core.sockets.Socket" class="reference internal" href="#cogen
 <dl class="class">
 <dt id="cogen.core.sockets.Socket">
 <!--[cogen.core.sockets.Socket]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Socket</tt><big>(</big><em>*a</em>, <em>**k</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for socket objects, sets nonblocking mode and
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>A wrapper for socket objects, sets nonblocking mode and
 adds some internal bufers and wrappers. Regular calls to the usual 
 socket methods return operations for use in a coroutine.</p>
 <p>So you use this in a coroutine like:</p>
@@ -166,6 +172,16 @@ socket. Ammount sent may be less than the data provided.</dd></dl>
 socket. All the data is guaranteed to be sent.</dd></dl>
 
 <dl class="method">
+<dt id="cogen.core.sockets.Socket.sendfile">
+<!--[cogen.core.sockets.Socket.sendfile]--><tt class="descname">sendfile</tt><big>(</big><em>file_handle</em>, <em>offset=None</em>, <em>length=None</em>, <em>blocksize=4096</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.sendfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Socket.setblocking">
+<!--[cogen.core.sockets.Socket.setblocking]--><tt class="descname">setblocking</tt><big>(</big><em>val</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.setblocking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cogen.core.sockets.Socket.setsockopt">
 <!--[cogen.core.sockets.Socket.setsockopt]--><tt class="descname">setsockopt</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Socket.setsockopt" title="Permalink to this definition">¶</a></dt>
 <dd>Set the value of the given socket option. Same as the usual socket 
@@ -188,7 +204,8 @@ socket method.</dd></dl>
 <dl class="class">
 <dt id="cogen.core.sockets.SendFile">
 <!--[cogen.core.sockets.SendFile]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SendFile</tt><big>(</big><em>file_handle</em>, <em>sock</em>, <em>offset=None</em>, <em>length=None</em>, <em>blocksize=4096</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uses underling OS sendfile (or equivalent) call or a regular memory copy 
+<dd><p>Bases: <a title="cogen.core.sockets.SocketOperation" class="reference internal" href="#cogen.core.sockets.SocketOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketOperation</span></tt></a></p>
+<p>Uses underling OS sendfile (or equivalent) call or a regular memory copy 
 operation if there is no sendfile.
 You can use this as a WriteAll if you specify the length.
 Usage:</p>
@@ -205,45 +222,234 @@ Usage:</p>
     <span class="c">#from the file</span>
 </pre></div>
 </div>
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendFile.blocksize">
+<!--[cogen.core.sockets.SendFile.blocksize]--><tt class="descname">blocksize</tt><a class="headerlink" href="#cogen.core.sockets.SendFile.blocksize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendFile.file_handle">
+<!--[cogen.core.sockets.SendFile.file_handle]--><tt class="descname">file_handle</tt><a class="headerlink" href="#cogen.core.sockets.SendFile.file_handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.SendFile.finalize">
+<!--[cogen.core.sockets.SendFile.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendFile.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendFile.length">
+<!--[cogen.core.sockets.SendFile.length]--><tt class="descname">length</tt><a class="headerlink" href="#cogen.core.sockets.SendFile.length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendFile.offset">
+<!--[cogen.core.sockets.SendFile.offset]--><tt class="descname">offset</tt><a class="headerlink" href="#cogen.core.sockets.SendFile.offset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendFile.position">
+<!--[cogen.core.sockets.SendFile.position]--><tt class="descname">position</tt><a class="headerlink" href="#cogen.core.sockets.SendFile.position" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.SendFile.process">
+<!--[cogen.core.sockets.SendFile.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendFile.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendFile.sent">
+<!--[cogen.core.sockets.SendFile.sent]--><tt class="descname">sent</tt><a class="headerlink" href="#cogen.core.sockets.SendFile.sent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.sockets.Recv">
 <!--[cogen.core.sockets.Recv]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Recv</tt><big>(</big><em>sock</em>, <em>len=4096</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Recv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Example usage:</p>
+<dd><p>Bases: <a title="cogen.core.sockets.SocketOperation" class="reference internal" href="#cogen.core.sockets.SocketOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketOperation</span></tt></a></p>
+<p>Example usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">sockets</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">socket_object</span><span class="p">,</span> <span class="n">buffer_length</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><cite>buffer_length</cite> is max read size, BUT, if if there are buffers from ReadLine 
 return them first.</p>
+<dl class="attribute">
+<dt id="cogen.core.sockets.Recv.buff">
+<!--[cogen.core.sockets.Recv.buff]--><tt class="descname">buff</tt><a class="headerlink" href="#cogen.core.sockets.Recv.buff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Recv.finalize">
+<!--[cogen.core.sockets.Recv.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.Recv.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.Recv.len">
+<!--[cogen.core.sockets.Recv.len]--><tt class="descname">len</tt><a class="headerlink" href="#cogen.core.sockets.Recv.len" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Recv.process">
+<!--[cogen.core.sockets.Recv.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Recv.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.sockets.Send">
 <!--[cogen.core.sockets.Send]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Send</tt><big>(</big><em>sock</em>, <em>buff</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Send" title="Permalink to this definition">¶</a></dt>
-<dd>Write the buffer to the socket and return the number of bytes written.</dd></dl>
+<dd><p>Bases: <a title="cogen.core.sockets.SocketOperation" class="reference internal" href="#cogen.core.sockets.SocketOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketOperation</span></tt></a></p>
+<p>Write the buffer to the socket and return the number of bytes written.</p>
+<dl class="attribute">
+<dt id="cogen.core.sockets.Send.buff">
+<!--[cogen.core.sockets.Send.buff]--><tt class="descname">buff</tt><a class="headerlink" href="#cogen.core.sockets.Send.buff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Send.finalize">
+<!--[cogen.core.sockets.Send.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.Send.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Send.process">
+<!--[cogen.core.sockets.Send.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Send.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.Send.sent">
+<!--[cogen.core.sockets.Send.sent]--><tt class="descname">sent</tt><a class="headerlink" href="#cogen.core.sockets.Send.sent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.sockets.SendAll">
 <!--[cogen.core.sockets.SendAll]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SendAll</tt><big>(</big><em>sock</em>, <em>buff</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendAll" title="Permalink to this definition">¶</a></dt>
-<dd>Run this operation till all the bytes have been written.</dd></dl>
+<dd><p>Bases: <a title="cogen.core.sockets.SocketOperation" class="reference internal" href="#cogen.core.sockets.SocketOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketOperation</span></tt></a></p>
+<p>Run this operation till all the bytes have been written.</p>
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendAll.buff">
+<!--[cogen.core.sockets.SendAll.buff]--><tt class="descname">buff</tt><a class="headerlink" href="#cogen.core.sockets.SendAll.buff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.SendAll.finalize">
+<!--[cogen.core.sockets.SendAll.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendAll.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.SendAll.process">
+<!--[cogen.core.sockets.SendAll.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SendAll.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SendAll.sent">
+<!--[cogen.core.sockets.SendAll.sent]--><tt class="descname">sent</tt><a class="headerlink" href="#cogen.core.sockets.SendAll.sent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.sockets.Accept">
 <!--[cogen.core.sockets.Accept]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Accept</tt><big>(</big><em>sock</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Accept" title="Permalink to this definition">¶</a></dt>
-<dd>Returns a (conn, addr) tuple when the operation completes.</dd></dl>
+<dd><p>Bases: <a title="cogen.core.sockets.SocketOperation" class="reference internal" href="#cogen.core.sockets.SocketOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketOperation</span></tt></a></p>
+<p>Returns a (conn, addr) tuple when the operation completes.</p>
+<dl class="attribute">
+<dt id="cogen.core.sockets.Accept.addr">
+<!--[cogen.core.sockets.Accept.addr]--><tt class="descname">addr</tt><a class="headerlink" href="#cogen.core.sockets.Accept.addr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.Accept.cbuff">
+<!--[cogen.core.sockets.Accept.cbuff]--><tt class="descname">cbuff</tt><a class="headerlink" href="#cogen.core.sockets.Accept.cbuff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.Accept.conn">
+<!--[cogen.core.sockets.Accept.conn]--><tt class="descname">conn</tt><a class="headerlink" href="#cogen.core.sockets.Accept.conn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Accept.finalize">
+<!--[cogen.core.sockets.Accept.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.Accept.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Accept.process">
+<!--[cogen.core.sockets.Accept.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Accept.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.sockets.Connect">
 <!--[cogen.core.sockets.Connect]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">Connect</tt><big>(</big><em>sock</em>, <em>addr</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="cogen.core.sockets.SocketOperation" class="reference internal" href="#cogen.core.sockets.SocketOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketOperation</span></tt></a></p>
+<dl class="attribute">
+<dt id="cogen.core.sockets.Connect.addr">
+<!--[cogen.core.sockets.Connect.addr]--><tt class="descname">addr</tt><a class="headerlink" href="#cogen.core.sockets.Connect.addr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.Connect.conn">
+<!--[cogen.core.sockets.Connect.conn]--><tt class="descname">conn</tt><a class="headerlink" href="#cogen.core.sockets.Connect.conn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.Connect.connect_attempted">
+<!--[cogen.core.sockets.Connect.connect_attempted]--><tt class="descname">connect_attempted</tt><a class="headerlink" href="#cogen.core.sockets.Connect.connect_attempted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Connect.finalize">
+<!--[cogen.core.sockets.Connect.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.Connect.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.Connect.process">
+<!--[cogen.core.sockets.Connect.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.Connect.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.sockets.SocketOperation">
 <!--[cogen.core.sockets.SocketOperation]-->class <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SocketOperation</tt><big>(</big><em>sock</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SocketOperation" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a generic class for a operation that involves some socket call.</p>
+<dd><p>Bases: <a title="cogen.core.events.TimedOperation" class="reference external" href="cogen.core.events.html#cogen.core.events.TimedOperation"><tt class="xref docutils literal"><span class="pre">cogen.core.events.TimedOperation</span></tt></a></p>
+<p>This is a generic class for a operation that involves some socket call.</p>
 <p>A socket operation should subclass WriteOperation or ReadOperation, define a
 <cite>run</cite> method and call the __init__ method of the superclass.</p>
+<dl class="method">
+<dt id="cogen.core.sockets.SocketOperation.cleanup">
+<!--[cogen.core.sockets.SocketOperation.cleanup]--><tt class="descname">cleanup</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.sockets.SocketOperation.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SocketOperation.coro">
+<!--[cogen.core.sockets.SocketOperation.coro]--><tt class="descname">coro</tt><a class="headerlink" href="#cogen.core.sockets.SocketOperation.coro" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.sockets.SocketOperation.fileno">
+<!--[cogen.core.sockets.SocketOperation.fileno]--><tt class="descname">fileno</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.sockets.SocketOperation.fileno" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SocketOperation.flags">
+<!--[cogen.core.sockets.SocketOperation.flags]--><tt class="descname">flags</tt><a class="headerlink" href="#cogen.core.sockets.SocketOperation.flags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SocketOperation.last_update">
+<!--[cogen.core.sockets.SocketOperation.last_update]--><tt class="descname">last_update</tt><a class="headerlink" href="#cogen.core.sockets.SocketOperation.last_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.sockets.SocketOperation.sock">
+<!--[cogen.core.sockets.SocketOperation.sock]--><tt class="descname">sock</tt><a class="headerlink" href="#cogen.core.sockets.SocketOperation.sock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>

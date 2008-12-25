@@ -67,7 +67,8 @@ correctly (pylons relies heavily on threadlocals).</p>
 <dl class="class">
 <dt id="cogen.core.schedulers.Scheduler">
 <!--[cogen.core.schedulers.Scheduler]-->class <tt class="descclassname">cogen.core.schedulers.</tt><tt class="descname">Scheduler</tt><big>(</big><em>proactor=&lt;class 'cogen.core.proactors.ctypes_iocp_impl.CTYPES_IOCPProactor'&gt;</em>, <em>default_priority=0</em>, <em>default_timeout=None</em>, <em>proactor_resolution=0.01</em>, <em>proactor_greedy=True</em>, <em>ops_greedy=False</em>, <em>proactor_multiplex_first=None</em>, <em>proactor_default_size=None</em><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Basic deque-based scheduler with timeout support and primitive 
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>Basic deque-based scheduler with timeout support and primitive 
 prioritisaiton parameters.</p>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mysched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">proactor</span><span class="o">=</span><span class="n">DefaultProactor</span><span class="p">,</span> 
@@ -137,6 +138,11 @@ require cogen to run in the same thread.</p>
 <dd>This is the main loop.
 This loop will exit when there are no more coroutines to run or stop has
 been called.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.stop">
+<!--[cogen.core.schedulers.Scheduler.stop]--><tt class="descname">stop</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

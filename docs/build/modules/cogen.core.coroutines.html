@@ -56,7 +56,8 @@
 <dl class="class">
 <dt id="cogen.core.coroutines.local">
 <!--[cogen.core.coroutines.local]-->class <tt class="descclassname">cogen.core.coroutines.</tt><tt class="descname">local</tt><a class="headerlink" href="#cogen.core.coroutines.local" title="Permalink to this definition">¶</a></dt>
-<dd><p>A threadlocal-like object that works in the context of coroutines.
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>A threadlocal-like object that works in the context of coroutines.
 That means, the current running coroutine has the _ident_.</p>
 <p>Coroutine.run_op sets the indent before running a step and unsets after.</p>
 <p>Example:</p>
@@ -70,7 +71,8 @@ That means, the current running coroutine has the _ident_.</p>
 <dl class="class">
 <dt id="cogen.core.coroutines.coro">
 <!--[cogen.core.coroutines.coro]-->class <tt class="descclassname">cogen.core.coroutines.</tt><tt class="descname">coro</tt><big>(</big><em>func</em>, <em>constructor=&lt;class 'cogen.core.coroutines.CoroutineInstance'&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.coro" title="Permalink to this definition">¶</a></dt>
-<dd><p>A decorator function for generators.
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>A decorator function for generators.
 Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@coroutine</span>
 <span class="k">def</span> <span class="nf">plain_ol_generator</span><span class="p">():</span>
@@ -79,14 +81,100 @@ Example:</p>
     <span class="o">...</span>
 </pre></div>
 </div>
+<dl class="attribute">
+<dt id="cogen.core.coroutines.coro.constructor">
+<!--[cogen.core.coroutines.coro.constructor]--><tt class="descname">constructor</tt><a class="headerlink" href="#cogen.core.coroutines.coro.constructor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.coro.wrapped_func">
+<!--[cogen.core.coroutines.coro.wrapped_func]--><tt class="descname">wrapped_func</tt><a class="headerlink" href="#cogen.core.coroutines.coro.wrapped_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.coroutines.CoroutineInstance">
 <!--[cogen.core.coroutines.CoroutineInstance]-->class <tt class="descclassname">cogen.core.coroutines.</tt><tt class="descname">CoroutineInstance</tt><big>(</big><em>coro</em>, <em>*args</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance" title="Permalink to this definition">¶</a></dt>
-<dd><p>We need a coroutine wrapper for generators and functions alike because
+<dd><p>Bases: <a title="cogen.core.events.Operation" class="reference external" href="cogen.core.events.html#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">cogen.core.events.Operation</span></tt></a></p>
+<p>We need a coroutine wrapper for generators and functions alike because
 we want to run functions that don&#8217;t return generators just like a
 coroutine, also, we do some exception handling here.</p>
+<dl class="method">
+<dt id="cogen.core.coroutines.CoroutineInstance.add_waiter">
+<!--[cogen.core.coroutines.CoroutineInstance.add_waiter]--><tt class="descname">add_waiter</tt><big>(</big><em>coro</em>, <em>op=None</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.add_waiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.caller">
+<!--[cogen.core.coroutines.CoroutineInstance.caller]--><tt class="descname">caller</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.caller" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.coro">
+<!--[cogen.core.coroutines.CoroutineInstance.coro]--><tt class="descname">coro</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.coro" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.debug">
+<!--[cogen.core.coroutines.CoroutineInstance.debug]--><tt class="descname">debug</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.exception">
+<!--[cogen.core.coroutines.CoroutineInstance.exception]--><tt class="descname">exception</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.exception" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.f_args">
+<!--[cogen.core.coroutines.CoroutineInstance.f_args]--><tt class="descname">f_args</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.f_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.f_kws">
+<!--[cogen.core.coroutines.CoroutineInstance.f_kws]--><tt class="descname">f_kws</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.f_kws" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.coroutines.CoroutineInstance.finalize">
+<!--[cogen.core.coroutines.CoroutineInstance.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.coroutines.CoroutineInstance.handle_error">
+<!--[cogen.core.coroutines.CoroutineInstance.handle_error]--><tt class="descname">handle_error</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.handle_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.lastop">
+<!--[cogen.core.coroutines.CoroutineInstance.lastop]--><tt class="descname">lastop</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.lastop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.name">
+<!--[cogen.core.coroutines.CoroutineInstance.name]--><tt class="descname">name</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.prio">
+<!--[cogen.core.coroutines.CoroutineInstance.prio]--><tt class="descname">prio</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.prio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.coroutines.CoroutineInstance.process">
+<!--[cogen.core.coroutines.CoroutineInstance.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.coroutines.CoroutineInstance.remove_waiter">
+<!--[cogen.core.coroutines.CoroutineInstance.remove_waiter]--><tt class="descname">remove_waiter</tt><big>(</big><em>coro</em>, <em>op=None</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.remove_waiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.result">
+<!--[cogen.core.coroutines.CoroutineInstance.result]--><tt class="descname">result</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="cogen.core.coroutines.CoroutineInstance.run_op">
 <!--[cogen.core.coroutines.CoroutineInstance.run_op]--><tt class="descname">run_op</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.run_op" title="Permalink to this definition">¶</a></dt>
@@ -105,6 +193,21 @@ or send it to the caller, return self</li>
 <p>Return self is used as a optimization. Coroutine is also a Operation 
 which handles it&#8217;s own completion (resuming the caller and the waiters).</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.running">
+<!--[cogen.core.coroutines.CoroutineInstance.running]--><tt class="descname">running</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.running" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.state">
+<!--[cogen.core.coroutines.CoroutineInstance.state]--><tt class="descname">state</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.CoroutineInstance.waiters">
+<!--[cogen.core.coroutines.CoroutineInstance.waiters]--><tt class="descname">waiters</tt><a class="headerlink" href="#cogen.core.coroutines.CoroutineInstance.waiters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

@@ -3,3 +3,5 @@
 
 .. automodule:: cogen.core.events
     :members:
+    :undoc-members:
+    :show-inheritance:

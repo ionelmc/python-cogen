@@ -78,10 +78,16 @@ example:</p>
 <dl class="class">
 <dt id="cogen.web.async.LazyStartResponseMiddleware">
 <!--[cogen.web.async.LazyStartResponseMiddleware]-->class <tt class="descclassname">cogen.web.async.</tt><tt class="descname">LazyStartResponseMiddleware</tt><big>(</big><em>app</em>, <em>global_conf={}</em><big>)</big><a class="headerlink" href="#cogen.web.async.LazyStartResponseMiddleware" title="Permalink to this definition">¶</a></dt>
-<dd>This is a evil piece of middleware that proxyes the start_response
+<dd><p>This is a evil piece of middleware that proxyes the start_response
 call and delays it till the appiter yields a non-empty string.
 Also, this returns a fake write callable that buffers the strings passed
-though it.</dd></dl>
+though it.</p>
+<dl class="method">
+<dt id="cogen.web.async.LazyStartResponseMiddleware.start_response">
+<!--[cogen.web.async.LazyStartResponseMiddleware.start_response]--><tt class="descname">start_response</tt><big>(</big><em>status</em>, <em>headers</em>, <em>exc=None</em><big>)</big><a class="headerlink" href="#cogen.web.async.LazyStartResponseMiddleware.start_response" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="cogen.web.async.SynchronousInputMiddleware">

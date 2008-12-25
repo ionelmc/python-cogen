@@ -65,23 +65,23 @@ Example::
         this op is ready
         
         
-    The scheduler basicaly does 3 things:
-     - runs active (coroutine,operations) pairs (calls process on the op)
-     - runs the proactor
-     - checks for timeouts
-     
-    The proactor basicaly does 2 things:
-     - calls the system to check what descriptors are ready
-     - runs the operations that have ready descriptors
-     
-    The operation does most of the work (via the process, finalize, cleanup, 
-    run methods):
-     - adds itself in the proactor (if it's a socket operation)
-     - adds itself in some structure to be activated later by some other event
-     - adds itself and the coro in the scheduler's active coroutines queue
+The scheduler basicaly does 3 things:
+  - runs active (coroutine,operations) pairs -- calls process on the op
+  - runs the proactor
+  - checks for timeouts
+ 
+The proactor basicaly does 2 things:
+  - calls the system to check what descriptors are ready
+  - runs the operations that have ready descriptors
 
-    The coroutine decorator wrappes foo in a Coroutine class that does some
-    niceties like exception handling, getting the result from finalize() etc.
+The operation does most of the work (via the process, finalize, cleanup, run methods):
+  - adds itself in the proactor (if it's a socket operation)
+  - adds itself in some structure to be activated later by some other event
+  - adds itself and the coro in the scheduler's active coroutines queue
+
+
+The coroutine decorator wrappes foo in a Coroutine class that does some
+niceties like exception handling, getting the result from finalize() etc.
 
 '''
 

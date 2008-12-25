@@ -1,7 +1,8 @@
-:mod:`cogen.web.async`
+:mod:`cogen.core.pipe` 
 ======================
 
-.. automodule:: cogen.web.async
+.. automodule:: cogen.core.pipe
     :members:
     :undoc-members:
     :show-inheritance:
+    

@@ -107,27 +107,32 @@ return the operation instance.</li>
    |                         later                                 | 
    +------&lt;-------------------  ......  add it in some other     &lt;-+
     some event decides                  queue for later run
-    this op is ready
-    
-    
-The scheduler basicaly does 3 things:
- - runs active (coroutine,operations) pairs (calls process on the op)
- - runs the proactor
- - checks for timeouts
- 
-The proactor basicaly does 2 things:
- - calls the system to check what descriptors are ready
- - runs the operations that have ready descriptors
- 
-The operation does most of the work (via the process, finalize, cleanup, 
-run methods):
- - adds itself in the proactor (if it's a socket operation)
- - adds itself in some structure to be activated later by some other event
- - adds itself and the coro in the scheduler's active coroutines queue
-
-The coroutine decorator wrappes foo in a Coroutine class that does some
-niceties like exception handling, getting the result from finalize() etc.</pre>
+    this op is ready</pre>
 </div>
+<dl class="docutils">
+<dt>The scheduler basicaly does 3 things:</dt>
+<dd><ul class="first last simple">
+<li>runs active (coroutine,operations) pairs &#8211; calls process on the op</li>
+<li>runs the proactor</li>
+<li>checks for timeouts</li>
+</ul>
+</dd>
+<dt>The proactor basicaly does 2 things:</dt>
+<dd><ul class="first last simple">
+<li>calls the system to check what descriptors are ready</li>
+<li>runs the operations that have ready descriptors</li>
+</ul>
+</dd>
+<dt>The operation does most of the work (via the process, finalize, cleanup, run methods):</dt>
+<dd><ul class="first last simple">
+<li>adds itself in the proactor (if it&#8217;s a socket operation)</li>
+<li>adds itself in some structure to be activated later by some other event</li>
+<li>adds itself and the coro in the scheduler&#8217;s active coroutines queue</li>
+</ul>
+</dd>
+</dl>
+<p>The coroutine decorator wrappes foo in a Coroutine class that does some
+niceties like exception handling, getting the result from finalize() etc.</p>
 </div>
 
 

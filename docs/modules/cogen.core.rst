@@ -3,4 +3,7 @@
 
 .. automodule:: cogen.core
     :members:
+    :undoc-members:
+    :show-inheritance:
+
     

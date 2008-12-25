@@ -55,12 +55,18 @@
 <dl class="class">
 <dt id="cogen.core.proactors.base.ProactorBase">
 <!--[cogen.core.proactors.base.ProactorBase]-->class <tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">ProactorBase</tt><big>(</big><em>scheduler</em>, <em>resolution</em>, <em>**options</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class for a proactor implemented with posix-style polling.</p>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>Base class for a proactor implemented with posix-style polling.</p>
 <dl class="method">
 <dt id="cogen.core.proactors.base.ProactorBase.add_token">
 <!--[cogen.core.proactors.base.ProactorBase.add_token]--><tt class="descname">add_token</tt><big>(</big><em>act</em>, <em>coro</em>, <em>performer</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.add_token" title="Permalink to this definition">¶</a></dt>
 <dd>Adds a completion token <cite>act</cite> in the proactor with associated <cite>coro</cite> 
 corutine and perform callable.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.close">
+<!--[cogen.core.proactors.base.ProactorBase.close]--><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="cogen.core.proactors.base.ProactorBase.handle_error_event">
@@ -132,9 +138,19 @@ calls are usually made from a Foo subclass.</p>
 <dd>Requests a sendfile for <cite>coro</cite> corutine with parameters and completion         passed via <cite>act</cite></dd></dl>
 
 <dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.run_act">
+<!--[cogen.core.proactors.base.ProactorBase.run_act]--><tt class="descname">run_act</tt><big>(</big><em>act</em>, <em>func</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.run_act" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cogen.core.proactors.base.ProactorBase.set_options">
 <!--[cogen.core.proactors.base.ProactorBase.set_options]--><tt class="descname">set_options</tt><big>(</big><em>multiplex_first=True</em>, <em>**bogus_options</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.set_options" title="Permalink to this definition">¶</a></dt>
 <dd>Takes implementation specific options. To be overriden in a subclass.</dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.proactors.base.ProactorBase.try_run_act">
+<!--[cogen.core.proactors.base.ProactorBase.try_run_act]--><tt class="descname">try_run_act</tt><big>(</big><em>act</em>, <em>func</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.try_run_act" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="cogen.core.proactors.base.ProactorBase.unregister_fd">
@@ -151,6 +167,36 @@ the proactor.</p>
 passed to the scheduler on the last completion loop of a proactor.</dd></dl>
 
 </dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.perform_accept">
+<!--[cogen.core.proactors.base.perform_accept]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">perform_accept</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.perform_accept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.perform_connect">
+<!--[cogen.core.proactors.base.perform_connect]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">perform_connect</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.perform_connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.perform_recv">
+<!--[cogen.core.proactors.base.perform_recv]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">perform_recv</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.perform_recv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.perform_send">
+<!--[cogen.core.proactors.base.perform_send]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">perform_send</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.perform_send" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.perform_sendall">
+<!--[cogen.core.proactors.base.perform_sendall]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">perform_sendall</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.perform_sendall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cogen.core.proactors.base.perform_sendfile">
+<!--[cogen.core.proactors.base.perform_sendfile]--><tt class="descclassname">cogen.core.proactors.base.</tt><tt class="descname">perform_sendfile</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.perform_sendfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="cogen.core.proactors.base.wrapped_sendfile">

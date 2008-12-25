@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 """An unidirectional pipe.
 
 Your average example::
@@ -21,6 +19,8 @@ Your average example::
         
 
 """
+from __future__ import with_statement
+
 from cogen.core import events, coroutines
 
 class IterationStopped(Exception):

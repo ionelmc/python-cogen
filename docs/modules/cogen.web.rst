@@ -2,4 +2,6 @@
 ================
 
 .. automodule:: cogen.web
-   :members:
+    :members:
+    :undoc-members:
+    :show-inheritance:

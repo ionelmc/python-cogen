@@ -2,4 +2,6 @@
 =====================
 
 .. automodule:: cogen.web.wsgi
-   :members:
+    :members:
+    :undoc-members:
+    :show-inheritance:

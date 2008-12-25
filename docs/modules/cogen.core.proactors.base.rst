@@ -3,4 +3,7 @@
 
 .. automodule:: cogen.core.proactors.base
     :members:
+    :undoc-members:
+    :show-inheritance:
+
     

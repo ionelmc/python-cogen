@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cogen.core.pipe &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="up" title="Core" href="index.html" />
+    <link rel="next" title="cogen.core.proactors" href="cogen.core.proactors.html" />
+    <link rel="prev" title="cogen.core.events" href="cogen.core.events.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.html" title="cogen.core.proactors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.events.html" title="cogen.core.events"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-cogen.core.pipe">
+<h1><tt class="xref docutils literal"><span class="pre">cogen.core.pipe</span></tt><a class="headerlink" href="#module-cogen.core.pipe" title="Permalink to this headline">¶</a></h1>
+<p>An unidirectional pipe.</p>
+<p>Your average example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@coro</span>
+<span class="k">def</span> <span class="nf">iterator</span><span class="p">():</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">Iterate</span><span class="p">(</span><span class="n">producer</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">iterator</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="n">sentinel</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="c"># do something with val</span>
+    
+<span class="nd">@coro</span>
+<span class="k">def</span> <span class="nf">producer</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mf">100</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">chunk</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="cogen.core.pipe.Iterate">
+<!--[cogen.core.pipe.Iterate]-->class <tt class="descclassname">cogen.core.pipe.</tt><tt class="descname">Iterate</tt><big>(</big><em>coro</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>sentinel=&lt;cogen.core.pipe.chunk_sentinel object at 0x0329D5D0&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.Iterate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="cogen.core.events.Operation" class="reference external" href="cogen.core.events.html#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">cogen.core.events.Operation</span></tt></a></p>
+<dl class="method">
+<dt id="cogen.core.pipe.Iterate.finalize">
+<!--[cogen.core.pipe.Iterate.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.pipe.Iterate.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pipe.Iterate.process">
+<!--[cogen.core.pipe.Iterate.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.Iterate.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.pipe.IterateToken">
+<!--[cogen.core.pipe.IterateToken]-->class <tt class="descclassname">cogen.core.pipe.</tt><tt class="descname">IterateToken</tt><big>(</big><em>iterator</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.IterateToken" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="cogen.core.events.Operation" class="reference external" href="cogen.core.events.html#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">cogen.core.events.Operation</span></tt></a></p>
+<dl class="method">
+<dt id="cogen.core.pipe.IterateToken.finalize">
+<!--[cogen.core.pipe.IterateToken.finalize]--><tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.pipe.IterateToken.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pipe.IterateToken.process">
+<!--[cogen.core.pipe.IterateToken.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.IterateToken.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pipe.IterateToken.stop">
+<!--[cogen.core.pipe.IterateToken.stop]--><tt class="descname">stop</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.pipe.IterateToken.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.pipe.IteratedCoroutineInstance">
+<!--[cogen.core.pipe.IteratedCoroutineInstance]-->class <tt class="descclassname">cogen.core.pipe.</tt><tt class="descname">IteratedCoroutineInstance</tt><big>(</big><em>coro</em>, <em>*args</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.IteratedCoroutineInstance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="cogen.core.coroutines.CoroutineInstance" class="reference external" href="cogen.core.coroutines.html#cogen.core.coroutines.CoroutineInstance"><tt class="xref docutils literal"><span class="pre">cogen.core.coroutines.CoroutineInstance</span></tt></a></p>
+<dl class="attribute">
+<dt id="cogen.core.pipe.IteratedCoroutineInstance.iter_token">
+<!--[cogen.core.pipe.IteratedCoroutineInstance.iter_token]--><tt class="descname">iter_token</tt><a class="headerlink" href="#cogen.core.pipe.IteratedCoroutineInstance.iter_token" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cogen.core.pipe.IteratedCoroutineInstance.run_op">
+<!--[cogen.core.pipe.IteratedCoroutineInstance.run_op]--><tt class="descname">run_op</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.IteratedCoroutineInstance.run_op" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="cogen.core.pipe.IterationStopped">
+<!--[cogen.core.pipe.IterationStopped]-->exception <tt class="descclassname">cogen.core.pipe.</tt><tt class="descname">IterationStopped</tt><a class="headerlink" href="#cogen.core.pipe.IterationStopped" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.pipe.chunk">
+<!--[cogen.core.pipe.chunk]-->class <tt class="descclassname">cogen.core.pipe.</tt><tt class="descname">chunk</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#cogen.core.pipe.chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="cogen.core.pipe.chunk.value">
+<!--[cogen.core.pipe.chunk.value]--><tt class="descname">value</tt><a class="headerlink" href="#cogen.core.pipe.chunk.value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.pipe.chunk_sentinel">
+<!--[cogen.core.pipe.chunk_sentinel]-->class <tt class="descclassname">cogen.core.pipe.</tt><tt class="descname">chunk_sentinel</tt><a class="headerlink" href="#cogen.core.pipe.chunk_sentinel" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="cogen.core.events.html" title="previous chapter"><tt class="docutils literal"><span class="pre">cogen.core.events</span></tt></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cogen.core.proactors.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.proactors</span></tt></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/modules/cogen.core.pipe.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.proactors.html" title="cogen.core.proactors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cogen.core.events.html" title="cogen.core.events"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

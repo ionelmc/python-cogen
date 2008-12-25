@@ -3,3 +3,5 @@
 
 .. automodule:: cogen.core.sockets
     :members:
+    :undoc-members:
+    :show-inheritance:
