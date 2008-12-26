@@ -5,10 +5,6 @@
 Welcome to cogen's documentation!
 =================================
 
-.. warning:: 
-
-    These docs are for the not yet released 0.2.0 (the trunk).
-
 
 Getting started
 ---------------
