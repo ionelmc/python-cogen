@@ -279,6 +279,13 @@ class Coroutine(object):
         self.wrapped_func = func
         self.constructor = constructor
     
+    @property
+    def __doc__(self):
+        return self.wrapped_func.__doc__
+    @property
+    def __name__(self):
+        return self.wrapped_func.__name__
+    
     def __repr__(self):
         return "<Coroutine constructor at 0x%08X wrapping %r>" % (
             id(self), 
@@ -314,7 +321,9 @@ debug_coro = debug_coroutine = DebugCoroutine
 if __name__ == "__main__":
     @coroutine
     def some_func():
+        "blablalbla"
         pass
     
     print some_func()
     print repr(some_func)
+    print some_func.__doc__
