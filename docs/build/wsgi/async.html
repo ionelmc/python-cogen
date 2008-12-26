@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Asynchronous server extensions &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="next" title="Core" href="../modules/index.html" />
+    <link rel="prev" title="Server overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="../modules/index.html" title="Core"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Server overview"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="asynchronous-server-extensions">
+<h1>Asynchronous server extensions<a class="headerlink" href="#asynchronous-server-extensions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The idea is to support asynchronous operations: that is give the wsgi app ability to pause itself, resume when something happens and make available the result of that <strong>something</strong>.
+In <cite>cogen</cite> that <strong>something</strong> is a operation.</p>
+<p>Another desired feature is to allow use of middleware. We achieve this by yielding empty strings in the app and saving the operation to be run in a object from <cite>environ</cite> - wsgi spec specifies that middleware should yield at least as many chunks as the wrapped app has yielded <a class="footnote-reference" href="#id2" id="id1">[1]</a>. Though not any middleware follows that to the letter - you have to look at <cite>cogen.web.wsgi</cite> as to a streaming server - if the middleware flattens the response the breakage will occur as operations aren&#8217;t send to the wsgi server and the app is not paused.</p>
+<p>The wsgi server provides 4 nice objects in the environ that eases writing apps like this:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">environ['cogen.core']</span></tt> - a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> with the called object and returns a empty string. This should penetrate all the compilant middleware - take note of the flatten issue above.</li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi']</span></tt> - this is a object for communications between the app and the server<ul>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].result</span></tt> - holds the result of the operation, if a error occured it will be a instance of <tt class="xref docutils literal"><span class="pre">Exception</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> - hold the operation to run - you don&#8217;t need to fiddle with need - just use <tt class="docutils literal"><span class="pre">environ['cogen.core']</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].exception</span></tt> - holds complete information about the error occurred in a tuple: <tt class="docutils literal"><span class="pre">(type,</span> <span class="pre">value,</span> <span class="pre">traceback)</span></tt></li>
+</ul>
+</li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.input']</span></tt> - wrapped instance of <tt class="xref docutils literal"><span class="pre">_fileobject</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.call']</span></tt> - a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> with the called object and returns a empty string.</li>
+</ul>
+</blockquote>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://www.python.org/dev/peps/pep-0333/#middleware-handling-of-block-boundaries">http://www.python.org/dev/peps/pep-0333/#middleware-handling-of-block-boundaries</a></td></tr>
+</tbody>
+</table>
+<div class="section" id="example-app-with-coroutine-extensions">
+<h3>Example app with coroutine extensions<a class="headerlink" href="#example-app-with-coroutine-extensions" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">wait_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+    <span class="n">start_response</span><span class="p">(</span><span class="s">&#39;200 OK&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span><span class="s">&#39;text/html&#39;</span><span class="p">)])</span>
+    <span class="k">yield</span> <span class="s">&quot;I&#39;m waiting for some signal&lt;br&gt;&quot;</span>
+    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">WaitForSignal</span><span class="p">(</span><span class="s">&quot;abc&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">5</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.wsgi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="s">&quot;Your time is up !&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="s">&quot;Someone signaled me with this message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">cgi</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="sb">`environ[&#39;cogen.wsgi&#39;].result`</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-reading-the-input-asynchronously">
+<h3>Example reading the input asynchronously<a class="headerlink" href="#example-reading-the-input-asynchronously" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">buff</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+<span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
+    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">8192</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.wsgi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">traceback</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="o">*</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.wsgi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">exception</span><span class="p">)</span>
+        <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">buff</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">buff</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="running-async-apps-in-a-regular-wsgi-stack">
+<h2>Running async apps in a regular wsgi stack<a class="headerlink" href="#running-async-apps-in-a-regular-wsgi-stack" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pylons">
+<h3>Pylons<a class="headerlink" href="#pylons" title="Permalink to this headline">¶</a></h3>
+<p>You&#8217;ll have to make these tweaks:</p>
+<p>in your <cite>make_app</cite> factory (usually located in some <cite>wsgiapp.py</cite> or
+<cite>config/middleware.py</cite>) change the <cite>RegistryManager</cite> middleware from:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">RegistryManager</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">RegistryManager</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">streaming</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Also, your <cite>make_app</cite> factory has an option <cite>full_stack</cite> that you need to set to
+False (either set the default to False or set it in in your deployment .ini file).
+We need to do this because the <cite>ErrorHandler</cite> middleware consumes the app iterable
+in order to catch errors - and our async app needs to be streamable.</p>
+<p>I usually change this:</p>
+<div class="highlight-python"><pre>def make_app(global_conf, full_stack=False, **app_conf):</pre>
+</div>
+<p>to:</p>
+<div class="highlight-python"><pre>def make_app(global_conf, full_stack=False, **app_conf):</pre>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Asynchronous server extensions</a><ul>
+<li><a class="reference external" href="#introduction">Introduction</a><ul>
+<li><a class="reference external" href="#example-app-with-coroutine-extensions">Example app with coroutine extensions</a></li>
+<li><a class="reference external" href="#example-reading-the-input-asynchronously">Example reading the input asynchronously</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#running-async-apps-in-a-regular-wsgi-stack">Running async apps in a regular wsgi stack</a><ul>
+<li><a class="reference external" href="#pylons">Pylons</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="overview.html" title="previous chapter">Server overview</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../modules/index.html" title="next chapter">Core</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/wsgi/async.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="../modules/index.html" title="Core"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Server overview"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

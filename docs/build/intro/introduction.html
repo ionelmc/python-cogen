@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>General concepts &mdash; cogen v0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="cogen v0.2.0 documentation" href="../index.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="general-concepts">
+<h1>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h1>
+<p>Cogen is a coroutine framework. Python 2.5 has support for coroutine-oriented
+programming (see :pep:342). Cogen is
+different than the more popular async network-oriented frameworks like twisted or
+asyncore in the sense that you do not have weird flows and callbacks.
+You write the code in a seamingly synchronous fashion using generators.</p>
+<p>Because cogen does some stuff for you (like handle exceptions, pass results
+arounds and so on) you have to decorate all your generators that you want to use
+as coroutines:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cogen.core.coroutines</span> <span class="kn">import</span> <span class="n">coro</span>
+
+<span class="nd">@coro</span>
+<span class="k">def</span> <span class="nf">mycoroutine</span><span class="p">():</span>
+    <span class="o">...</span>
+    <span class="k">yield</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Also, the decorator does some handling/checking - so if you decorate a regular
+function nothing bad will happen :).</p>
+<div class="section" id="the-yield-statement">
+<h2>The yield statement<a class="headerlink" href="#the-yield-statement" title="Permalink to this headline">¶</a></h2>
+<p>Suppose this example: In a coroutine you need to do something that usually blocks,
+like reading from a socket.</p>
+<p>In cogen you would write a coroutine that yields that read call and expects the
+result like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@coro</span>
+<span class="k">def</span> <span class="nf">mysocketreader</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">mysock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mf">1024</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Yay, I have data:&quot;</span><span class="p">,</span> <span class="n">data</span>
+</pre></div>
+</div>
+<p>At that yield statement the coroutine will be paused. The framework will resume it
+when there&#8217;s data available on that socket and pass the available data through that
+yield statement.</p>
+<p>What happens behind the scenes: mysock.recv(1024) actually returns a special object
+that gets passed to the framework and instructs it what to do with the coroutine.
+It&#8217;s like a request object. There objects are named Operations in cogen (see <a title="cogen.core.events.Operation" class="reference external" href="../modules/cogen.core.events.html#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>).</p>
+</div>
+<div class="section" id="calling-other-coroutines">
+<h2>Calling other coroutines<a class="headerlink" href="#calling-other-coroutines" title="Permalink to this headline">¶</a></h2>
+<p>Using generators like this has some limitations, for example, generators do not
+have a stack. So, suppose you have coro A calling coro B, usually one soves this
+by making A consume B. However, cogen does this in another way - the caller (A)
+yields B, and B works like the request object described in the previous section
+- so B will instruct the framework to run itself and when B is finised (or throws an
+exception) resume A and pass the result in.</p>
+<p>Suppose we extend on the previous example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@coro</span>
+<span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">sock</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mf">1024</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="nd">@coro</span>
+<span class="k">def</span> <span class="nf">mycoro</span><span class="p">():</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">read</span><span class="p">(</span><span class="n">mysock</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Yay, data:&quot;</span><span class="p">,</span> <span class="n">result</span>
+</pre></div>
+</div>
+<p>Since we can&#8217;t use the return statement with a value in a generator we use
+the standard StopIteration exception that is used internally by the generator
+mechanics.</p>
+</div>
+<div class="section" id="running-your-first-cogen-app">
+<h2>Running your first cogen app<a class="headerlink" href="#running-your-first-cogen-app" title="Permalink to this headline">¶</a></h2>
+<p>Cogen is mainly composed of a scheduler, a proactor that handles the network
+calls, operations and your coroutines.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cogen.core.coroutines</span> <span class="kn">import</span> <span class="n">coro</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cogen.core.schedulers</span> <span class="kn">import</span> <span class="n">Scheduler</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@coro</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">a</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">print</span> <span class="n">foo</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="n">i</span>
+<span class="gp">... </span>        <span class="k">yield</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sched</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="mf">5</span><span class="p">))</span>
+<span class="go">&lt;a Coroutine instance at 0x01E29A80 wrapping &lt;function a at 0x01E03130&gt;, state: NOTSTARTED&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sched</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;bar&#39;</span><span class="p">,</span> <span class="mf">10</span><span class="p">))</span>
+<span class="go">&lt;a Coroutine instance at 0x01E29AD8 wrapping &lt;function a at 0x01E03130&gt;, state: NOTSTARTED&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sched</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="go">foo : 0</span>
+<span class="go">bar : 0</span>
+<span class="go">foo : 1</span>
+<span class="go">bar : 1</span>
+<span class="go">foo : 2</span>
+<span class="go">bar : 2</span>
+<span class="go">foo : 3</span>
+<span class="go">bar : 3</span>
+<span class="go">foo : 4</span>
+<span class="go">bar : 4</span>
+<span class="go">bar : 5</span>
+<span class="go">bar : 6</span>
+<span class="go">bar : 7</span>
+<span class="go">bar : 8</span>
+<span class="go">bar : 9</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">General concepts</a><ul>
+<li><a class="reference external" href="#the-yield-statement">The yield statement</a></li>
+<li><a class="reference external" href="#calling-other-coroutines">Calling other coroutines</a></li>
+<li><a class="reference external" href="#running-your-first-cogen-app">Running your first cogen app</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="install.html" title="previous chapter">Installation</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/intro/introduction.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Maries Ionel Cristian.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>
