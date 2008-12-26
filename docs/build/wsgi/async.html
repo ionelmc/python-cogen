@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Asynchronous server extensions &mdash; cogen v0.2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -41,13 +41,47 @@
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">cogen v0.2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Asynchronous server extensions</a><ul>
+<li><a class="reference external" href="#introduction">Introduction</a><ul>
+<li><a class="reference external" href="#example-app-with-coroutine-extensions">Example app with coroutine extensions</a></li>
+<li><a class="reference external" href="#example-reading-the-input-asynchronously">Example reading the input asynchronously</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#running-async-apps-in-a-regular-wsgi-stack">Running async apps in a regular wsgi stack</a><ul>
+<li><a class="reference external" href="#pylons">Pylons</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="overview.html" title="previous chapter">Server overview</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../modules/index.html" title="next chapter">Core</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/wsgi/async.txt" rel="nofollow">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="../search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+            <p style="font-size: 90%">Enter search terms or a module, class or function name.</p>
+        </div>
+      </div>
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body">
             
-  
   <div class="section" id="asynchronous-server-extensions">
 <h1>Asynchronous server extensions<a class="headerlink" href="#asynchronous-server-extensions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
@@ -139,40 +173,6 @@ in order to catch errors - and our async app needs to be streamable.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Asynchronous server extensions</a><ul>
-<li><a class="reference external" href="#introduction">Introduction</a><ul>
-<li><a class="reference external" href="#example-app-with-coroutine-extensions">Example app with coroutine extensions</a></li>
-<li><a class="reference external" href="#example-reading-the-input-asynchronously">Example reading the input asynchronously</a></li>
-</ul>
-</li>
-<li><a class="reference external" href="#running-async-apps-in-a-regular-wsgi-stack">Running async apps in a regular wsgi stack</a><ul>
-<li><a class="reference external" href="#pylons">Pylons</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="overview.html" title="previous chapter">Server overview</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="../modules/index.html" title="next chapter">Core</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../_sources/wsgi/async.txt">Show Source</a></li>
-            </ul>
-          <h3>Quick search</h3>
-            <form class="search" action="../search.html" method="get">
-              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
-              <input type="hidden" name="check_keywords" value="yes" />
-              <input type="hidden" name="area" value="default" />
-            </form>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related">
@@ -195,7 +195,7 @@ in order to catch errors - and our async app needs to be streamable.</p>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Maries Ionel Cristian.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
     </div>
   </body>
 </html>

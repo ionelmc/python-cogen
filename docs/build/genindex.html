@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Index &mdash; cogen v0.2.0 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -33,7 +33,25 @@
              accesskey="M">modules</a> |</li>
         <li><a href="index.html">cogen v0.2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+
+   
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/" rel="nofollow">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+            <p style="font-size: 90%">Enter search terms or a module, class or function name.</p>
+        </div>
+      </div>
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
@@ -127,19 +145,18 @@
 <dt><a href="modules/cogen.core.sockets.html#cogen.core.sockets.Connect">Connect (class in cogen.core.sockets)</a></dt>
 <dt><a href="modules/cogen.core.sockets.html#cogen.core.sockets.Socket.connect">connect() (cogen.core.sockets.Socket method)</a></dt>
 <dt><a href="modules/cogen.core.sockets.html#cogen.core.sockets.Connect.connect_attempted">connect_attempted (cogen.core.sockets.Connect attribute)</a></dt>
-<dt><a href="modules/cogen.web.wsgi.html#cogen.web.wsgi.WSGIServer.ConnectionClass">ConnectionClass() (cogen.web.wsgi.WSGIServer method)</a></dt>
+<dt><a href="modules/cogen.web.wsgi.html#cogen.web.wsgi.WSGIServer.ConnectionClass">ConnectionClass (cogen.web.wsgi.WSGIServer attribute)</a></dt>
 <dt><a href="modules/cogen.core.events.html#cogen.core.events.ConnectionClosed">ConnectionClosed</a></dt>
 <dt><a href="modules/cogen.core.events.html#cogen.core.events.ConnectionError">ConnectionError</a></dt>
-<dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.coro.constructor">constructor (cogen.core.coroutines.coro attribute)</a></dt>
-<dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.coro">coro (class in cogen.core.coroutines)</a></dt>
+<dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.CoroutineInstance.coro">coro (cogen.core.coroutines.CoroutineInstance attribute)</a></dt>
   <dd><dl>
-    <dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.CoroutineInstance.coro">(cogen.core.coroutines.CoroutineInstance attribute)</a></dt>
     <dt><a href="modules/cogen.core.events.html#cogen.core.events.AddCoro.coro">(cogen.core.events.AddCoro attribute)</a></dt>
     <dt><a href="modules/cogen.core.events.html#cogen.core.events.Join.coro">(cogen.core.events.Join attribute)</a></dt>
     <dt><a href="modules/cogen.core.events.html#cogen.core.events.OldCall.coro">(cogen.core.events.OldCall attribute)</a></dt>
     <dt><a href="modules/cogen.core.events.html#cogen.core.events.Signal.coro">(cogen.core.events.Signal attribute)</a></dt>
     <dt><a href="modules/cogen.core.events.html#cogen.core.events.TimedOperation.coro">(cogen.core.events.TimedOperation attribute)</a></dt>
     <dt><a href="modules/cogen.core.sockets.html#cogen.core.sockets.SocketOperation.coro">(cogen.core.sockets.SocketOperation attribute)</a></dt>
+    <dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.coro">(in module cogen.core.coroutines)</a></dt>
   </dl></dd>
 <dt><a href="modules/cogen.core.events.html#cogen.core.events.CoroutineException">CoroutineException</a></dt>
 <dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.CoroutineInstance">CoroutineInstance (class in cogen.core.coroutines)</a></dt>
@@ -476,7 +493,6 @@
 <dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.CoroutineInstance.waiters">waiters (cogen.core.coroutines.CoroutineInstance attribute)</a></dt>
 <dt><a href="modules/cogen.core.events.html#cogen.core.events.WaitForSignal">WaitForSignal (class in cogen.core.events)</a></dt>
 <dt><a href="modules/cogen.core.events.html#cogen.core.events.TimedOperation.weak_timeout">weak_timeout (cogen.core.events.TimedOperation attribute)</a></dt>
-<dt><a href="modules/cogen.core.coroutines.html#cogen.core.coroutines.coro.wrapped_func">wrapped_func (cogen.core.coroutines.coro attribute)</a></dt>
 <dt><a href="modules/cogen.core.proactors.base.html#cogen.core.proactors.base.wrapped_sendfile">wrapped_sendfile() (in module cogen.core.proactors.base)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="modules/cogen.web.wsgi.html#cogen.web.wsgi.WSGIConnection">WSGIConnection (class in cogen.web.wsgi)</a></dt>
 <dt><a href="modules/cogen.web.wsgi.html#cogen.web.wsgi.WSGIFileWrapper">WSGIFileWrapper (class in cogen.web.wsgi)</a></dt>
@@ -495,19 +511,6 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-
-   
-
-          <h3>Quick search</h3>
-            <form class="search" action="search.html" method="get">
-              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
-              <input type="hidden" name="check_keywords" value="yes" />
-              <input type="hidden" name="area" value="default" />
-            </form>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related">
@@ -524,7 +527,7 @@
     </div>
     <div class="footer">
       &copy; Copyright 2008, Maries Ionel Cristian.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
     </div>
   </body>
 </html>
