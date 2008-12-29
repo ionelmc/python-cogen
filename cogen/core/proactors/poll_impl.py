@@ -5,6 +5,8 @@ from time import sleep
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
+                                
+from cogen.core.events import ConnectionClosed
 from cogen.core import sockets
 from cogen.core.util import priority
 
@@ -53,7 +55,7 @@ class PollProactor(ProactorBase):
                 act = self.shadow.pop(fd)
                 if ev & POLLHUP:
                     self.handle_error_event(act, 'Hang up.', ConnectionClosed)
-                if ev & POLLNVAL:
+                elif ev & POLLNVAL:
                     self.handle_error_event(act, 'Invalid descriptor.')
                 elif ev & POLLERR:
                     self.handle_error_event(act, 'Unknown error.')
