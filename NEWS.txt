@@ -1,3 +1,9 @@
+trunk:
+
+ * made error handling better for sockets (also moved ConnectionClosed in sockets
+ module, renamed ConnectionError to SocketError and moved that too) and
+ improved the socket unittests on socket error handling.
+
 0.2.0:
 
  * rewritten the network code
