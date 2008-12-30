@@ -97,11 +97,6 @@ class ProactorBase(object):
 
 
     """
-    __doc_all__ = [
-        '__init__', 'run_once', 'run_operation', 'run_or_add', 'add', 
-        'waiting_op', '__len__', 'handle_errored', 'remove', 'run', 
-        'handle_events'
-    ]
     supports_multiplex_first = True
     
     def __init__(self, scheduler, resolution, **options):
@@ -299,15 +294,12 @@ class ProactorBase(object):
                 del self.tokens[act]
                 return op, coro
     
-    #~ from cogen.core.util import debug
-    #~ @debug(0)
-    def handle_error_event(self, act, detail, fd=None, exc=SocketError):
+    def handle_error_event(self, act, detail, exc=SocketError):
         """
         Handle an errored event. Calls the scheduler to schedule the associated 
         coroutine.
         """
         del self.tokens[act]
-        self.unregister_fd(act, fd)
         self.scheduler.active.append((
             CoroutineException(exc, exc(detail)), 
             act.coro

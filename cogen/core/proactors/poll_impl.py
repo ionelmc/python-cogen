@@ -53,23 +53,29 @@ class PollProactor(ProactorBase):
             events = self.poller.poll(ptimeout)
             len_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
-                act = self.shadow[fd]
+                act = self.shadow.pop(fd)
                 if ev & POLLHUP:
-                    self.handle_error_event(act, 'Hang up.', fd, ConnectionClosed)
+                    self.poller.unregister(fd)
+                    self.handle_error_event(act, 'Hang up.', ConnectionClosed)
                 elif ev & POLLNVAL:
-                    self.handle_error_event(act, 'Invalid descriptor.', fd)
+                    self.poller.unregister(fd)
+                    self.handle_error_event(act, 'Invalid descriptor.')
                 elif ev & POLLERR:
-                    self.handle_error_event(act, 'Unknown error.', fd)
+                    self.poller.unregister(fd)
+                    self.handle_error_event(act, 'Unknown error.')
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if ret:
                             self.poller.unregister(fd)
-                            del self.shadow[fd]
+                        else:
+                            self.shadow[fd] = act
                         return ret
                     else:
                         if self.handle_event(act):
                             self.poller.unregister(fd)
-                            del self.shadow[fd]
+                        else:
+                            self.shadow[fd] = act
+                        
         else:
             sleep(timeout)

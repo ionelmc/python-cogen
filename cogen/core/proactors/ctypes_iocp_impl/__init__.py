@@ -23,7 +23,7 @@ import struct
 from time import sleep
 
 from cogen.core.proactors.base import ProactorBase
-from cogen.core.util import priority, debug
+from cogen.core.util import priority
 from cogen.core.sockets import Socket, SocketError, ConnectionClosed
 from cogen.core.coroutines import CoroutineException
 def perform_recv(act, overlapped):
@@ -46,7 +46,6 @@ def perform_recv(act, overlapped):
     )
     return rc, nbytes.value
 
-#~ @debug(0)
 def complete_recv(act, rc, nbytes):
     if nbytes:
         act.buff = act.flags[:nbytes]

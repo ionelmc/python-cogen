@@ -61,7 +61,9 @@ class KQueueProactor(ProactorBase):
                 act = ev.udata
                 
                 if ev.flags & EV_ERROR:
-                    self.handle_error_event(act, 'System error %s.'%ev.data, fd)
+                    ev = EV_SET(fd, act.flags, EV_DELETE)
+                    self.kq.kevent(ev)
+                    self.handle_error_event(act, 'System error %s.'%ev.data)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)

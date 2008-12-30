@@ -34,8 +34,7 @@ class StdlibKQueueProactor(ProactorBase):
             warnings.warn("fd remove error: %r" % e)
         
         try:
-            ev = kevent(fileno, act.flags, KQ_EV_DELETE)
-            self.kcontrol((ev,), 0)
+            self.kcontrol((kevent(fileno, act.flags, KQ_EV_DELETE),), 0)
         except OSError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
@@ -64,26 +63,24 @@ class StdlibKQueueProactor(ProactorBase):
             len_events = len(events)-1
             for nr, ev in enumerate(events):
                 fd = ev.ident
-                act = self.shadow[fd]
+                act = self.shadow.pop(fd)
                 
                 if ev.flags & KQ_EV_ERROR:
-                    self.handle_error_event(act, 'System error %s.'%ev.data, fd)
+                    self.kcontrol((kevent(fd, act.flags, KQ_EV_DELETE),), 0)
+                    self.handle_error_event(act, 'System error %s.'%ev.data)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if not ret:
                             ev.flags = KQ_EV_ADD | KQ_EV_ONESHOT
                             self.kcontrol((ev,), 0)
-                        else:
-                            del self.shadow[fd]
+                            self.shadow[fd] = act
                         return ret
                     else:
                         if not self.handle_event(act):
                             ev.flags = KQ_EV_ADD | KQ_EV_ONESHOT
                             self.kcontrol((ev,), 0)
-                        else:
-                            del self.shadow[fd]
-                        
+                            self.shadow[fd] = act
         else:
             sleep(timeout)
             

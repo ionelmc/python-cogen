@@ -154,8 +154,8 @@ class IOCPProactor(ProactorBase):
             win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
             act.sock._proactor_added = True
     
-    def unregister_fd(self, act, fd=None):
-        win32file.CancelIo(fd or act.sock._fd.fileno()) 
+    def unregister_fd(self, act):
+        win32file.CancelIo(act.sock._fd.fileno()) 
     
     
     def try_run_act(self, act, func, rc, nbytes):

@@ -61,24 +61,24 @@ class StdlibEpollProactor(ProactorBase):
             events = self.epoll_obj.poll(ptimeout, 1024)
             len_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
-                act = self.shadow[fd]
+                act = self.shadow.pop(fd)
                 if ev & EPOLLHUP:
-                    self.handle_error_event(act, 'Hang up.', fd, ConnectionClosed)
+                    self.epoll_obj.unregister(fd)
+                    self.handle_error_event(act, 'Hang up.', ConnectionClosed)
                 elif ev & EPOLLERR:
-                    self.handle_error_event(act, 'Unknown error.', fd)
+                    self.epoll_obj.unregister(fd)
+                    self.handle_error_event(act, 'Unknown error.')
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if not ret:
                             self.epoll_obj.modify(fd, ev | EPOLLONESHOT)
-                        else:
-                            del self.shadow[fd]
+                            self.shadow[fd] = act
                         return ret
                     else:
                         if not self.handle_event(act):
                             self.epoll_obj.modify(fd, ev | EPOLLONESHOT)
-                        else:
-                            del self.shadow[fd]
+                            self.shadow[fd] = act
                         
                 
         else:
