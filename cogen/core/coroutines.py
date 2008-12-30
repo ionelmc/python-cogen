@@ -1,7 +1,7 @@
 """ 
 Coroutine related boilerplate and wrappers.
 """
-__all__ = ['local', 'coro', 'CoroutineInstance']
+__all__ = ['local', 'coro', 'CoroutineInstance', 'CoroutineException']
 
 import types
 import sys
@@ -44,6 +44,16 @@ class local(object):
                 "No variable %s defined for thread %s" % (attr, ident))
     def __repr__(self):
         return "<coroutine.local at 0x%X %r>"%(id(self), self.__dict__['__objs'])
+
+class CoroutineException(Exception):
+    """This is used intenally to carry exception state in the poller and 
+    scheduler."""
+    prio = priority.DEFAULT
+    #~ def __init__(self, *args):
+        #~ super(CoroutineException, self).__init__(*args)
+    def __str__(self):
+        import traceback
+        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.args))
 
 class CoroutineInstance(events.Operation):
     ''' 
@@ -125,7 +135,7 @@ class CoroutineInstance(events.Operation):
                 
                 try:
                     if self.exception:
-                        return events.CoroutineException(*self.exception), self.caller
+                        return CoroutineException(*self.exception), self.caller
                     else:                
                         return self, self.caller
                 finally:
@@ -167,7 +177,7 @@ class CoroutineInstance(events.Operation):
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
-                self, isinstance(op, events.CoroutineException) and op or 
+                self, isinstance(op, CoroutineException) and op or 
                 (hasattr(op, 'state') and {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state] or 'NOP'), op,
                 self._state_names[self.state],
                 self._state_names[self.STATE_COMPLETED]
@@ -176,13 +186,13 @@ class CoroutineInstance(events.Operation):
             #~ "%s called with:%s, last one:%s, expected state less than %s!" % (
                 #~ self, 
                 #~ op,
-                #~ isinstance(self.lastop, events.CoroutineException) and ''.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
+                #~ isinstance(self.lastop, CoroutineException) and ''.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
                 #~ self._state_names[self.STATE_COMPLETED]
             #~ )
         #~ self.lastop = op
         if self.debug:
             print 
-            if isinstance(op, events.CoroutineException):
+            if isinstance(op, CoroutineException):
                 print 'Running %r with exception:' % self,
                 if len(op.args) == 3:
                     print '[[['
@@ -200,7 +210,7 @@ class CoroutineInstance(events.Operation):
                 if self.debug:
                     import traceback
                     traceback.print_stack(self.coro.gi_frame)
-                if isinstance(op, events.CoroutineException):
+                if isinstance(op, CoroutineException):
                     rop = self.coro.throw(*op.args)
                 else:
                     rop = self.coro.send(op and op.finalize())

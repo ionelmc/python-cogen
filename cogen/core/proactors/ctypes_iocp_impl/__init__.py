@@ -24,8 +24,8 @@ from time import sleep
 
 from cogen.core.proactors.base import ProactorBase
 from cogen.core.util import priority, debug
-from cogen.core.sockets import Socket
-from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
+from cogen.core.sockets import Socket, SocketError, ConnectionClosed
+from cogen.core.coroutines import CoroutineException
 def perform_recv(act, overlapped):
     wsabuf = WSABUF()
     buf = create_string_buffer(act.len)
@@ -281,7 +281,8 @@ class CTYPES_IOCPProactor(ProactorBase):
                 #~ overlapped # LPOVERLAPPED lpOverlapped
             #~ )
         elif rc != WSA_IO_PENDING:
-            raise ConnectionError(rc, "%s on %r" % (ctypes.FormatError(rc), act))
+            self.remove_token(act)
+            raise SocketError(rc, "%s on %r" % (ctypes.FormatError(rc), act))
         
 
     def register_fd(self, act, performer):
@@ -335,7 +336,7 @@ class CTYPES_IOCPProactor(ProactorBase):
                 #~ import traceback
                 #~ traceback.print_stack()
                 return CoroutineException(
-                    ConnectionError, ConnectionError(
+                    SocketError, SocketError(
                         (rc, "%s on %r" % (ctypes.FormatError(rc), act))
                     )
                 ), act.coro

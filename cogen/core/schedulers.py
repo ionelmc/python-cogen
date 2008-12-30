@@ -27,7 +27,8 @@ import select
 from cogen.core.proactors import DefaultProactor
 from cogen.core import events
 from cogen.core import sockets
-from cogen.core.util import debug, priority
+from cogen.core.util import priority
+from cogen.core.coroutines import CoroutineException
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
@@ -168,7 +169,7 @@ class Scheduler(object):
                                                     op.cleanup(self, coro):
                 
                 self.active.append((
-                    events.CoroutineException(
+                    CoroutineException(
                         events.OperationTimeout, 
                         events.OperationTimeout(op)
                     ), 
@@ -187,7 +188,7 @@ class Scheduler(object):
                 result = op.process(self, coro) or (None, None)
             except:
                 op.state = events.ERRORED
-                result = events.CoroutineException(*sys.exc_info()), coro
+                result = CoroutineException(*sys.exc_info()), coro
             return result
         return None, None
         

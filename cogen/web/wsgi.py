@@ -69,7 +69,9 @@ from traceback import format_exc
 
 from cogen import core, __version__
 from cogen.core import proactors, sockets, events
-from cogen.core.util import debug, priority
+from cogen.core.util import priority
+from cogen.core.sockets import SocketError, ConnectionClosed
+from cogen.core.events import OperationTimeout
 from cogen.core.coroutines import coroutine, local
 from cogen.core.schedulers import Scheduler
 
@@ -517,9 +519,7 @@ class WSGIConnection(object):
         yield self.simple_response("500 Internal Server Error",
                     format_exc())
       return
-    except (events.OperationTimeout, 
-        events.ConnectionClosed, 
-        events.ConnectionError):
+    except (OperationTimeout, ConnectionClosed, SocketError):
       return
     except (KeyboardInterrupt, SystemExit, GeneratorExit, MemoryError):
       raise

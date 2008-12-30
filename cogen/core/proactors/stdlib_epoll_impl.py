@@ -10,6 +10,7 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_connect
 from cogen.core import sockets
 from cogen.core.util import priority
+from cogen.core.sockets import ConnectionClosed
 
 class StdlibEpollProactor(ProactorBase):
     "epoll based proactor implementation using python 2.6 select module."
@@ -19,8 +20,8 @@ class StdlibEpollProactor(ProactorBase):
         self.epoll_obj = epoll(default_size)
         self.shadow = {}
                     
-    def unregister_fd(self, act):
-        fileno = act.sock.fileno()
+    def unregister_fd(self, act, fd=None):
+        fileno = fd or act.sock.fileno()
         try:
             del self.shadow[fileno]
         except KeyError, e:
@@ -60,22 +61,25 @@ class StdlibEpollProactor(ProactorBase):
             events = self.epoll_obj.poll(ptimeout, 1024)
             len_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
-                act = self.shadow.pop(fd)
+                act = self.shadow[fd]
                 if ev & EPOLLHUP:
-                    self.handle_error_event(act, 'Hang up.', ConnectionClosed)
+                    self.handle_error_event(act, 'Hang up.', fd, ConnectionClosed)
                 elif ev & EPOLLERR:
-                    self.handle_error_event(act, 'Unknown error.')
+                    self.handle_error_event(act, 'Unknown error.', fd)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if not ret:
-                            self.shadow[fd] = act
                             self.epoll_obj.modify(fd, ev | EPOLLONESHOT)
+                        else:
+                            del self.shadow[fd]
                         return ret
                     else:
                         if not self.handle_event(act):
-                            self.shadow[fd] = act
                             self.epoll_obj.modify(fd, ev | EPOLLONESHOT)
+                        else:
+                            del self.shadow[fd]
+                        
                 
         else:
             sleep(timeout)

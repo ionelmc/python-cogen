@@ -18,9 +18,9 @@ class KQueueProactor(ProactorBase):
         self.kq = kqueue()
         self.default_size = default_size
     
-    def unregister_fd(self, act):
+    def unregister_fd(self, act, fd=None):
         try:
-            ev = EV_SET(act.sock.fileno(), act.flags, EV_DELETE)
+            ev = EV_SET(fd or act.sock.fileno(), act.flags, EV_DELETE)
             self.kq.kevent(ev)
         except OSError, e:
             import warnings
@@ -61,7 +61,7 @@ class KQueueProactor(ProactorBase):
                 act = ev.udata
                 
                 if ev.flags & EV_ERROR:
-                    self.handle_error_event(act, 'System error %s.'%ev.data)
+                    self.handle_error_event(act, 'System error %s.'%ev.data, fd)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)

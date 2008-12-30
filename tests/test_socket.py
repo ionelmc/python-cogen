@@ -9,7 +9,7 @@ import sys
 import errno
 import exceptions
 import datetime
-import traceback 
+import traceback
 import thread
 
 from cStringIO import StringIO
@@ -21,13 +21,14 @@ from cogen.core.coroutines import debug_coroutine
 class SocketTest_MixIn:
     sockets = []
     def setUp(self):
+        self.thread_exception = None
         self.local_addr = ('localhost', random.randint(10000,64000))
         if self.run_first is None:
-            self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
+            self.m = Scheduler( default_priority=self.prio, proactor=self.poller,
                                 proactor_resolution=0.01)
         else:
-            self.m = Scheduler( default_priority=self.prio, proactor=self.poller, 
-                                proactor_resolution=0.01, 
+            self.m = Scheduler( default_priority=self.prio, proactor=self.poller,
+                                proactor_resolution=0.01,
                                 proactor_multiplex_first=self.run_first)
         def run():
             try:
@@ -36,14 +37,52 @@ class SocketTest_MixIn:
             except:
                 import traceback
                 traceback.print_exc()
+                self.thread_exception = sys.exc_info
+                
         self.m_run = threading.Thread(target=run)
-        
+
     def tearDown(self):
         for s in self.sockets:
             s.close()
         self.sockets = []
         del self.m
         import gc; gc.collect()
+
+    def test_proper_err_cleanup(self):
+        @coroutine
+        def foo():
+            yield events.Sleep(0.2)
+            s = sockets.Socket()
+            yield s.connect(self.local_addr)
+            s.settimeout(0.01)
+            yield events.Sleep(0.2)
+            try:
+                yield s.send("aaaaaaaa")
+                yield s.send("bbbbbbbb") #should throw a EHUP or something in the mp
+            except sockets.SocketError, e:
+                #~ import traceback
+                #~ traceback.print_exc()
+                pass
+            
+            #test for proper cleanup
+            
+            x = sockets.Socket()
+            x.settimeout(0.1)
+            yield x.connect(self.local_addr)
+            
+
+        self.m.add(foo)
+        self.sock = socket.socket()
+        self.sock.bind(self.local_addr)
+        self.sock.listen(1)
+
+        self.m_run.start()
+        conn, addr = self.sock.accept()
+        #~ conn.shutdown(socket.SHUT_RDWR)
+        conn.close()
+
+        self.m_run.join()
+        self.failIf(self.thread_exception)
         
     def test_read_lines(self):
         self.waitobj = None
@@ -57,14 +96,14 @@ class SocketTest_MixIn:
             srv.listen(0)
             conn, addr = (yield srv.accept(prio=self.prio))
             fh = conn.makefile()
-            self.line1 = yield fh.readline(1024, prio=self.prio) 
+            self.line1 = yield fh.readline(1024, prio=self.prio)
             self.line2 = yield fh.readline(512, prio=self.prio)
             self.line3 = yield fh.readline(1512, prio=self.prio)
             # eat up the remaining data waiting on socket
             y1 = fh.readline(1024, prio=self.prio)
             y2 = fh.readline(1024, prio=self.prio)
             y3 = fh.readline(1024, prio=self.prio)
-            a1 = yield y1 
+            a1 = yield y1
             a2 = yield y2
             a3 = yield y3
             self.recvobj2 = (a1,a2,a3)
@@ -85,7 +124,7 @@ class SocketTest_MixIn:
         self.assertEqual(self.line1, "X"*512+"\n")
         time.sleep(0.5)
         sock.send("X"*1024)
-        
+
         time.sleep(1.5)
         self.assertEqual(self.line2, "X"*512)
         sock.send("\n")
@@ -97,7 +136,7 @@ class SocketTest_MixIn:
         self.assertEqual(len(self.m.proactor), 0)
         self.assertEqual(len(self.m.active), 0)
         self.failIf(self.m_run.isAlive())
-        
+
     def test_read_all(self):
         @coroutine
         def reader():
@@ -123,7 +162,7 @@ class SocketTest_MixIn:
         while sent<length:
             time.sleep(0.1)
             sent += sock.send(buff[sent:])
-        
+
         self.m_run.join()
         self.assert_(len(self.recvobj)<=1024*4)
         self.assertEqual(len(self.recvobj_all)+len(self.recvobj),1024**2)
@@ -136,7 +175,7 @@ class SocketTest_MixIn:
             try:
                 cli = sockets.Socket()
                 self.sockets.append(cli)
-                conn = yield sockets.Connect(cli, self.local_addr, timeout=0.5, prio=self.prio)    
+                conn = yield sockets.Connect(cli, self.local_addr, timeout=0.5, prio=self.prio)
                 self.writeobj = yield sockets.Send(conn, 'X'*(1024**2), prio=self.prio)
                 self.writeobj_all = yield sockets.SendAll(conn, 'Y'*(1024**2), prio=self.prio)
                 self.sockets.append(conn)
@@ -144,7 +183,7 @@ class SocketTest_MixIn:
             except:
                 traceback.print_exc()
                 thread.interrupt_main()
-                
+
         try:
             srv = socket.socket()
             self.sockets.append(srv)
@@ -156,7 +195,7 @@ class SocketTest_MixIn:
             thread.start_new_thread(lambda: time.sleep(0.3) or self.m_run.start(), ())
             while 1:
                 try:
-                    cli, addr = srv.accept()    
+                    cli, addr = srv.accept()
                     break
                 except socket.error, exc:
                     if exc[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
@@ -164,7 +203,7 @@ class SocketTest_MixIn:
                     else:
                         raise
             self.sockets.append(cli)
-                
+
             time.sleep(0.2)
             cli.setblocking(1)
             buff = cli.recv(1024*2)
@@ -187,7 +226,7 @@ class SocketTest_MixIn:
             self.failIf(self.m_run.isAlive())
         except KeyboardInterrupt:
             self.failIf("Interrupted from the coroutine, something failed.")
-            
+
 for poller_cls in proactors_available:
     for prio_mixin in priorities:
         if poller_cls.supports_multiplex_first:
@@ -203,8 +242,8 @@ for poller_cls in proactors_available:
                 name, (SocketTest_MixIn, prio_mixin, unittest.TestCase),
                 {'poller':poller_cls, 'run_first':None}
             )
-            
-        
+
+
 if __name__ == "__main__":
     sys.argv.insert(1, '-v')
     unittest.main()

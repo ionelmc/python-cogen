@@ -10,7 +10,7 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_connect
 from cogen.core import sockets
 from cogen.core.util import priority
-from cogen.core.events import ConnectionClosed
+from cogen.core.sockets import ConnectionClosed
 
 class EpollProactor(ProactorBase):
     def __init__(self, scheduler, res, default_size=1024, **options):
@@ -19,15 +19,16 @@ class EpollProactor(ProactorBase):
         self.epoll_fd = epoll_create(default_size)
         self.shadow = {}
                     
-    def unregister_fd(self, act):
+    def unregister_fd(self, act, fd=None):
+        fileno = fd or act.sock.fileno()
         try:
-            del self.shadow[act.sock.fileno()]
+            del self.shadow[fileno]
         except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
             
         try:
-            epoll_ctl(self.epoll_fd, EPOLL_CTL_DEL, act.sock.fileno(), 0)
+            epoll_ctl(self.epoll_fd, EPOLL_CTL_DEL, fileno, 0)
         except OSError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
@@ -60,22 +61,24 @@ class EpollProactor(ProactorBase):
             events = epoll_wait(epoll_fd, 1024, ptimeout)
             len_events = len(events)-1
             for nr, (ev, fd) in enumerate(events):
-                act = self.shadow.pop(fd)
+                act = self.shadow[fd]
                 if ev & EPOLLHUP:
-                    self.handle_error_event(act, 'Hang up.', ConnectionClosed)
+                    self.handle_error_event(act, 'Hang up.', fd, ConnectionClosed)
                 elif ev & EPOLLERR:
-                    self.handle_error_event(act, 'Unknown error.')
+                    self.handle_error_event(act, 'Unknown error.', fd)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if not ret:
-                            self.shadow[fd] = act
                             epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, ev | EPOLLONESHOT)
+                        else:
+                            del self.shadow[fd]
                         return ret
                     else:
                         if not self.handle_event(act):
-                            self.shadow[fd] = act
                             epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, ev | EPOLLONESHOT)
+                        else:
+                            del self.shadow[fd]
                 
         else:
             sleep(timeout)

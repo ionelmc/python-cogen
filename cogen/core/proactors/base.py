@@ -6,9 +6,9 @@ try:
 except:
     sendfile = None
 
-from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
-from cogen.core.sockets import Socket
-from cogen.core.util import priority, debug
+from cogen.core.coroutines import CoroutineException
+from cogen.core.sockets import Socket, SocketError, ConnectionClosed
+from cogen.core.util import priority
 
 
 def perform_recv(act):
@@ -47,7 +47,7 @@ def perform_connect(act):
         if err == errno.EISCONN:
             return act
         if err not in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINPROGRESS):
-            raise ConnectionError(err, errno.errorcode[err])
+            raise SocketError(err, errno.errorcode[err])
     else: # err==0 means successful connect
         return act
 
@@ -232,7 +232,7 @@ class ProactorBase(object):
             elif exc[0] == errno.EPIPE:
                 raise ConnectionClosed(exc)
             else:
-                raise
+                raise SocketError(exc)
         
     
     def register_fd(self, act, performer):
@@ -245,7 +245,7 @@ class ProactorBase(object):
         
         pass
         
-    def unregister_fd(self, act):
+    def unregister_fd(self, act, fd=None):
         """
         Perform additional handling (like cleanup) when a token is removed from 
         the proactor.
@@ -298,14 +298,16 @@ class ProactorBase(object):
             if op:
                 del self.tokens[act]
                 return op, coro
-        
-    def handle_error_event(self, act, detail, exc=ConnectionError):
+    
+    #~ from cogen.core.util import debug
+    #~ @debug(0)
+    def handle_error_event(self, act, detail, fd=None, exc=SocketError):
         """
         Handle an errored event. Calls the scheduler to schedule the associated 
         coroutine.
         """
         del self.tokens[act]
-        self.unregister_fd(act)
+        self.unregister_fd(act, fd)
         self.scheduler.active.append((
             CoroutineException(exc, exc(detail)), 
             act.coro

@@ -10,9 +10,9 @@ import sys
 from time import sleep
 
 from base import ProactorBase
-from cogen.core.util import priority, debug
-from cogen.core.sockets import Socket
-from cogen.core.events import ConnectionClosed, ConnectionError, CoroutineException
+from cogen.core.util import priority
+from cogen.core.sockets import Socket, SocketError, ConnectionClosed
+from cogen.core.coroutines import CoroutineException
 
 def perform_recv(act, overlapped):
     act.buff = win32file.AllocateReadBuffer(act.len)
@@ -138,22 +138,24 @@ class IOCPProactor(ProactorBase):
         overlapped.object = act
         self.add_token(act, coro, (overlapped, perform, complete))
         
-        rc, nbytes = perform(act, overlapped)
+        try:
+            rc, nbytes = perform(act, overlapped)
         
-        if rc == 0:
-            # ah geez, it didn't got in the iocp, we have a result!"
-            win32file.PostQueuedCompletionStatus(
-                self.iocp, nbytes, 0, overlapped
-            )
-        
+            if rc == 0:
+                # ah geez, it didn't got in the iocp, we have a result!"
+                win32file.PostQueuedCompletionStatus(
+                    self.iocp, nbytes, 0, overlapped
+                )
+        except pywintypes.error, exc:
+            raise SocketError(exc)
 
     def register_fd(self, act, performer):
         if not act.sock._proactor_added:
             win32file.CreateIoCompletionPort(act.sock._fd.fileno(), self.iocp, 0, 0)     
             act.sock._proactor_added = True
     
-    def unregister_fd(self, act):
-        win32file.CancelIo(act.sock._fd.fileno()) 
+    def unregister_fd(self, act, fd=None):
+        win32file.CancelIo(fd or act.sock._fd.fileno()) 
     
     
     def try_run_act(self, act, func, rc, nbytes):
@@ -194,7 +196,7 @@ class IOCPProactor(ProactorBase):
                 del self.tokens[act]
                 win32file.CancelIo(act.sock._fd.fileno())
                 return CoroutineException((
-                    ConnectionError, ConnectionError(
+                    SocketError, SocketError(
                         (rc, "%s on %r" % (ctypes.FormatError(rc), act))
                     )
                 )), act.coro

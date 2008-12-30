@@ -6,7 +6,7 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
                                 
-from cogen.core.events import ConnectionClosed
+from cogen.core.sockets import ConnectionClosed
 from cogen.core import sockets
 from cogen.core.util import priority
 
@@ -21,13 +21,14 @@ class PollProactor(ProactorBase):
         self.poller = poll()
         self.shadow = {}
 
-    def unregister_fd(self, act):
+    def unregister_fd(self, act, fd=None):
+        fileno = fd or act.sock.fileno()
         try:
-            del self.shadow[act.sock.fileno()]
-            self.poller.unregister(act.sock.fileno())
+            del self.shadow[fileno]
         except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
+        self.poller.unregister(fileno)
                     
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
@@ -52,25 +53,23 @@ class PollProactor(ProactorBase):
             events = self.poller.poll(ptimeout)
             len_events = len(events)-1
             for nr, (fd, ev) in enumerate(events):
-                act = self.shadow.pop(fd)
+                act = self.shadow[fd]
                 if ev & POLLHUP:
-                    self.handle_error_event(act, 'Hang up.', ConnectionClosed)
+                    self.handle_error_event(act, 'Hang up.', fd, ConnectionClosed)
                 elif ev & POLLNVAL:
-                    self.handle_error_event(act, 'Invalid descriptor.')
+                    self.handle_error_event(act, 'Invalid descriptor.', fd)
                 elif ev & POLLERR:
-                    self.handle_error_event(act, 'Unknown error.')
+                    self.handle_error_event(act, 'Unknown error.', fd)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if ret:
                             self.poller.unregister(fd)
-                        else:
-                            self.shadow[fd] = act
+                            del self.shadow[fd]
                         return ret
                     else:
                         if self.handle_event(act):
                             self.poller.unregister(fd)
-                        else:
-                            self.shadow[fd] = act
+                            del self.shadow[fd]
         else:
             sleep(timeout)

@@ -2,35 +2,19 @@
 Base events (coroutine operations) and coroutine exceptions.
 """
 __all__ = [
-    'CoroutineException', 'ConnectionError', 'ConnectionClosed', 
-    'OperationTimeout', 'WaitForSignal', 'Signal', 'Call', 'AddCoro', 
-    'Join', 'Sleep', 'Operation', 'TimedOperation', 'OldCall'
+    'OperationTimeout', 'WaitForSignal', 'Signal', 'AddCoro', 
+    'Join', 'Sleep', 'Operation', 'TimedOperation'
 ]
 import datetime
 import heapq
 
-from util import debug, priority
-#~ getnow = debug(0)(datetime.datetime.now)
+from util import priority
+#~ from sockets import SocketError as ConnectionError
+
 getnow = datetime.datetime.now
 
 RUNNING, FINALIZED, ERRORED = range(3)
 
-class CoroutineException(Exception):
-    """This is used intenally to carry exception state in the poller and 
-    scheduler."""
-    prio = priority.DEFAULT
-    #~ def __init__(self, *args):
-        #~ super(CoroutineException, self).__init__(*args)
-    def __str__(self):
-        import traceback
-        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.args))
-
-class ConnectionError(Exception):
-    "Raised when a socket has a error flag (in epoll or select)"
-    __doc_all__ = []
-class ConnectionClosed(Exception):
-    "Raised when the other peer has closed connection."
-    __doc_all__ = []
 class OperationTimeout(Exception):
     """Raised when the timeout for a operation expires. The exception 
     message will be the operation"""
@@ -94,13 +78,13 @@ class Operation(object):
         return "<%s at 0x%X with %s>" % (
             self.__class__.__name__,
             id(self),
-            ' '.join("%s:%.40s" % (i, getattr(self, i, 'n/a')) for i in _getslots(self.__class__))
+            ' '.join("%s:%.40s" % (i, getattr(self, i, 'n/a')) for i in set(_getslots(self.__class__)))
         )
     def __repr__(self):
         return "<%s at 0x%X with %s>" % (
             self.__class__.__name__,
             id(self),
-            ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in _getslots(self.__class__))
+            ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in set(_getslots(self.__class__)))
         )
 
 class TimedOperation(Operation):

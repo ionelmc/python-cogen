@@ -9,7 +9,7 @@ the :class:`~cogen.core.sockets.Socket` class.
 __all__ = [
     'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Recv',
     'Send', 'SendAll','Accept','Connect', 
-    'SocketOperation'
+    'SocketOperation', 'SocketError', 'ConnectionClosed'
 ]
 
 import socket
@@ -32,6 +32,15 @@ from coroutines import coro, debug_coro
 getnow = datetime.datetime.now
     
 _TIMEOUT = None
+
+
+class SocketError(Exception):
+    "Raised when a socket has a error flag (in epoll or select)"
+    __doc_all__ = []
+class ConnectionClosed(SocketError):
+    "Raised when the other peer has closed connection."
+    __doc_all__ = []
+
 
 def getdefaulttimeout():
     return _TIMEOUT

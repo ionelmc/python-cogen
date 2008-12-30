@@ -25,8 +25,8 @@ class StdlibKQueueProactor(ProactorBase):
         self.default_size = default_size
         self.shadow = {}
     
-    def unregister_fd(self, act):
-        fileno = act.sock.fileno()
+    def unregister_fd(self, act, fd=None):
+        fileno = fd or act.sock.fileno()
         try:
             del self.shadow[fileno]
         except KeyError, e:
@@ -64,23 +64,26 @@ class StdlibKQueueProactor(ProactorBase):
             len_events = len(events)-1
             for nr, ev in enumerate(events):
                 fd = ev.ident
-                act = self.shadow.pop(fd)
+                act = self.shadow[fd]
                 
                 if ev.flags & KQ_EV_ERROR:
-                    self.handle_error_event(act, 'System error %s.'%ev.data)
+                    self.handle_error_event(act, 'System error %s.'%ev.data, fd)
                 else:
                     if nr == len_events:
                         ret = self.yield_event(act)
                         if not ret:
-                            self.shadow[fd] = act
                             ev.flags = KQ_EV_ADD | KQ_EV_ONESHOT
                             self.kcontrol((ev,), 0)
+                        else:
+                            del self.shadow[fd]
                         return ret
                     else:
                         if not self.handle_event(act):
-                            self.shadow[fd] = act
                             ev.flags = KQ_EV_ADD | KQ_EV_ONESHOT
                             self.kcontrol((ev,), 0)
+                        else:
+                            del self.shadow[fd]
+                        
         else:
             sleep(timeout)
             

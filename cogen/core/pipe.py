@@ -71,7 +71,7 @@ class IterateToken(events.Operation):
                 self.coro.remove_waiter(coro, self.iterator)
                 
                 sched.active.appendleft((
-                    events.CoroutineException(
+                    coroutines.CoroutineException(
                         IterationStopped, 
                         IterationStopped(),
                         None
