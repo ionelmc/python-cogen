@@ -88,3 +88,48 @@ I usually change this::
 to::
 
     def make_app(global_conf, full_stack=False, **app_conf):
+
+Starting coroutines on your app's startup
+'''''''''''''''''''''''''''''''''''''''''
+
+One solution could be making a custom server runner in your pylons app and
+starting the coroutines there.
+
+A custom server runner looks like::
+
+    from cogen.web.wsgi import Runner
+    from cogen.web.wsgi import local
+
+
+    pubsub = PublishSubscribeQueue()
+    engine = Engine(pubsub)
+
+    def server_runner(app, global_conf, host, port, **options):
+      port = int(port)
+
+      try:
+        import paste.util.threadinglocal as pastelocal
+        pastelocal.local = local
+      except ImportError:
+        pass
+       
+      runner = Runner(host, port, app, options)
+      
+      # you start the coroutines here
+      
+      # eg:
+      runner.sched.add(my_startup_coro)
+      
+      runner.run()
+
+Then you have to edit your `setup.py` to add a special server runner entry point.
+In `entry_points` add::
+
+    [paste.server_runner]
+    hijacked_runner = pylonsappname.async:server_runner
+
+And finally change the development.ini of whatever you are running paste with to have
+something like::
+
+    [server:main]
+    use = egg:pylonsappname#hijacked_runner

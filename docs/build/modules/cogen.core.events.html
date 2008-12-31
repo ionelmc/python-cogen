@@ -72,28 +72,6 @@
 <h1><tt class="xref docutils literal"><span class="pre">cogen.core.events</span></tt><a class="headerlink" href="#module-cogen.core.events" title="Permalink to this headline">¶</a></h1>
 <p>Base events (coroutine operations) and coroutine exceptions.</p>
 <dl class="exception">
-<dt id="cogen.core.events.CoroutineException">
-<!--[cogen.core.events.CoroutineException]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">CoroutineException</tt><a class="headerlink" href="#cogen.core.events.CoroutineException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
-<p>This is used intenally to carry exception state in the poller and 
-scheduler.</p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="cogen.core.events.ConnectionError">
-<!--[cogen.core.events.ConnectionError]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">ConnectionError</tt><a class="headerlink" href="#cogen.core.events.ConnectionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
-<p>Raised when a socket has a error flag (in epoll or select)</p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="cogen.core.events.ConnectionClosed">
-<!--[cogen.core.events.ConnectionClosed]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">ConnectionClosed</tt><a class="headerlink" href="#cogen.core.events.ConnectionClosed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
-<p>Raised when the other peer has closed connection.</p>
-</dd></dl>
-
-<dl class="exception">
 <dt id="cogen.core.events.OperationTimeout">
 <!--[cogen.core.events.OperationTimeout]-->exception <tt class="descclassname">cogen.core.events.</tt><tt class="descname">OperationTimeout</tt><a class="headerlink" href="#cogen.core.events.OperationTimeout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
@@ -215,20 +193,6 @@ later, otherwise activate the waiting coroutines.</dd></dl>
 <!--[cogen.core.events.Signal.value]--><tt class="descname">value</tt><a class="headerlink" href="#cogen.core.events.Signal.value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="function">
-<dt id="cogen.core.events.Call">
-<!--[cogen.core.events.Call]--><tt class="descclassname">cogen.core.events.</tt><tt class="descname">Call</tt><big>(</big><em>coro</em>, <em>args=None</em>, <em>kwargs=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.Call" title="Permalink to this definition">¶</a></dt>
-<dd><p>You don&#8217;t need to use this. You can just yield the called coroutine:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">mycoro</span><span class="p">(</span> <span class="p">[</span><span class="n">arguments</span><span class="p">]</span> <span class="p">)</span>
-</pre></div>
-</div>
-<p>Compared to <a title="cogen.core.events.OldCall" class="reference internal" href="#cogen.core.events.OldCall"><tt class="xref docutils literal"><span class="pre">OldCall</span></tt></a>, 
-instead of returning an Operation object it returns the 
-new Coroutine directly that will act as a Call operation in it&#8217;s pre-init 
-state. This is faster for 2 reasons: avoids one Operation instatiation and 
-avoids pushing and poping the new coroutine on the active coros queue.</p>
 </dd></dl>
 
 <dl class="class">
@@ -453,47 +417,6 @@ the coroutine.</dd></dl>
 <dt id="cogen.core.events.TimedOperation.weak_timeout">
 <!--[cogen.core.events.TimedOperation.weak_timeout]--><tt class="descname">weak_timeout</tt><a class="headerlink" href="#cogen.core.events.TimedOperation.weak_timeout" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="cogen.core.events.OldCall">
-<!--[cogen.core.events.OldCall]-->class <tt class="descclassname">cogen.core.events.</tt><tt class="descname">OldCall</tt><big>(</big><em>coro</em>, <em>args=None</em>, <em>kwargs=None</em>, <em>**kws</em><big>)</big><a class="headerlink" href="#cogen.core.events.OldCall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="cogen.core.events.Operation" class="reference internal" href="#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">cogen.core.events.Operation</span></tt></a></p>
-<p>This will pause the current coroutine, add a new coro in the scheduler and 
-resume the callee when it returns.</p>
-<p>Usage:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">events</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">mycoro</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">prio</span><span class="o">=</span><span class="n">priority</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li>mycoro - the coroutine to add.</li>
-<li>args, kwargs - params to call the coroutine with</li>
-<li>if <cite>prio</cite> is set the new coroutine will be added in the top of the 
-scheduler queue</li>
-</ul>
-<p>See: <a title="cogen.core.events.Operation" class="reference internal" href="#cogen.core.events.Operation"><tt class="xref docutils literal"><span class="pre">Operation</span></tt></a>.</p>
-<dl class="attribute">
-<dt id="cogen.core.events.OldCall.args">
-<!--[cogen.core.events.OldCall.args]--><tt class="descname">args</tt><a class="headerlink" href="#cogen.core.events.OldCall.args" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="cogen.core.events.OldCall.coro">
-<!--[cogen.core.events.OldCall.coro]--><tt class="descname">coro</tt><a class="headerlink" href="#cogen.core.events.OldCall.coro" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="cogen.core.events.OldCall.kwargs">
-<!--[cogen.core.events.OldCall.kwargs]--><tt class="descname">kwargs</tt><a class="headerlink" href="#cogen.core.events.OldCall.kwargs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="cogen.core.events.OldCall.process">
-<!--[cogen.core.events.OldCall.process]--><tt class="descname">process</tt><big>(</big><em>sched</em>, <em>coro</em><big>)</big><a class="headerlink" href="#cogen.core.events.OldCall.process" title="Permalink to this definition">¶</a></dt>
-<dd>Add the called coro in the sched and set the calling coroutine as
-the caller in the called coro (the called coro will activate the calling
-coro when it dies).</dd></dl>
 
 </dd></dl>
 

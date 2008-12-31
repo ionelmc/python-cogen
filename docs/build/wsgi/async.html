@@ -53,7 +53,10 @@
 </ul>
 </li>
 <li><a class="reference external" href="#running-async-apps-in-a-regular-wsgi-stack">Running async apps in a regular wsgi stack</a><ul>
-<li><a class="reference external" href="#pylons">Pylons</a></li>
+<li><a class="reference external" href="#pylons">Pylons</a><ul>
+<li><a class="reference external" href="#starting-coroutines-on-your-app-s-startup">Starting coroutines on your app&#8217;s startup</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -164,6 +167,48 @@ in order to catch errors - and our async app needs to be streamable.</p>
 </div>
 <p>to:</p>
 <div class="highlight-python"><pre>def make_app(global_conf, full_stack=False, **app_conf):</pre>
+</div>
+<div class="section" id="starting-coroutines-on-your-app-s-startup">
+<h4>Starting coroutines on your app&#8217;s startup<a class="headerlink" href="#starting-coroutines-on-your-app-s-startup" title="Permalink to this headline">¶</a></h4>
+<p>One solution could be making a custom server runner in your pylons app and
+starting the coroutines there.</p>
+<p>A custom server runner looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cogen.web.wsgi</span> <span class="kn">import</span> <span class="n">Runner</span>
+<span class="kn">from</span> <span class="nn">cogen.web.wsgi</span> <span class="kn">import</span> <span class="n">local</span>
+
+
+<span class="n">pubsub</span> <span class="o">=</span> <span class="n">PublishSubscribeQueue</span><span class="p">()</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">pubsub</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">server_runner</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">global_conf</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+  <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+
+  <span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">paste.util.threadinglocal</span> <span class="kn">as</span> <span class="nn">pastelocal</span>
+    <span class="n">pastelocal</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">local</span>
+  <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+  <span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+  <span class="c"># you start the coroutines here</span>
+
+  <span class="c"># eg:</span>
+  <span class="n">runner</span><span class="o">.</span><span class="n">sched</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">my_startup_coro</span><span class="p">)</span>
+
+  <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then you have to edit your <cite>setup.py</cite> to add a special server runner entry point.
+In <cite>entry_points</cite> add:</p>
+<div class="highlight-python"><pre>[paste.server_runner]
+hijacked_runner = pylonsappname.async:server_runner</pre>
+</div>
+<p>And finally change the development.ini of whatever you are running paste with to have
+something like:</p>
+<div class="highlight-python"><pre>[server:main]
+use = egg:pylonsappname#hijacked_runner</pre>
+</div>
 </div>
 </div>
 </div>

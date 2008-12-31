@@ -47,7 +47,7 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="cogen.core.proactors.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.proactors</span></tt></a></p>
+            <p class="topless"><a href="cogen.core.proactors.html" title="previous chapter"><tt class="docutils literal"><span class="pre">cogen.core.proactors</span></tt></a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="cogen.core.proactors.select_impl.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.proactors.select_impl</span></tt></a></p>
             <h3>This Page</h3>
@@ -88,7 +88,7 @@ corutine and perform callable.</dd></dl>
 
 <dl class="method">
 <dt id="cogen.core.proactors.base.ProactorBase.handle_error_event">
-<!--[cogen.core.proactors.base.ProactorBase.handle_error_event]--><tt class="descname">handle_error_event</tt><big>(</big><em>act</em>, <em>detail</em>, <em>exc=&lt;class 'cogen.core.events.ConnectionError'&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.handle_error_event" title="Permalink to this definition">¶</a></dt>
+<!--[cogen.core.proactors.base.ProactorBase.handle_error_event]--><tt class="descname">handle_error_event</tt><big>(</big><em>act</em>, <em>detail</em>, <em>exc=&lt;class 'cogen.core.sockets.SocketError'&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.handle_error_event" title="Permalink to this definition">¶</a></dt>
 <dd>Handle an errored event. Calls the scheduler to schedule the associated 
 coroutine.</dd></dl>
 
@@ -172,7 +172,7 @@ calls are usually made from a Foo subclass.</p>
 
 <dl class="method">
 <dt id="cogen.core.proactors.base.ProactorBase.unregister_fd">
-<!--[cogen.core.proactors.base.ProactorBase.unregister_fd]--><tt class="descname">unregister_fd</tt><big>(</big><em>act</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.unregister_fd" title="Permalink to this definition">¶</a></dt>
+<!--[cogen.core.proactors.base.ProactorBase.unregister_fd]--><tt class="descname">unregister_fd</tt><big>(</big><em>act</em>, <em>fd=None</em><big>)</big><a class="headerlink" href="#cogen.core.proactors.base.ProactorBase.unregister_fd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform additional handling (like cleanup) when a token is removed from 
 the proactor.</p>
 <p>Overriden in a subclass.</p>

@@ -47,7 +47,7 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="cogen.core.schedulers.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.schedulers</span></tt></a></p>
+            <p class="topless"><a href="cogen.core.schedulers.html" title="previous chapter"><tt class="docutils literal"><span class="pre">cogen.core.schedulers</span></tt></a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="cogen.core.util.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.util</span></tt></a></p>
             <h3>This Page</h3>
@@ -468,6 +468,20 @@ return them first.</p>
 <!--[cogen.core.sockets.SocketOperation.sock]--><tt class="descname">sock</tt><a class="headerlink" href="#cogen.core.sockets.SocketOperation.sock" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="exception">
+<dt id="cogen.core.sockets.SocketError">
+<!--[cogen.core.sockets.SocketError]-->exception <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">SocketError</tt><a class="headerlink" href="#cogen.core.sockets.SocketError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>Raised when a socket has a error flag (in epoll or select)</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="cogen.core.sockets.ConnectionClosed">
+<!--[cogen.core.sockets.ConnectionClosed]-->exception <tt class="descclassname">cogen.core.sockets.</tt><tt class="descname">ConnectionClosed</tt><a class="headerlink" href="#cogen.core.sockets.ConnectionClosed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="cogen.core.sockets.SocketError" class="reference internal" href="#cogen.core.sockets.SocketError"><tt class="xref docutils literal"><span class="pre">cogen.core.sockets.SocketError</span></tt></a></p>
+<p>Raised when the other peer has closed connection.</p>
 </dd></dl>
 
 </div>
