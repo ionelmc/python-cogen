@@ -1,3 +1,4 @@
+import sys
 try:
     import psyco
     psyco.full()
@@ -15,11 +16,11 @@ from cogen.web.wsgi import WSGIServer
 sched = cogen.core.schedulers.Scheduler(
     default_timeout=-1, 
     default_priority=cogen.core.util.priority.FIRST,
-    proactor=cogen.core.proactors.has_epoll(),
+    proactor=getattr(cogen.core.proactors, 'has_'+(sys.argv[1] if len(sys.argv) > 1 else 'any'))(),
     proactor_resolution=1,
     
     proactor_greedy=False,
-    ops_greedy=True,
+    #~ ops_greedy=True,
     proactor_multiplex_first=True
 )
 print 'Using', sched.proactor.__class__.__name__
@@ -40,7 +41,7 @@ sched.add(server.serve)
 def run():
     try:
         sched.run()
-    except KeyboardInterrupt:
+    except:
         import traceback
         traceback.print_exc()
         
