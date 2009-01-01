@@ -47,7 +47,7 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="cogen.web.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.web</span></tt></a></p>
+            <p class="topless"><a href="cogen.web.html" title="previous chapter"><tt class="docutils literal"><span class="pre">cogen.web</span></tt></a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="cogen.web.wsgi.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.web.wsgi</span></tt></a></p>
             <h3>This Page</h3>
@@ -70,36 +70,16 @@
             
   <div class="section" id="module-cogen.web.async">
 <h1><tt class="xref docutils literal"><span class="pre">cogen.web.async</span></tt><a class="headerlink" href="#module-cogen.web.async" title="Permalink to this headline">¶</a></h1>
-<p>cogen.web.wsgi server is asynchronous by default. If you need to run a app that
-uses wsgi.input synchronously you need to wrapp it in 
-<a class="reference external" href="cogen.web.async.SynchronousInputMiddleware.html">SynchronousInputMiddleware</a>.</p>
-<p>Wsgi asynchronous api only provides a read operation at the moment. Here&#8217;s a
-example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">buff</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-<span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
-    <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_length</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.wsgi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">result</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">traceback</span>
-        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="o">*</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.wsgi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">exception</span><span class="p">)</span>
-        <span class="k">break</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="n">buff</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="n">buff</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span>
-<span class="c"># ...</span>
-<span class="c"># do something with the data</span>
-<span class="c"># ...</span>
-</pre></div>
-</div>
+<p>cogen.web.wsgi server is asynchronous by default. 
+If you need to run a app that uses wsgi.input synchronously you need to wrapp 
+it in <a title="cogen.web.async.SynchronousInputMiddleware" class="reference internal" href="#cogen.web.async.SynchronousInputMiddleware"><tt class="xref docutils literal"><span class="pre">SynchronousInputMiddleware</span></tt></a>.</p>
 <dl class="class">
 <dt id="cogen.web.async.LazyStartResponseMiddleware">
 <!--[cogen.web.async.LazyStartResponseMiddleware]-->class <tt class="descclassname">cogen.web.async.</tt><tt class="descname">LazyStartResponseMiddleware</tt><big>(</big><em>app</em>, <em>global_conf={}</em><big>)</big><a class="headerlink" href="#cogen.web.async.LazyStartResponseMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a evil piece of middleware that proxyes the start_response
 call and delays it till the appiter yields a non-empty string.
 Also, this returns a fake write callable that buffers the strings passed
-though it.</p>
+though it. Use at your own peril :)</p>
 <dl class="method">
 <dt id="cogen.web.async.LazyStartResponseMiddleware.start_response">
 <!--[cogen.web.async.LazyStartResponseMiddleware.start_response]--><tt class="descname">start_response</tt><big>(</big><em>status</em>, <em>headers</em>, <em>exc=None</em><big>)</big><a class="headerlink" href="#cogen.web.async.LazyStartResponseMiddleware.start_response" title="Permalink to this definition">¶</a></dt>

@@ -49,7 +49,7 @@
 <li><a class="reference external" href="">Asynchronous server extensions</a><ul>
 <li><a class="reference external" href="#introduction">Introduction</a><ul>
 <li><a class="reference external" href="#example-app-with-coroutine-extensions">Example app with coroutine extensions</a></li>
-<li><a class="reference external" href="#example-reading-the-input-asynchronously">Example reading the input asynchronously</a></li>
+<li><a class="reference external" href="#reading-the-input-asynchronously">Reading the input asynchronously</a></li>
 </ul>
 </li>
 <li><a class="reference external" href="#running-async-apps-in-a-regular-wsgi-stack">Running async apps in a regular wsgi stack</a><ul>
@@ -89,23 +89,46 @@
 <h1>Asynchronous server extensions<a class="headerlink" href="#asynchronous-server-extensions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The idea is to support asynchronous operations: that is give the wsgi app ability to pause itself, resume when something happens and make available the result of that <strong>something</strong>.
-In <cite>cogen</cite> that <strong>something</strong> is a operation.</p>
-<p>Another desired feature is to allow use of middleware. We achieve this by yielding empty strings in the app and saving the operation to be run in a object from <cite>environ</cite> - wsgi spec specifies that middleware should yield at least as many chunks as the wrapped app has yielded <a class="footnote-reference" href="#id2" id="id1">[1]</a>. Though not any middleware follows that to the letter - you have to look at <cite>cogen.web.wsgi</cite> as to a streaming server - if the middleware flattens the response the breakage will occur as operations aren&#8217;t send to the wsgi server and the app is not paused.</p>
+<p>The idea is to support asynchronous operations: that is give the wsgi app ability
+to pause itself, resume when something happens and make available the result of
+that <em>something</em>. In cogen that <em>something</em> is a operation.</p>
+<p>Another desired feature is to allow use of middleware. We achieve this by
+yielding empty strings in the app and saving the operation to be run in a
+object from <cite>environ</cite> - wsgi spec specifies that middleware should yield at
+least as many chunks as the wrapped app has yielded <a class="footnote-reference" href="#id2" id="id1">[1]</a>. Though not any
+middleware follows that to the letter - you have to look at <cite>cogen.web.wsgi</cite>
+as to a streaming server - if the middleware flattens the response then breakage
+will occur as operations aren&#8217;t sent to the wsgi server and the app is not paused.</p>
 <p>The wsgi server provides 4 nice objects in the environ that eases writing apps like this:</p>
 <blockquote>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">environ['cogen.core']</span></tt> - a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> with the called object and returns a empty string. This should penetrate all the compilant middleware - take note of the flatten issue above.</li>
-<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi']</span></tt> - this is a object for communications between the app and the server<ul>
-<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].result</span></tt> - holds the result of the operation, if a error occured it will be a instance of <tt class="xref docutils literal"><span class="pre">Exception</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> - hold the operation to run - you don&#8217;t need to fiddle with need - just use <tt class="docutils literal"><span class="pre">environ['cogen.core']</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].exception</span></tt> - holds complete information about the error occurred in a tuple: <tt class="docutils literal"><span class="pre">(type,</span> <span class="pre">value,</span> <span class="pre">traceback)</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.core']</span></tt> - a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt>
+with the called object and returns a empty string. This should penetrate all
+the compilant middleware - take note of the flatten issue above.</li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi']</span></tt> - this is a object for communications between
+the app and the server<ul>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].result</span></tt> - holds the result of the operation,
+if a error occured it will be a instance of <tt class="xref docutils literal"><span class="pre">Exception</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> - hold the operation to run - you
+don&#8217;t need to fiddle with need - just use <tt class="docutils literal"><span class="pre">environ['cogen.core']</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].exception</span></tt> - holds complete information about the
+error occurred in a tuple: <tt class="docutils literal"><span class="pre">(type,</span> <span class="pre">value,</span> <span class="pre">traceback)</span></tt></li>
 </ul>
 </li>
-<li><tt class="docutils literal"><span class="pre">environ['cogen.input']</span></tt> - wrapped instance of <tt class="xref docutils literal"><span class="pre">_fileobject</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">environ['cogen.call']</span></tt> - a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> with the called object and returns a empty string.</li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.input']</span></tt> - wrapped instance of <a title="cogen.core.sockets._fileobject" class="reference external" href="../modules/cogen.core.sockets.html#cogen.core.sockets._fileobject"><tt class="xref docutils literal"><span class="pre">_fileobject</span></tt></a></li>
+<li><tt class="docutils literal"><span class="pre">environ['cogen.call']</span></tt> - a wrapper that sets <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt>
+with the called object and returns a empty string.</li>
 </ul>
 </blockquote>
+<p>So for example, if you have something like this in your wsgi app:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>what actually happens is that <tt class="docutils literal"><span class="pre">environ['cogen.core'].events.Sleep(1)</span></tt> will return an
+empty string and set <tt class="docutils literal"><span class="pre">environ['cogen.wsgi'].operation</span></tt> to the actual Sleep
+operation object. If your middleware stack respects the wsgi spec it will pass
+that empty string down to the wsgi server where the Sleep operation will
+be processed.</p>
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -125,8 +148,10 @@ In <cite>cogen</cite> that <strong>something</strong> is a operation.</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="example-reading-the-input-asynchronously">
-<h3>Example reading the input asynchronously<a class="headerlink" href="#example-reading-the-input-asynchronously" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="reading-the-input-asynchronously">
+<h3>Reading the input asynchronously<a class="headerlink" href="#reading-the-input-asynchronously" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">environ['cogen.input']</span></tt> is an wrapped <a title="cogen.core.sockets._fileobject" class="reference external" href="../modules/cogen.core.sockets.html#cogen.core.sockets._fileobject"><tt class="xref docutils literal"><span class="pre">_fileobject</span></tt></a>.</p>
+<p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">buff</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
 <span class="k">while</span> <span class="mf">1</span><span class="p">:</span>
     <span class="k">yield</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;cogen.input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">8192</span><span class="p">)</span>
@@ -159,11 +184,11 @@ In <cite>cogen</cite> that <strong>something</strong> is a operation.</p>
 </pre></div>
 </div>
 <p>Also, your <cite>make_app</cite> factory has an option <cite>full_stack</cite> that you need to set to
-False (either set the default to False or set it in in your deployment .ini file).
+False (either set the default to False or set it in in your configuration .ini file).
 We need to do this because the <cite>ErrorHandler</cite> middleware consumes the app iterable
 in order to catch errors - and our async app needs to be streamable.</p>
 <p>I usually change this:</p>
-<div class="highlight-python"><pre>def make_app(global_conf, full_stack=False, **app_conf):</pre>
+<div class="highlight-python"><pre>def make_app(global_conf, full_stack=True, **app_conf):</pre>
 </div>
 <p>to:</p>
 <div class="highlight-python"><pre>def make_app(global_conf, full_stack=False, **app_conf):</pre>

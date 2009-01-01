@@ -5,3 +5,8 @@
     :members:
     :undoc-members:
     :show-inheritance:
+
+    .. autoclass:: _fileobject
+        :members:
+        :undoc-members:
+        :show-inheritance:

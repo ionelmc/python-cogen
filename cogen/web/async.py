@@ -1,29 +1,8 @@
 """
-cogen.web.wsgi server is asynchronous by default. If you need to run a app that
-uses wsgi.input synchronously you need to wrapp it in 
-`SynchronousInputMiddleware <cogen.web.async.SynchronousInputMiddleware.html>`_.
+cogen.web.wsgi server is asynchronous by default. 
+If you need to run a app that uses wsgi.input synchronously you need to wrapp 
+it in :class:`SynchronousInputMiddleware`.
 
-Wsgi asynchronous api only provides a read operation at the moment. Here's a
-example:
-
-.. sourcecode:: python
-
-    buff = StringIO()
-    while 1:
-        yield environ['cogen.input'].Read(self.buffer_length)
-        result = environ['cogen.wsgi'].result
-        if isinstance(result, Exception):
-            import traceback
-            traceback.print_exception(*environ['cogen.wsgi'].exception)
-            break
-        else:
-            if not result:
-                break
-            buff.write(result)
-    buff.seek(0)
-    # ...
-    # do something with the data
-    # ...
 """
 __all__ = [
     'LazyStartResponseMiddleware', 'SynchronousInputMiddleware'
@@ -89,7 +68,7 @@ class LazyStartResponseMiddleware:
     """This is a evil piece of middleware that proxyes the start_response
     call and delays it till the appiter yields a non-empty string.
     Also, this returns a fake write callable that buffers the strings passed
-    though it.
+    though it. Use at your own peril :)
     """
     def __init__(self, app, global_conf={}):
         self.app = app
