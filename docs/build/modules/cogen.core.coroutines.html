@@ -47,7 +47,7 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="cogen.core.html" title="previous chapter"><tt class="docutils literal"><span class="pre">cogen.core</span></tt></a></p>
+            <p class="topless"><a href="cogen.core.html" title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">cogen.core</span></tt></a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="cogen.core.events.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.events</span></tt></a></p>
             <h3>This Page</h3>
@@ -89,7 +89,37 @@ That means, the current running coroutine has the _ident_.</p>
 <dl class="data">
 <dt id="cogen.core.coroutines.coro">
 <!--[cogen.core.coroutines.coro]--><tt class="descclassname">cogen.core.coroutines.</tt><tt class="descname">coro</tt><a class="headerlink" href="#cogen.core.coroutines.coro" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <tt class="xref docutils literal"><span class="pre">Coroutine</span></tt></dd></dl>
+<dd>alias of <a title="cogen.core.coroutines.Coroutine" class="reference internal" href="#cogen.core.coroutines.Coroutine"><tt class="xref docutils literal"><span class="pre">Coroutine</span></tt></a></dd></dl>
+
+<dl class="data">
+<dt id="cogen.core.coroutines.coroutine">
+<!--[cogen.core.coroutines.coroutine]--><tt class="descclassname">cogen.core.coroutines.</tt><tt class="descname">coroutine</tt><a class="headerlink" href="#cogen.core.coroutines.coroutine" title="Permalink to this definition">¶</a></dt>
+<dd>alias of <a title="cogen.core.coroutines.Coroutine" class="reference internal" href="#cogen.core.coroutines.Coroutine"><tt class="xref docutils literal"><span class="pre">Coroutine</span></tt></a></dd></dl>
+
+<dl class="class">
+<dt id="cogen.core.coroutines.Coroutine">
+<!--[cogen.core.coroutines.Coroutine]-->class <tt class="descclassname">cogen.core.coroutines.</tt><tt class="descname">Coroutine</tt><big>(</big><em>func</em>, <em>constructor=&lt;class 'cogen.core.coroutines.CoroutineInstance'&gt;</em><big>)</big><a class="headerlink" href="#cogen.core.coroutines.Coroutine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>A decorator function for generators.
+Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@coroutine</span>
+<span class="k">def</span> <span class="nf">plain_ol_generator</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="k">yield</span> <span class="n">bla</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="cogen.core.coroutines.Coroutine.constructor">
+<!--[cogen.core.coroutines.Coroutine.constructor]--><tt class="descname">constructor</tt><a class="headerlink" href="#cogen.core.coroutines.Coroutine.constructor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cogen.core.coroutines.Coroutine.wrapped_func">
+<!--[cogen.core.coroutines.Coroutine.wrapped_func]--><tt class="descname">wrapped_func</tt><a class="headerlink" href="#cogen.core.coroutines.Coroutine.wrapped_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="cogen.core.coroutines.CoroutineInstance">
