@@ -8,9 +8,6 @@ from time import sleep
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
-from cogen.core import sockets
-from cogen.core.util import priority
-from cogen.core import events
 
 class KQueueProactor(ProactorBase):
     def __init__(self, scheduler, res, default_size=1024, **options):

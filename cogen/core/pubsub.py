@@ -15,7 +15,6 @@ class PSPut(events.Operation):
         super(PSPut, self).process(sched, coro)
         self.queue.messages.append(self.message)
         result = [self.message]
-        key = self.key or coro
         for getkey in self.queue.active_subscribers:
             self.queue.subscribers[getkey] += 1
             getop, getcoro = self.queue.active_subscribers[getkey]
@@ -91,7 +90,7 @@ class PSUnsubscribe(events.Operation):
         self.key = key
     
     def process(self, sched, coro):
-        super(PSSubscribe, self).process(sched, coro)
+        super(PSUnsubscribe, self).process(sched, coro)
         del self.queue.subscribers[self.key or coro]
         return self, coro
 

@@ -63,8 +63,6 @@ def has_iocp():
         if not hasattr(win32file, 'ConnectEx'):
             # we'd better stay away from it till someone adds the ConnectEx
             pass
-        import win32event
-        import win32api
         import pywintypes
         import socket
         import ctypes

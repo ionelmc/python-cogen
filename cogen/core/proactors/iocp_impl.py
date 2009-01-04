@@ -1,7 +1,5 @@
 from __future__ import division
 import win32file
-import win32event
-import win32api
 import pywintypes
 import socket
 import ctypes

@@ -8,8 +8,7 @@ from select import epoll, EPOLLIN, EPOLLOUT, EPOLLPRI, EPOLLERR, EPOLLHUP, \
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
-from cogen.core import sockets
-from cogen.core.util import priority
+
 from cogen.core.sockets import ConnectionClosed
 
 class StdlibEpollProactor(ProactorBase):

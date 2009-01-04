@@ -19,6 +19,7 @@ import sys
 import socket
 import ctypes
 import struct
+import errno
 
 from time import sleep
 

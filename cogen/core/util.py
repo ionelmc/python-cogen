@@ -3,7 +3,6 @@ Mischelaneous or common.
 """
 __all__ = ['debug', 'priority', 'fmt_list']
 
-import datetime
 import sys
 
                 
@@ -69,7 +68,6 @@ class priority(object):
     ======== ===================================================================
     
     """
-    __doc_all__ = []
     DEFAULT = -1    
     LAST  = NOPRIO = 0
     CORO  = 1

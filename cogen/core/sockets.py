@@ -13,33 +13,19 @@ __all__ = [
 ]
 
 import socket
-import errno
-import exceptions
-import datetime
-import struct
-
-try:
-    import ctypes
-    import win32file
-    import win32event
-    import pywintypes
-except:
-    pass
 
 import events
-from util import debug, priority, fmt_list
-from coroutines import coro, debug_coro
-getnow = datetime.datetime.now
+from coroutines import coro
     
 _TIMEOUT = None
 
 
 class SocketError(Exception):
     "Raised when a socket has a error flag (in epoll or select)"
-    __doc_all__ = []
+    
 class ConnectionClosed(SocketError):
     "Raised when the other peer has closed connection."
-    __doc_all__ = []
+    
 
 
 def getdefaulttimeout():
@@ -48,6 +34,7 @@ def getdefaulttimeout():
 def setdefaulttimeout(timeout):
     """Set the default timeout used by the socket wrapper 
     (`Socket <cogen.core.sockets.Socket.html>`_ class)"""
+    global _TIMEOUT
     _TIMEOUT = timeout
 
 
@@ -124,7 +111,7 @@ class Socket(object):
         """
         return Accept(self, timeout=self._timeout, **kws)
         
-    def close(self, *args):
+    def close(self):
         """Close the socket. All future operations on the socket object will 
         fail. The remote end will receive no more data (after queued data is 
         flushed). Sockets are automatically closed when they are garbage-collected. 
@@ -156,7 +143,7 @@ class Socket(object):
         """Return the remote address to which the socket is connected."""
         return self._fd.getpeername()
         
-    def getsockname(self, *args):
+    def getsockname(self):
         """Return the socket's own address. """
         return self._fd.getsockname()
         
@@ -166,7 +153,7 @@ class Socket(object):
         """
         self._timeout = to
         
-    def gettimeout(self, *args):
+    def gettimeout(self):
         """Return the associated timeout value. """
         return self._timeout
         
@@ -184,7 +171,7 @@ class Socket(object):
         self._fd.setsockopt(*args)
     
     def sendfile(self, file_handle, offset=None, length=None, blocksize=4096, **kws):
-        return SendFile(file_handle, self, offset=None, length=None, blocksize=4096, **kws)
+        return SendFile(file_handle, self, offset, length, blocksize, **kws)
         
     def __repr__(self):
         return '<socket at 0x%X>' % id(self)

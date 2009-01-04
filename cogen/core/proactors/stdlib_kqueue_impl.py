@@ -12,9 +12,7 @@ from time import sleep
 from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
-from cogen.core import sockets
-from cogen.core.util import priority
-from cogen.core import events
+
 
 class StdlibKQueueProactor(ProactorBase):
     "kqueue based proactor implementation using python 2.6 select module."

@@ -7,8 +7,6 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_connect
                                 
 from cogen.core.sockets import ConnectionClosed
-from cogen.core import sockets
-from cogen.core.util import priority
 
 class PollProactor(ProactorBase):
     POLL_ERR = POLLERR | POLLHUP | POLLNVAL

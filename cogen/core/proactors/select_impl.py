@@ -6,8 +6,6 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
 
-from cogen.core import sockets
-from cogen.core.util import priority
 
 class SelectProactor(ProactorBase):
     def run(self, timeout = 0):

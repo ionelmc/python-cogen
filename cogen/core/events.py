@@ -18,7 +18,6 @@ RUNNING, FINALIZED, ERRORED = range(3)
 class OperationTimeout(Exception):
     """Raised when the timeout for a operation expires. The exception 
     message will be the operation"""
-    __doc_all__ = []
 
 
 def _getslots(obj):
@@ -274,69 +273,6 @@ class Signal(Operation):
             
         del sched.sigwait[self.name]        
     
-def Call(coro, args=None, kwargs=None, **kws):
-    """
-    You don't need to use this. You can just yield the called coroutine:
-    
-    .. sourcecode:: python
-        
-        result = yield mycoro( [arguments] )
-    
-    
-    Compared to :class:`OldCall`, 
-    instead of returning an Operation object it returns the 
-    new Coroutine directly that will act as a Call operation in it's pre-init 
-    state. This is faster for 2 reasons: avoids one Operation instatiation and 
-    avoids pushing and poping the new coroutine on the active coros queue.
-    """
-    
-    return coro(*(args or ()), **(kwargs or {}))
-    
-class OldCall(Operation):
-    """
-    This will pause the current coroutine, add a new coro in the scheduler and 
-    resume the callee when it returns. 
-    
-    Usage:
-    
-    .. sourcecode:: python
-        
-        result = yield events.Call(mycoro, args=(), kwargs={}, prio=priority.DEFAULT)
-    
-    
-    * mycoro - the coroutine to add.
-    * args, kwargs - params to call the coroutine with
-    * if `prio` is set the new coroutine will be added in the top of the 
-      scheduler queue
-      
-    See: :class:`Operation`.
-    """
-    __slots__ = ('coro', 'args', 'kwargs')
-    
-    def __init__(self, coro, args=None, kwargs=None, **kws):
-        super(Call, self).__init__(**kws)
-        self.coro = coro
-        self.args = args or ()
-        self.kwargs = kwargs or {}
-    
-    def process(self, sched, coro):
-        """Add the called coro in the sched and set the calling coroutine as
-        the caller in the called coro (the called coro will activate the calling
-        coro when it dies)."""
-        super(Call, self).process(sched, coro)
-        callee = sched.add(self.coro, self.args, self.kwargs, self.prio) 
-        callee.caller = coro
-        callee.prio = self.prio
-    
-    def __repr__(self):
-        return '<%s instance at 0x%X, coro:%s, args: %s, kwargs: %s, prio: %s>' % (
-            self.__class__, 
-            id(self), 
-            self.coro, 
-            self.args, 
-            self.kwargs, 
-            self.prio
-        )
     
 class AddCoro(Operation):
     """

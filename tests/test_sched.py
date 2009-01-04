@@ -65,25 +65,25 @@ class SchedulerTest_MixIn:
         @coroutine
         def caller():
             self.msgs.append(1)
-            ret = yield events.Call(callee_1)
+            ret = yield callee_1()
             self.msgs.append(ret)
-            ret = yield events.Call(callee_2)
+            ret = yield callee_2()
             self.msgs.append(ret is None and 3 or -1)
             try:
-                ret = yield events.Call(callee_3)
+                ret = yield callee_3()
             except Exception, e:
                 self.msgs.append(e.message=='some_message' and 4 or -1)
              
-            ret = yield events.Call(callee_4)
+            ret = yield callee_4()
             self.msgs.append(ret)
             try:
-                ret = yield events.Call(callee_5)
+                ret = yield callee_5()
             except:
                 import traceback
                 s = traceback.format_exc()
                 self.exc = s
 
-            ret = yield events.Call(callee_6, args=(6,))
+            ret = yield callee_6(6)
             self.msgs.append(ret)
             
         @coroutine
@@ -100,21 +100,21 @@ class SchedulerTest_MixIn:
             
         @coroutine
         def callee_4():
-            raise StopIteration((yield events.Call(callee_4_1)))
-        @coroutine
-        def callee_4_1():
-            raise StopIteration((yield events.Call(callee_4_2)))
-        @coroutine
-        def callee_4_2():
-            raise StopIteration(5)
-        
-        @coroutine
-        def callee_5():
-            raise StopIteration((yield events.Call(callee_5_1)))
-        @coroutine
-        def callee_5_1():
-            raise StopIteration((yield events.Call(callee_5_2)))
-        @coroutine
+            raise StopIteration((yield callee_4_1()))
+        @coroutine                                 
+        def callee_4_1():                        
+            raise StopIteration((yield callee_4_2()))
+        @coroutine                                 
+        def callee_4_2():                        
+            raise StopIteration(5)                
+                                                  
+        @coroutine                                 
+        def callee_5():                          
+            raise StopIteration((yield callee_5_1()))
+        @coroutine                                 
+        def callee_5_1():                        
+            raise StopIteration((yield callee_5_2()))
+        @coroutine                             
         def callee_5_2():
             raise Exception("long_one")
         
@@ -126,8 +126,8 @@ class SchedulerTest_MixIn:
         self.m.add(caller)
         self.m.run()
         self.assertEqual(self.msgs, [1,2,3,4,5,6])
-        self.assert_('raise StopIteration((yield events.Call(callee_5_1)))' in self.exc)
-        self.assert_('raise StopIteration((yield events.Call(callee_5_2)))' in self.exc)
+        self.assert_('raise StopIteration((yield callee_5_1()))' in self.exc)
+        self.assert_('raise StopIteration((yield callee_5_2()))' in self.exc)
         self.assert_('raise Exception("long_one")' in self.exc)
     def test_join(self):
         @coroutine

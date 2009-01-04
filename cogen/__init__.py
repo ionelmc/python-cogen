@@ -28,6 +28,3 @@ __revision__ = "$Revision$"
 __version__ = '0.2.0'
 __svnid__ = "$Id$"
 
-from cogen import core
-from cogen import common
-from cogen import web

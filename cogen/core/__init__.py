@@ -85,9 +85,3 @@ niceties like exception handling, getting the result from finalize() etc.
 
 '''
 
-from cogen.core import schedulers
-from cogen.core import proactors
-from cogen.core import coroutines
-from cogen.core import events
-from cogen.core import sockets
-from cogen.core import queue

@@ -94,20 +94,19 @@ comma_separated_headers = ['ACCEPT', 'ACCEPT-CHARSET', 'ACCEPT-ENCODING',
   'WWW-AUTHENTICATE']
 
 class WSGIFileWrapper:
-  __doc_all__ = ['__getitem__']
   def __init__(self, filelike, blocksize=8192):
     self.filelike = filelike
     self.blocksize = blocksize
     if hasattr(filelike,'close'):
       self.close = filelike.close
-  def __getitem__(self,key):
+      
+  def __getitem__(self, key):
     data = self.filelike.read(self.blocksize)
     if data:
       return data
     raise IndexError
   
 class WSGIPathInfoDispatcher(object):
-  __doc_all__ = ['__call__']
   """A WSGI dispatcher for dispatch based on the PATH_INFO.
   
   apps: a dict or list of (path_prefix, app) pairs.

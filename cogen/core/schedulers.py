@@ -26,21 +26,10 @@ import select
 
 from cogen.core.proactors import DefaultProactor
 from cogen.core import events
-from cogen.core import sockets
 from cogen.core.util import priority
 from cogen.core.coroutines import CoroutineException
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
-
-class DebugginWrapper:
-    def __init__(self, obj):
-        self.obj = obj
-    
-    def __getattr__(self, name):
-        if 'append' in name:
-            return debug(0)(getattr(self.obj, name))
-        else:
-            return getattr(self.obj, name)
 
 class Scheduler(object):
     """Basic deque-based scheduler with timeout support and primitive 

@@ -9,10 +9,10 @@ __all__ = [
 ]
 
 
-from cogen.core import sockets
-from cogen.core.util import debug
-from cStringIO import StringIO
-from cogen.core.coroutines import coro
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 class COGENOperationWrapper(object):
     def __init__(self, gate, module):
@@ -49,7 +49,7 @@ class COGENOperationCall(object):
     def __call__(self, *args, **kwargs):
         self.gate.operation = self.obj(*args, **kwargs)
         return ""
-class COGENProxy:
+class COGENProxy(object):
     __slots__ = (
         'content_length', 'read_count', 'operation', 'result', 'exception'
     )
@@ -102,7 +102,6 @@ class SynchronousInputMiddleware:
     Note that it reads the whole input in memory so you sould rather use the
     async input (environ['cogen.input']) for large requests.
     """
-    __doc_all__ = ['__call__']
     def __init__(self, app, global_conf={}, buffer_length=1024):
         self.app = app
         self.buffer_length = int(buffer_length)
