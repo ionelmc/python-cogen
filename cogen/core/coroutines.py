@@ -1,13 +1,13 @@
 """ 
 Coroutine related boilerplate and wrappers.
 """
-__all__ = ['local', 'coro', 'CoroutineInstance', 'CoroutineException']
+__all__ = ['local', 'coro', 'coroutine', 'Coroutine', 'CoroutineInstance', 'CoroutineException']
 
 import types
 import sys
 
 import events
-from util import debug, priority
+from util import priority
 
 ident = None
 
@@ -43,17 +43,18 @@ class local(object):
             raise AttributeError(
                 "No variable %s defined for thread %s" % (attr, ident))
     def __repr__(self):
-        return "<coroutine.local at 0x%X %r>"%(id(self), self.__dict__['__objs'])
+        return "<coroutine.local at 0x%X %r>" % (id(self), self.__dict__['__objs'])
 
 class CoroutineException(Exception):
     """This is used intenally to carry exception state in the poller and 
     scheduler."""
     prio = priority.DEFAULT
-    #~ def __init__(self, *args):
-        #~ super(CoroutineException, self).__init__(*args)
     def __str__(self):
         import traceback
-        return "<%s [[[%s]]]>" % (self.__class__.__name__, traceback.format_exception(*self.args))
+        return "<%s [[[%s]]]>" % (
+            self.__class__.__name__, 
+            traceback.format_exception(*self.args)
+        )
 
 class CoroutineInstance(events.Operation):
     ''' 
@@ -270,31 +271,47 @@ class CoroutineInstance(events.Operation):
         )
     __str__ = __repr__
 
-class Coroutine(object):
-    """ 
-    A decorator function for generators.
-    Example:
+class CoroutineDocstring(object):
+    """
+    Evil class to make docstrings accesable on different places like:
     
-    .. sourcecode:: python
+      - the Corutine class
+      - the Coroutine instance
+      - the Coroutine instance as a descriptor (that means as a method in a class)
+    
+    """
+    def __init__(self, doc):
+        self.doc = doc
+        
+    def __get__(self, inst, ownr):
+        if inst:
+            return inst.wrapped_func.__doc__
+        else:
+            return self.doc
+        
+        
+class Coroutine(object):
+    __doc__ = CoroutineDocstring(""" 
+    A decorator function for generators.
+    Example::
 
         @coroutine
         def plain_ol_generator():
             yield bla
             yield bla
             ...
-    
-    """
+    """)
     __slots__ = ('wrapped_func', 'constructor')
     def __init__(self, func, constructor=CoroutineInstance):
         self.wrapped_func = func
         self.constructor = constructor
-    
-    @property
-    def __doc__(self):
-        return self.wrapped_func.__doc__
+        
     @property
     def __name__(self):
-        return self.wrapped_func.__name__
+        #~ if hasattr(self, 'wrapped_func'):
+            return self.wrapped_func.__name__
+        #~ else:
+            #~ return self.__name__
     
     def __repr__(self):
         return "<Coroutine constructor at 0x%08X wrapping %r>" % (
@@ -314,7 +331,7 @@ class Coroutine(object):
         return self.__class__(self.wrapped_func.__get__(instance or owner))
         
     def __call__(self, *args, **kwargs):
-        "Return a CoroutineInstance instance"
+        "Return a CoroutineInstance instance" # funny wording
         return self.constructor(self.wrapped_func, *args, **kwargs)
            
 coro = coroutine = Coroutine
@@ -329,11 +346,34 @@ class DebugCoroutine(Coroutine):
 debug_coro = debug_coroutine = DebugCoroutine
 
 if __name__ == "__main__":
-    @coroutine
+    @Coroutine
     def some_func():
         "blablalbla"
         pass
     
+    class Foo:
+        @Coroutine
+        def some_func(*args):
+            "Foo blablalbla"
+            print args
+        
     print some_func()
     print repr(some_func)
-    print some_func.__doc__
+    print `some_func.__doc__`
+    print `some_func`
+
+    print `Coroutine.__doc__`
+    print '>', `Coroutine.__name__`
+    print `Coroutine`
+    
+    print `Foo.some_func.__doc__`
+    print `Foo.some_func`
+    
+    Foo.some_func(3,2,1).run_op(None)
+    
+    foo = Foo()
+    
+    print `foo.some_func.__doc__`
+    print `foo.some_func`
+    
+    foo.some_func(3,2,1).run_op(None)
