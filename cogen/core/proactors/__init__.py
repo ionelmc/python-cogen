@@ -8,8 +8,6 @@ def has_select():
         import select_impl
         return select_impl.SelectProactor
     except ImportError:
-        import traceback
-        traceback.print_exc()
         pass
     
 

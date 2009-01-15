@@ -5,7 +5,8 @@ __all__ = ['local', 'coro', 'coroutine', 'Coroutine', 'CoroutineInstance', 'Coro
 
 import types
 import sys
-
+import traceback
+        
 import events
 from util import priority
 
@@ -50,7 +51,6 @@ class CoroutineException(Exception):
     scheduler."""
     prio = priority.DEFAULT
     def __str__(self):
-        import traceback
         return "<%s [[[%s]]]>" % (
             self.__class__.__name__, 
             traceback.format_exception(*self.args)
@@ -197,7 +197,6 @@ class CoroutineInstance(events.Operation):
                 print 'Running %r with exception:' % self,
                 if len(op.args) == 3:
                     print '[[['
-                    import traceback
                     traceback.print_exception(*op.args)
                     print ']]]'
                 else:
@@ -209,7 +208,6 @@ class CoroutineInstance(events.Operation):
         try:
             if self.state == self.STATE_RUNNING:
                 if self.debug:
-                    import traceback
                     traceback.print_stack(self.coro.gi_frame)
                 if isinstance(op, CoroutineException):
                     rop = self.coro.throw(*op.args)
@@ -257,7 +255,6 @@ class CoroutineInstance(events.Operation):
     def handle_error(self):        
         print>>sys.stderr, '-'*40
         print>>sys.stderr, 'Exception happened during processing of coroutine.'
-        import traceback
         traceback.print_exception(*self.exception)
         print>>sys.stderr, "Coroutine %s killed. " % self
         print>>sys.stderr, '-'*40
