@@ -11,21 +11,21 @@ def client(num):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         try:
-            yield sock.connect(("192.168.111.128", int(sys.argv[1])), run_first=False)
+            yield sock.connect(("127.0.0.1", int(sys.argv[1])))
         except Exception, e:
             errors+=1
             print 'Error in:', num, errors
             traceback.print_exc()
             return
-        
+        fh = sock.makefile()
         while 1:
-            line = yield sockets.ReadLine(sock, 8192)
+            line = yield fh.readline(8192)
             recvs += 1
             print num, recvs, ": ", line
     finally:
         sock.close()
 
-for i in range(0, 10000):
+for i in range(0, 10):
     m.add(client, args=(i,))
 
 m.run()
