@@ -204,7 +204,7 @@ class Scheduler(object):
             if (self.proactor_greedy or not self.active) and self.proactor:
                 try:
                     urgent = self.proactor.run(timeout = self.next_timer_delta())
-                except (OSError, select.error), exc:
+                except (OSError, select.error, IOError), exc:
                     if exc[0] != errno.EINTR:
                         raise
                 #~ if urgent:print '>urgent:', urgent
