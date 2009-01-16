@@ -25,6 +25,6 @@ THE SOFTWARE.
 __author__ = u"Mărieş Ionel Cristian"
 __email__ = "ionel.mc@gmail.com"
 __revision__ = "$Revision$"
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __svnid__ = "$Id$"
 

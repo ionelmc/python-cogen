@@ -1,9 +1,13 @@
-trunk:
+0.2.1:
 
  * made error handling better for sockets (also moved ConnectionClosed in sockets
  module, renamed ConnectionError to SocketError and moved that too) and
  improved the socket unittests on socket error handling.
-
+ * improved the coroutine decorator
+ * moved/renamed events.ConnectionError to sockets.SocketError
+ * moved ConnectionClosed in sockets module
+ * various plumbing (useless imports, typos etc)
+ 
 0.2.0:
 
  * rewritten the network code
