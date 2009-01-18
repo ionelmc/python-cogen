@@ -29,7 +29,7 @@ def perform_sendall(act):
 def perform_accept(act):
     act.conn, act.addr = act.sock._fd.accept()
     act.conn.setblocking(0)
-    act.conn = Socket(_sock=act.conn)
+    act.conn = act.sock.__class__(_sock=act.conn)
     return act
         
 def perform_connect(act):

@@ -57,7 +57,7 @@ def complete_accept(act, rc, nbytes):
     family, localaddr, act.addr = win32file.GetAcceptExSockaddrs(
         act.conn, act.cbuff
     )
-    act.conn = Socket(_sock=act.conn)
+    act.conn = act.sock.__class__(_sock=act.conn)
     return act
     
 
