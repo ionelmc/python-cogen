@@ -260,8 +260,9 @@ class CoroutineInstance(events.Operation):
         print>>sys.stderr, '-'*40
         
     def __repr__(self):
-        return "<%s Coroutine instance at 0x%08X wrapping %r, state: %s>" % (
+        return "<%s %s instance at 0x%08X wrapping %r, state: %s>" % (
             self.name, 
+            self.__class__.__name__,
             id(self), 
             self.coro,
             self._state_names[self.state]
