@@ -1,11 +1,8 @@
-from cogen.core import sockets
+import sys
+
 from cogen.core import schedulers
-#~ from cogen.core.coroutines import coroutine
-from cogen.core import proactors
 from cogen.magic.corolets import corolet, yield_
 from cogen.magic import socketlets
-
-import sys
 
 @corolet
 def server():
@@ -27,7 +24,6 @@ def handler(sock, addr):
         
     while 1:
         line = fh.readline(1024)
-        print `line`
         if line.strip() == 'exit':
             fh.write("GOOD BYE")
             fh.close()
@@ -36,7 +32,6 @@ def handler(sock, addr):
         fh.write(line)
         fh.flush()
 
-print 'Using:', proactors.DefaultProactor.__name__
 m = schedulers.Scheduler()
 m.add(server)
 m.run()
