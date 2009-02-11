@@ -48,7 +48,7 @@ class WebTest_Base:
         #~ self.conn.set_debuglevel(10)
     def tearDown(self):
         self.conn.close()
-        self.sched.stop()
+        self.sched.shutdown()
         self.m_run.join()
         self.wsgi_server.socket.close()
         

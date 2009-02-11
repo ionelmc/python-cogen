@@ -108,7 +108,7 @@ class SocketTest_MixIn:
             a3 = yield y3
             self.recvobj2 = (a1,a2,a3)
             #~ srv.close()
-            self.m.stop()
+            self.m.shutdown()
         coro = self.m.add(reader)
         self.m_run.start()
         time.sleep(1.5)
@@ -149,7 +149,7 @@ class SocketTest_MixIn:
             self.recvobj = yield sockets.Recv(conn, 1024*4, prio=self.prio)
             self.recvobj_all = yield sockets.RecvAll(conn, 1024**2-1024*4, prio=self.prio)
             #~ srv.close()
-            self.m.stop()
+            self.m.shutdown()
         coro = self.m.add(reader)
         self.m_run.start()
         time.sleep(1.5)

@@ -85,12 +85,6 @@ class Scheduler(object):
             self.default_priority, 
             self.default_timeout
         )
-    def __del__(self):
-        if hasattr(self, 'proactor'):
-            if hasattr(self.proactor, 'scheduler'):
-                del self.proactor.scheduler
-            self.proactor.close()
-            del self.proactor
             
     def add(self, coro, args=(), kwargs={}, first=True):
         """Add a coroutine in the scheduler. You can add arguments 
@@ -215,6 +209,7 @@ class Scheduler(object):
             #this repeatedly but the _urgent_ operation this is usefull (as it 
             #saves us needlessly hammering the active coroutines queue with 
             #append and pop calls on the same thing
+        self.cleanup()
     
     def run(self):
         """This is the main loop.
@@ -224,5 +219,21 @@ class Scheduler(object):
         for _ in self.iter_run():
             pass
             
-    def stop(self):
+    def shutdown(self):
+        """Sets a flag that will make the scheduler's :func:`run` method stop and call 
+        :func:`cleanup` as soon as it gets control back from the proactor/coroutines.
+        """
         self.running = False
+        
+    def cleanup(self):
+        """Used internally. 
+        
+        Cleans up the sched references in the proactor. If you use this don't use
+        it while the :class:`Scheduler` (:func:`run`) is still running.
+        """
+        
+        if hasattr(self, 'proactor'):
+            if hasattr(self.proactor, 'scheduler'):
+                del self.proactor.scheduler
+            if hasattr(self.proactor, 'close'):
+                self.proactor.close()
