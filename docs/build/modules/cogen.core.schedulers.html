@@ -47,7 +47,7 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="cogen.core.queue.html" title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">cogen.core.queue</span></tt></a></p>
+            <p class="topless"><a href="cogen.core.queue.html" title="previous chapter"><tt class="docutils literal"><span class="pre">cogen.core.queue</span></tt></a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="cogen.core.sockets.html" title="next chapter"><tt class="docutils literal"><span class="pre">cogen.core.sockets</span></tt></a></p>
             <h3>This Page</h3>
@@ -107,6 +107,14 @@ the operation, -1 means no timeout.</li>
 (_args_, _kwargs_) to init the coroutine with.</dd></dl>
 
 <dl class="method">
+<dt id="cogen.core.schedulers.Scheduler.cleanup">
+<!--[cogen.core.schedulers.Scheduler.cleanup]--><tt class="descname">cleanup</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used internally.</p>
+<p>Cleans up the sched references in the proactor. If you use this don&#8217;t use
+it while the <a title="cogen.core.schedulers.Scheduler" class="reference internal" href="#cogen.core.schedulers.Scheduler"><tt class="xref docutils literal"><span class="pre">Scheduler</span></tt></a> (<a title="cogen.core.schedulers.Scheduler.run" class="reference internal" href="#cogen.core.schedulers.Scheduler.run"><tt class="xref docutils literal"><span class="pre">run()</span></tt></a>) is still running.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="cogen.core.schedulers.Scheduler.handle_timeouts">
 <!--[cogen.core.schedulers.Scheduler.handle_timeouts]--><tt class="descname">handle_timeouts</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.handle_timeouts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handle timeouts. Raise timeouted operations with a OperationTimeout 
@@ -158,9 +166,10 @@ This loop will exit when there are no more coroutines to run or stop has
 been called.</dd></dl>
 
 <dl class="method">
-<dt id="cogen.core.schedulers.Scheduler.stop">
-<!--[cogen.core.schedulers.Scheduler.stop]--><tt class="descname">stop</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.stop" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="cogen.core.schedulers.Scheduler.shutdown">
+<!--[cogen.core.schedulers.Scheduler.shutdown]--><tt class="descname">shutdown</tt><big>(</big><big>)</big><a class="headerlink" href="#cogen.core.schedulers.Scheduler.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd>Sets a flag that will make the scheduler&#8217;s <a title="cogen.core.schedulers.Scheduler.run" class="reference internal" href="#cogen.core.schedulers.Scheduler.run"><tt class="xref docutils literal"><span class="pre">run()</span></tt></a> method stop and call 
+<a title="cogen.core.schedulers.Scheduler.cleanup" class="reference internal" href="#cogen.core.schedulers.Scheduler.cleanup"><tt class="xref docutils literal"><span class="pre">cleanup()</span></tt></a> as soon as it gets control back from the proactor/coroutines.</dd></dl>
 
 </dd></dl>
 
