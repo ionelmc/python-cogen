@@ -12,7 +12,7 @@ __all__ = [
     'SocketOperation', 'SocketError', 'ConnectionClosed'
 ]
 
-import socket
+from socket import socket
 
 import events
 from coroutines import coro
@@ -68,7 +68,7 @@ class Socket(object):
     """
     __slots__ = ('_fd', '_timeout', '_proactor_added')
     def __init__(self, *a, **k):
-        self._fd = socket.socket(*a, **k)
+        self._fd = socket(*a, **k)
         self._fd.setblocking(0)
         self._timeout = _TIMEOUT
         self._proactor_added = False
