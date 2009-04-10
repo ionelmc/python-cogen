@@ -9,7 +9,7 @@ def has_select():
         return select_impl.SelectProactor
     except ImportError:
         pass
-    
+
 
 def has_poll():
     try:
@@ -19,7 +19,7 @@ def has_poll():
             return poll_impl.PollProactor
     except ImportError:
         pass
-    
+
 
 def has_epoll():
     try:
@@ -58,26 +58,27 @@ def has_stdlib_kqueue():
 def has_iocp():
     try:
         import win32file
-        if not hasattr(win32file, 'ConnectEx'):
-            # we'd better stay away from it till someone adds the ConnectEx
-            pass
+        if not hasattr(win32file, 'ConnextEx'):
+            import warnings
+            warnings.warn("IOCPProactor implementation requires a newer pywin32 module.")
+            return
         import pywintypes
         import socket
         import ctypes
-        import struct       
+        import struct
         import iocp_impl
         return iocp_impl.IOCPProactor
     except ImportError:
         pass
 
 def has_ctypes_iocp():
-    try: 
+    try:
         import ctypes
         import ctypes_iocp_impl
         return ctypes_iocp_impl.CTYPES_IOCPProactor
     except ImportError:
         pass
-        
+
 def get_first(*imps):
     "Returns the first result that evaluates to true from a list of callables."
     for imp in imps:
