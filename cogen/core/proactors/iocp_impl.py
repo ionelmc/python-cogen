@@ -8,9 +8,9 @@ import sys
 from time import sleep
 
 from base import ProactorBase
-from cogen.core.util import priority
-from cogen.core.sockets import Socket, SocketError, ConnectionClosed
-from cogen.core.coroutines import CoroutineException
+from ..util import priority
+from ..sockets import Socket, SocketError, ConnectionClosed
+from ..coroutines import CoroutineException
 
 def perform_recv(act, overlapped):
     act.buff = win32file.AllocateReadBuffer(act.len)

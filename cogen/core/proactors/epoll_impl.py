@@ -5,11 +5,11 @@ from epoll import epoll_create, epoll_ctl, EPOLL_CTL_DEL, EPOLLIN, EPOLLOUT, \
 
 from time import sleep
 
-from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+from .base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
 
-from cogen.core.sockets import ConnectionClosed
+from ..sockets import ConnectionClosed
 
 class EpollProactor(ProactorBase):
     def __init__(self, scheduler, res, default_size=1024, **options):

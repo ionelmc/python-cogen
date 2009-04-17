@@ -5,7 +5,7 @@ from kqueue import kqueue, EVFILT_READ, EVFILT_WRITE, EV_SET, EV_DELETE, \
 import sys
 from time import sleep
 
-from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+from .base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
 

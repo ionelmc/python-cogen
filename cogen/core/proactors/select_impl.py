@@ -2,7 +2,7 @@ from __future__ import division
 import select, itertools
 from time import sleep
 
-from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+from .base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
 

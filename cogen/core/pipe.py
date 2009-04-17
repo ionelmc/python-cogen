@@ -21,7 +21,7 @@ Your average example::
 """
 from __future__ import with_statement
 
-from cogen.core import events, coroutines
+from .core import events, coroutines
 
 class IterationStopped(Exception):
     pass

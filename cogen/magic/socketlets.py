@@ -1,7 +1,7 @@
-from cogen.core.sockets import Send, Recv, SendAll, Accept, Connect, \
+from ..core.sockets import Send, Recv, SendAll, Accept, Connect, \
         getdefaulttimeout, setdefaulttimeout
-from cogen.core import sockets
-from cogen.magic.corolets import yield_
+from ..core import sockets
+from ..magic.corolets import yield_
 
 from socket import _fileobject, socket
 

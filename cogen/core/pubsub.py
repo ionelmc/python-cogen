@@ -1,6 +1,6 @@
 __all__ = ['PublishSubscribeQueue']
-import events
-from util import priority
+from . import events
+from .util import priority
 
 class PSPut(events.Operation):
     __slots__ = ('queue', 'message', 'key')

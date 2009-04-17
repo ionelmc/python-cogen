@@ -67,15 +67,15 @@ from urllib import unquote
 from urlparse import urlparse
 from traceback import format_exc
 
-from cogen import core, __version__
-from cogen.core import proactors, sockets, events
-from cogen.core.util import priority
-from cogen.core.sockets import SocketError, ConnectionClosed
-from cogen.core.events import OperationTimeout
-from cogen.core.coroutines import coroutine, local
-from cogen.core.schedulers import Scheduler
+from .. import core, __version__
+from ..core import proactors, sockets, events
+from ..core.util import priority
+from ..core.sockets import SocketError, ConnectionClosed
+from ..core.events import OperationTimeout
+from ..core.coroutines import coroutine, local
+from ..core.schedulers import Scheduler
 
-import async
+from . import async
 
 quoted_slash = re.compile("(?i)%2F")
 useless_socket_errors = {}

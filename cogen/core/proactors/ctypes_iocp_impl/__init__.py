@@ -23,10 +23,10 @@ import errno
 
 from time import sleep
 
-from cogen.core.proactors.base import ProactorBase
-from cogen.core.util import priority
-from cogen.core.sockets import Socket, SocketError, ConnectionClosed
-from cogen.core.coroutines import CoroutineException
+from ..base import ProactorBase
+from ...util import priority
+from ...sockets import Socket, SocketError, ConnectionClosed
+from ...coroutines import CoroutineException
 def perform_recv(act, overlapped):
     wsabuf = WSABUF()
     buf = create_string_buffer(act.len)

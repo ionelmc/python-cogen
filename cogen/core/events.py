@@ -8,7 +8,7 @@ __all__ = [
 import datetime
 import heapq
 
-from util import priority
+from .util import priority
 #~ from sockets import SocketError as ConnectionError
 
 getnow = datetime.datetime.now

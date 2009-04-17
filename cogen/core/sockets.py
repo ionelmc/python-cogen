@@ -14,8 +14,8 @@ __all__ = [
 
 from socket import socket
 
-import events
-from coroutines import coro
+from . import events
+from .coroutines import coro
 
 _TIMEOUT = None
 

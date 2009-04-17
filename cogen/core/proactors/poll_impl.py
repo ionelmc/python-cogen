@@ -2,11 +2,11 @@ from __future__ import division
 from select import poll, POLLERR, POLLHUP, POLLNVAL, POLLIN, POLLPRI, POLLOUT
 from time import sleep
 
-from base import ProactorBase, perform_recv, perform_accept, perform_send, \
+from .base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
 
-from cogen.core.sockets import ConnectionClosed
+from ..sockets import ConnectionClosed
 
 class PollProactor(ProactorBase):
     POLL_ERR = POLLERR | POLLHUP | POLLNVAL

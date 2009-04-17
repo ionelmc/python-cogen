@@ -24,10 +24,10 @@ import sys
 import errno
 import select
 
-from cogen.core.proactors import DefaultProactor
-from cogen.core import events
-from cogen.core.util import priority
-from cogen.core.coroutines import CoroutineException
+from .proactors import DefaultProactor
+from . import events
+from .util import priority
+from .coroutines import CoroutineException
 #~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 

@@ -9,7 +9,7 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
                                 perform_sendall, perform_sendfile, \
                                 perform_connect
 
-from cogen.core.sockets import ConnectionClosed
+from ..sockets import ConnectionClosed
 
 class StdlibEpollProactor(ProactorBase):
     "epoll based proactor implementation using python 2.6 select module."

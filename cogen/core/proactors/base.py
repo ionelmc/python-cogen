@@ -6,9 +6,9 @@ try:
 except:
     sendfile = None
 
-from cogen.core.coroutines import CoroutineException
-from cogen.core.sockets import Socket, SocketError, ConnectionClosed
-from cogen.core.util import priority
+from ..coroutines import CoroutineException
+from ..sockets import Socket, SocketError, ConnectionClosed
+from ..util import priority
 
 
 def perform_recv(act):

@@ -7,8 +7,8 @@ import types
 import sys
 import traceback
 
-import events
-from util import priority
+from . import events
+from .util import priority
 
 ident = None
 

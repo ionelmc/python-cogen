@@ -9,10 +9,9 @@ import traceback
 from py.magic import greenlet
 getcurrent = greenlet.getcurrent
 
-from cogen.core import events
-from cogen.core.util import priority
-from cogen.core import coroutines
-from cogen.core.coroutines import CoroutineException
+from ..core import coroutines, events
+from ..core.util import priority
+from ..core.coroutines import CoroutineException
 
 
 def yield_(op):
