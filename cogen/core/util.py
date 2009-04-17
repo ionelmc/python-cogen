@@ -5,7 +5,7 @@ __all__ = ['debug', 'priority', 'fmt_list']
 
 import sys
 
-                
+
 def debug(trace=True, backtrace=1, other=None, output=sys.stderr):
     """A decorator for debugging purposes. Shows the call arguments, result
     and instructions as they are runned."""
@@ -17,9 +17,9 @@ def debug(trace=True, backtrace=1, other=None, output=sys.stderr):
             traceback.print_stack(frame, 1, output)
             return tracer
         def wrapped(*a, **k):
-            print>>output 
+            print>>output
             print>>output, '--- Calling %s.%s with:' % (
-                getattr(func, '__module__', ''), 
+                getattr(func, '__module__', ''),
                 func.__name__
             )
             for i in enumerate(a):
@@ -36,8 +36,8 @@ def debug(trace=True, backtrace=1, other=None, output=sys.stderr):
             if trace: sys.settrace(None)
             #~ a = list(a)
             print>>output, '--- %s.%s returned: %r' % (
-                getattr(func, '__module__', ''), 
-                func.__name__, 
+                getattr(func, '__module__', ''),
+                func.__name__,
                 #~ ret not in a and ret or "ARG%s"%a.index(ret)
                 ret
             )
@@ -45,30 +45,30 @@ def debug(trace=True, backtrace=1, other=None, output=sys.stderr):
         return wrapped
     return debugdeco
 
-    
-class priority(object):  
+
+class priority(object):
     """
-    How these priority flags are interpreted depends largely on the operation 
+    How these priority flags are interpreted depends largely on the operation
     (since that's where these are checked).
-    
+
     ======== ===================================================================
-    Property Description 
+    Property Description
     ======== ===================================================================
     DEFAULT  Use the default_priority set in the Scheduler
     -------- -------------------------------------------------------------------
-    LAST, 
-    NOPRIO   Allways scheduler the operation/coroutine at the end of the queue 
+    LAST,
+    NOPRIO   Allways scheduler the operation/coroutine at the end of the queue
     -------- -------------------------------------------------------------------
-    CORO     Favor the coroutine - if it's the case. 
+    CORO     Favor the coroutine - if it's the case.
     -------- -------------------------------------------------------------------
-    OP       Favor the operation - if it's the case. 
+    OP       Favor the operation - if it's the case.
     -------- -------------------------------------------------------------------
-    FIRST, 
+    FIRST,
     PRIO     Allways schedule with priority
     ======== ===================================================================
-    
+
     """
-    DEFAULT = -1    
+    DEFAULT = -1
     LAST  = NOPRIO = 0
     CORO  = 1
     OP    = 2

@@ -1,7 +1,7 @@
 import datetime
 from cogen.core.util import debug
 
-import wsgiref.validate 
+import wsgiref.validate
 import pprint
 import cgi
 import cogen
@@ -12,7 +12,7 @@ def lorem_ipsum_app(environ, start_response):
                        ('Content-Length','19')]
     start_response(status, response_headers)
     return ['Lorem ipsum dolor..']
-    
+
 def wait_app(environ, start_response):
     start_response('200 OK', [('Content-type','text/html')])
     yield "I'm waiting for some signal<br>"
@@ -34,22 +34,22 @@ import cogen
 from cogen.web.wsgi import WSGIServer
 from cogen.web.async import sync_input
 sched = cogen.core.schedulers.Scheduler(
-    default_timeout=None, 
+    default_timeout=None,
     #~ proactor=cogen.core.proactors.Pollproactor,
     default_priority=cogen.core.util.priority.FIRST,
     proactor_resolution=1
 )
-    
-server = WSGIServer( 
-  ('0.0.0.0', 9001), 
+
+server = WSGIServer(
+  ('0.0.0.0', 9001),
   [
-    ('/', lorem_ipsum_app), 
-    ('/wait', wait_app), 
+    ('/', lorem_ipsum_app),
+    ('/wait', wait_app),
     ('/send', send_app),
     ('/input', sync_input(input_app))
-  ], 
-  sched, 
-  server_name='localhost', 
+  ],
+  sched,
+  server_name='localhost',
   request_queue_size=2048,
   #~ sockoper_run_first=False
 )
@@ -77,4 +77,4 @@ sched.run()
     #~ )
     #~ stats.sort_stats(i)
     #~ stats.print_stats()
-        
+

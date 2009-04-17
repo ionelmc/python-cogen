@@ -27,7 +27,7 @@ Usage example
         start_response(status, response_headers)
         return ["Lorem ipsum dolor sit amet, consectetuer adipiscing elit."]
     server = wsgi.WSGIServer(
-                ('localhost', 8070), 
+                ('localhost', 8070),
                 my_crazy_app,
                 server_name='localhost')
     m = Scheduler(default_priority=priority.LAST, default_timeout=15)

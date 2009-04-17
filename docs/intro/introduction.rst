@@ -2,23 +2,23 @@ General concepts
 ================
 
 Cogen is a coroutine framework. Python 2.5 has support for coroutine-oriented
-programming (see :pep:342). Cogen is 
+programming (see :pep:342). Cogen is
 different than the more popular async network-oriented frameworks like twisted or
-asyncore in the sense that you do not have weird flows and callbacks. 
+asyncore in the sense that you do not have weird flows and callbacks.
 You write the code in a seamingly synchronous fashion using generators.
 
-Because cogen does some stuff for you (like handle exceptions, pass results 
+Because cogen does some stuff for you (like handle exceptions, pass results
 arounds and so on) you have to decorate all your generators that you want to use
 as coroutines::
 
     from cogen.core.coroutines import coro
-    
+
     @coro
     def mycoroutine():
         ...
-        yield 
+        yield
         ...
-        
+
 Also, the decorator does some handling/checking - so if you decorate a regular
 function nothing bad will happen :).
 
@@ -35,8 +35,8 @@ result like this::
     def mysocketreader():
         data = yield mysock.recv(1024)
         print "Yay, I have data:", data
-        
-At that yield statement the coroutine will be paused. The framework will resume it 
+
+At that yield statement the coroutine will be paused. The framework will resume it
 when there's data available on that socket and pass the available data through that
 yield statement.
 
@@ -66,8 +66,8 @@ Suppose we extend on the previous example::
     def mycoro():
         result = yield read(mysock)
         print "Yay, data:", result
-        
-        
+
+
 Since we can't use the return statement with a value in a generator we use
 the standard StopIteration exception that is used internally by the generator
 mechanics.
@@ -75,7 +75,7 @@ mechanics.
 Running your first cogen app
 ----------------------------
 
-Cogen is mainly composed of a scheduler, a proactor that handles the network 
+Cogen is mainly composed of a scheduler, a proactor that handles the network
 calls, operations and your coroutines.
 
 ::

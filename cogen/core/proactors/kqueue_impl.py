@@ -14,7 +14,7 @@ class KQueueProactor(ProactorBase):
         super(self.__class__, self).__init__(scheduler, res, **options)
         self.kq = kqueue()
         self.default_size = default_size
-    
+
     def unregister_fd(self, act, fd=None):
         try:
             ev = EV_SET(fd or act.sock.fileno(), act.flags, EV_DELETE)
@@ -26,25 +26,25 @@ class KQueueProactor(ProactorBase):
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
         act.flags = flag = EVFILT_READ if performer == perform_recv \
-                or performer == perform_accept else EVFILT_WRITE 
+                or performer == perform_accept else EVFILT_WRITE
         ev = EV_SET(
-            fileno, flag, 
+            fileno, flag,
             EV_ADD | EV_ENABLE | EV_ONESHOT
         )
         ev.udata = act
         self.kq.kevent(ev)
 
     def run(self, timeout = 0):
-        """ 
-        Run a proactor loop and return new socket events. Timeout is a timedelta 
-        object, 0 if active coros or None. 
-        
+        """
+        Run a proactor loop and return new socket events. Timeout is a timedelta
+        object, 0 if active coros or None.
+
         kqueue timeout param is a integer number of nanoseconds (seconds/10**9).
         """
         ptimeout = int(
-            timeout.days*86400000000000 + 
-            timeout.microseconds*1000 + 
-            timeout.seconds*1000000000 
+            timeout.days*86400000000000 +
+            timeout.microseconds*1000 +
+            timeout.seconds*1000000000
             if timeout else (self.n_resolution if timeout is None else 0)
         )
         if ptimeout>sys.maxint:
@@ -56,7 +56,7 @@ class KQueueProactor(ProactorBase):
             for nr, ev in enumerate(events):
                 fd = ev.ident
                 act = ev.udata
-                
+
                 if ev.flags & EV_ERROR:
                     ev = EV_SET(fd, act.flags, EV_DELETE)
                     self.kq.kevent(ev)
@@ -74,4 +74,4 @@ class KQueueProactor(ProactorBase):
                             self.kq.kevent(ev)
         else:
             sleep(timeout)
-            
+

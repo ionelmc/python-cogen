@@ -10,24 +10,24 @@ Getting started
 ---------------
 
 .. toctree::
-    
+
     intro/install
     intro/introduction
-    
+
 WSGI Server
 -----------
 
 .. toctree::
-    
+
     wsgi/overview
     wsgi/async
-    
+
 Modules
 -------
 
 .. toctree::
     :glob:
-    
+
     modules/index
 
 Indices and tables

@@ -1,4 +1,4 @@
-:mod:`cogen.core.sockets` 
+:mod:`cogen.core.sockets`
 =========================
 
 .. automodule:: cogen.core.sockets

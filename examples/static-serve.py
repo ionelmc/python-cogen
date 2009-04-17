@@ -5,21 +5,21 @@
 
 Copyright (C) 2006 Luke Arno - http://lukearno.com/
 
-This program is free software; you can redistribute it and/or modify 
-it under the terms of the GNU General Public License as published by the 
-Free Software Foundation; either version 2 of the License, or (at your 
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
 option) any later version.
 
-This program is distributed in the hope that it will be useful, but 
+This program is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to:
 
-The Free Software Foundation, Inc., 
-51 Franklin Street, Fifth Floor, 
+The Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor,
 Boston, MA  02110-1301, USA.
 
 Luke Arno can be found at http://lukearno.com/
@@ -38,21 +38,21 @@ from wsgiref import util
 
 class StatusApp:
     """A WSGI app that just returns the given status."""
-    
+
     def __init__(self, status, message=None):
         self.status = status
         if message is None:
             self.message = status
         else:
             self.message = message
-        
+
     def __call__(self, environ, start_response, headers=[]):
         start_response(self.status, headers)
         if environ['REQUEST_METHOD'] == 'GET':
             return [self.message]
         else:
             return [""]
-            
+
 def generate_xhtml(path, dirs, files):
     """Return a XHTML document listing the directories and files."""
     # Prepare the path to display.
@@ -72,7 +72,7 @@ def generate_xhtml(path, dirs, files):
      </body>
     </html>
     """ % (path, '\n'.join(itemize(dir) for dir in dirs), '\n'.join(itemize(file) for file in files))
-    
+
 def get_entries(path):
     """Return sorted lists of directories and files in the given path."""
     dirs, files = [], []
@@ -85,12 +85,12 @@ def get_entries(path):
     dirs.sort()
     files.sort()
     return dirs, files
-    
+
 class Static(object):
     """A stupidly simple way to serve static content via WSGI.
-    
+
     Serve the file of the same path as PATH_INFO in self.datadir.
-    
+
     Look up the Content-type in self.content_types by extension
     or use 'text/plain' if the extension is not found.
 
@@ -190,7 +190,7 @@ def iter_and_close(file_like, block_size):
             else: raise StopIteration
         except StopIteration, si:
             file_like.close()
-            return 
+            return
 
 from cogen.web import wsgi
 from cogen.common import *

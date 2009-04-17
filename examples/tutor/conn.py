@@ -13,7 +13,7 @@ def somecoroutine():
     result = yield mysocket.recv(10240)
     print result
 
-sched = Scheduler(proactor=has_select()) 
-#~ sched = Scheduler() 
+sched = Scheduler(proactor=has_select())
+#~ sched = Scheduler()
 sched.add(somecoroutine)
 sched.run() # this is the main loop

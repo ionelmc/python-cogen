@@ -1,5 +1,5 @@
 """
-A module for quick importing the essential core stuff. 
+A module for quick importing the essential core stuff.
 (coroutine, Scheduler, events, sockets, priority)
 """
 from cogen.core.coroutines import coroutine, coro

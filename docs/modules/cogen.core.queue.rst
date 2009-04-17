@@ -1,4 +1,4 @@
-:mod:`cogen.core.queue` 
+:mod:`cogen.core.queue`
 =======================
 
 .. automodule:: cogen.core.queue

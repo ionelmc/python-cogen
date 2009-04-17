@@ -9,35 +9,35 @@ from base import ProactorBase, perform_recv, perform_accept, perform_send, \
 
 class SelectProactor(ProactorBase):
     def run(self, timeout = 0):
-        """ 
-        Run a proactor loop and return new socket events. Timeout is a timedelta 
-        object, 0 if active coros or None. 
-        
+        """
+        Run a proactor loop and return new socket events. Timeout is a timedelta
+        object, 0 if active coros or None.
+
         select timeout param is a float number of seconds.
         """
         ptimeout = timeout.days*86400 + timeout.microseconds/1000000 + timeout.seconds \
                 if timeout else (self.resolution if timeout is None else 0)
         if self.tokens:
-            #~ print ([act for act in self.tokens 
+            #~ print ([act for act in self.tokens
                     #~ if self.tokens[act] == perform_recv
-                    #~ or self.tokens[act] == perform_accept], 
-                #~ [act for act in self.tokens 
-                    #~ if self.tokens[act] == perform_send 
+                    #~ or self.tokens[act] == perform_accept],
+                #~ [act for act in self.tokens
+                    #~ if self.tokens[act] == perform_send
                     #~ or self.tokens[act] == perform_sendall
                     #~ or self.tokens[act] == perform_sendfile
-                    #~ or self.tokens[act] == perform_connect], 
+                    #~ or self.tokens[act] == perform_connect],
                 #~ [act for act in self.tokens])
-                    
+
             ready_to_read, ready_to_write, in_error = select.select(
-                [act for act in self.tokens 
+                [act for act in self.tokens
                     if self.tokens[act] == perform_recv
-                    or self.tokens[act] == perform_accept], 
-                [act for act in self.tokens 
-                    if self.tokens[act] == perform_send 
+                    or self.tokens[act] == perform_accept],
+                [act for act in self.tokens
+                    if self.tokens[act] == perform_send
                     or self.tokens[act] == perform_sendall
                     or self.tokens[act] == perform_sendfile
-                    or self.tokens[act] == perform_connect], 
-                [act for act in self.tokens], 
+                    or self.tokens[act] == perform_connect],
+                [act for act in self.tokens],
                 ptimeout
             )
             #~ print ready_to_read, ready_to_write, in_error
@@ -47,7 +47,7 @@ class SelectProactor(ProactorBase):
             for act in itertools.chain(ready_to_read, ready_to_write):
                 if last_act:
                     self.handle_event(last_act)
-                        
+
                 last_act = act
             return self.yield_event(last_act)
         else:

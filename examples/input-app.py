@@ -6,10 +6,10 @@ def lorem_ipsum_app(environ, start_response):
         #~ fh.write(data)
         #~ fh.close()
         return [
-            #~ "inputlen:%s"%len(data), 
+            #~ "inputlen:%s"%len(data),
             pprint.pformat(environ)
         ]
-    
+
 from cogen.web import wsgi
 def run():
     try:
@@ -17,7 +17,7 @@ def run():
     except:
         import traceback
         traceback.print_exc()
-        
+
 import cProfile, os
 cProfile.run("run()", "cprofile.log")
 import pstats
@@ -34,4 +34,4 @@ for i in [
     )
     stats.sort_stats(i)
     stats.print_stats()
-        
+

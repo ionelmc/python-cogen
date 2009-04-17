@@ -1,7 +1,7 @@
 from __future__ import division
 from time import sleep
 from select import epoll, EPOLLIN, EPOLLOUT, EPOLLPRI, EPOLLERR, EPOLLHUP, \
-                            EPOLLET, EPOLLONESHOT, EPOLLMSG 
+                            EPOLLET, EPOLLONESHOT, EPOLLMSG
 
 
 
@@ -18,7 +18,7 @@ class StdlibEpollProactor(ProactorBase):
         self.scheduler = scheduler
         self.epoll_obj = epoll(default_size)
         self.shadow = {}
-                    
+
     def unregister_fd(self, act, fd=None):
         fileno = fd or act.sock.fileno()
         try:
@@ -26,19 +26,19 @@ class StdlibEpollProactor(ProactorBase):
         except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
-            
+
         try:
             self.epoll_obj.unregister(fileno)
         except OSError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
-    
+
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
         self.shadow[fileno] = act
         flag =  EPOLLIN if performer == perform_recv \
-                or performer == perform_accept else EPOLLOUT 
-        
+                or performer == perform_accept else EPOLLOUT
+
         if act.sock._proactor_added:
             self.epoll_obj.modify(fileno, flag | EPOLLONESHOT)
         else:
@@ -46,14 +46,14 @@ class StdlibEpollProactor(ProactorBase):
         act.sock._proactor_added = True
 
     def run(self, timeout = 0):
-        """ 
-        Run a proactor loop and return new socket events. Timeout is a timedelta 
-        object, 0 if active coros or None. 
-        
+        """
+        Run a proactor loop and return new socket events. Timeout is a timedelta
+        object, 0 if active coros or None.
+
         epoll timeout param is a integer number of seconds.
         """
         ptimeout = float(
-            timeout.microseconds/1000000+timeout.seconds if timeout 
+            timeout.microseconds/1000000+timeout.seconds if timeout
             else (self.resolution if timeout is None else 0)
         )
         if self.tokens:
@@ -78,8 +78,8 @@ class StdlibEpollProactor(ProactorBase):
                         if not self.handle_event(act):
                             self.epoll_obj.modify(fd, ev | EPOLLONESHOT)
                             self.shadow[fd] = act
-                        
-                
+
+
         else:
             sleep(timeout)
             # todo; fix this to timeout value

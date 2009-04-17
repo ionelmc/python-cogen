@@ -4,9 +4,9 @@ count = 0
 def cogen_b():
     global count
     count += 1
-    yield 
-    yield 
-    yield 
+    yield
+    yield
+    yield
 @coroutine
 def cogen_a(prio):
     for i in xrange(10000):
@@ -15,9 +15,9 @@ def cogen_a(prio):
 def normal_a():
     global count
     count += 1
-    yield 
-    yield 
-    yield 
+    yield
+    yield
+    yield
 def normal_b():
     for i in xrange(10000):
         for i in normal_a():
@@ -27,18 +27,18 @@ def cogen_call(prio=priority.FIRST):
     m.add(cogen_a, args=(prio,))
     m.run()
 def normal_call():
-    normal_b()    
+    normal_b()
 
 if __name__ == "__main__":
     #~ cogen_call()
     import timeit
     print timeit.Timer(
-        'normal_call()', 
+        'normal_call()',
         "from __main__ import normal_call"
     ).timeit(3)
     print count
     print timeit.Timer(
-        'cogen_call()', 
+        'cogen_call()',
         "from __main__ import cogen_call"
     ).timeit(3)
     print count
@@ -59,4 +59,4 @@ if __name__ == "__main__":
         )
         stats.sort_stats(i)
         stats.print_stats()
-            
+

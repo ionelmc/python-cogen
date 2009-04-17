@@ -35,14 +35,14 @@ def make_app(global_conf, full_stack=True, **app_conf):
 
     # The Pylons WSGI app
     app = PylonsApp()
-    
+
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
-    
+
     # Routing/Session/Cache Middleware
     app = RoutesMiddleware(app, config['routes.map'])
     #~ app = SessionMiddleware(app, config)
     app = CacheMiddleware(app, config)
-    
+
     if asbool(full_stack):
         # Handle Python exceptions
         #~ app = ErrorHandler(app, global_conf, **config['pylons.errorware'])
@@ -56,19 +56,19 @@ def make_app(global_conf, full_stack=True, **app_conf):
 
     # Establish the Registry for this application
     app = RegistryManager(app, streaming=True)
-    
-    
-    # Static files (If running in production, and Apache or another web 
+
+
+    # Static files (If running in production, and Apache or another web
     # server is handling this static content, remove the following 3 lines)
     javascripts_app = StaticJavascripts()
     static_app = StaticURLParser(config['pylons.paths']['static_files'])
     app = Cascade([static_app, javascripts_app, app])
-    
+
     from cogen.web.async import LazyStartResponseMiddleware
     app = LazyStartResponseMiddleware(app)
-    
+
     app = SessionMiddleware(app, config)
-    
+
     from cogen.web.async import SynchronousInputMiddleware
     app = SynchronousInputMiddleware(app)
 

@@ -6,5 +6,5 @@ class ConnForm(formencode.Schema):
     server = formencode.validators.String(not_empty=True)
     nickname = formencode.validators.String(not_empty=True)
     channel = formencode.validators.String(not_empty=True)
-    
+
 

@@ -15,7 +15,7 @@ setup(
     name='cogen',
     version=version,
     description='''
-        Coroutines and asynchronous I/O using enhanced generators 
+        Coroutines and asynchronous I/O using enhanced generators
         from python 2.5, including a enhanced WSGI server.
     ''',
     long_description=file('README.txt').read(),
@@ -37,7 +37,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: HTTP Servers',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Server',
         'Topic :: System :: Networking',
-    ],      
+    ],
     entry_points={
         'paste.server_factory': [
             'wsgi=cogen.web.wsgi:server_factory',

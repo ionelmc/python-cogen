@@ -13,9 +13,9 @@ f.write("\r\n")
 
 for i in xrange(100):
     val = chr(i+35)*1024*1024
-    
+
     f.write(hex(len(val))[2:]+"\r\n")
     f.write(val)
     f.write("\r\n")
 #~ f.write("\r\n")
-f.write("0\r\n\r\n")    
+f.write("0\r\n\r\n")
