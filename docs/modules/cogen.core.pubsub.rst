@@ -1,4 +1,4 @@
-:mod:`cogen.core.pubsub` 
+:mod:`cogen.core.pubsub`
 ========================
 
 .. automodule:: cogen.core.pubsub

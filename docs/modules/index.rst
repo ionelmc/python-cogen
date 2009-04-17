@@ -4,16 +4,16 @@ Core
 ====
 
 .. toctree::
-   :maxdepth: 2 
+   :maxdepth: 2
    :glob:
-   
+
    cogen.core*
-   
+
 Web
 ===
 
 .. toctree::
-   :maxdepth: 2 
+   :maxdepth: 2
    :glob:
-   
+
    cogen.web*

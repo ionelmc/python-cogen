@@ -1,4 +1,4 @@
-""" 
+"""
 Coroutine related boilerplate and wrappers.
 """
 __all__ = ['corolet']
@@ -23,32 +23,32 @@ def yield_(op):
 
 class CoroGreenlet(greenlet):
     __slots__ = ('coro',)
-    
+
     def __init__(self, coro):
         current = getcurrent()
         super(CoroGreenlet, self).__init__(parent=current.parent or current)
         self.coro = coro
-        
+
     def run(self, *args, **kwargs):
         """This runs in a greenlet"""
         return_value = self.coro(*args, **kwargs)
-        
+
         # i don't like this but greenlets are so dodgy i have no other choice
         raise StopIteration(return_value)
-        
-        # dead greenlets don't raise exceptions when switched to 
+
+        # dead greenlets don't raise exceptions when switched to
         # - they just return the passed value :(
-        
+
     def __repr__(self):
         return "<%s instance at 0x%08X wrapping %r>" % (
             self.__class__.__name__,
-            id(self), 
+            id(self),
             getattr(self, 'coro', 'N/A'),
         )
     __str__ = __repr__
-        
+
 class CoroletInstance(coroutines.CoroutineInstance):
-    ''' 
+    '''
     This is patched to work with a greenlet instead of a generator.
     '''
     STATE_NEED_INIT, STATE_RUNNING, STATE_COMPLETED, \
@@ -57,56 +57,56 @@ class CoroletInstance(coroutines.CoroutineInstance):
     __slots__ = (
     )
     running = property(lambda self: self.state < self.STATE_COMPLETED)
-    
+
     def __init__(self, coro, *args, **kws):
         self.debug = False
         self.f_args = args
         self.f_kws = kws
-        
+
         self.state = self.STATE_NEED_INIT
         self.name = coro.func_name
         self.coro = CoroGreenlet(coro)
-        
+
         self.caller = None
         self.prio = priority.FIRST
         self.waiters = []
         self.exception = None
-    
+
     #~ from cogen.core.util import debug as dbg
     #~ @dbg(0)
-    def run_op(self, op): 
+    def run_op(self, op):
         """
         Handle the operation:
-        
+
         * if coro is in STATE_RUNNING, send or throw the given op
-        
-        * if coro is in STATE_NEED_INIT, call the init function and if it 
+
+        * if coro is in STATE_NEED_INIT, call the init function and if it
           doesn't return a generator, set STATE_COMPLETED and set the result
-          to whatever the function returned. 
-          
+          to whatever the function returned.
+
           * if StopIteration is raised, set STATE_COMPLETED and return self.
-          
+
           * if any other exception is raised, set STATE_FAILED, handle error
             or send it to the caller, return self
-        
+
         """
         if op is self:
             import warnings
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
-                self, isinstance(op, CoroutineException) and op or 
+                self, isinstance(op, CoroutineException) and op or
                 (hasattr(op, 'state') and {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state] or 'NOP'), op,
                 self._state_names[self.state],
                 self._state_names[self.STATE_COMPLETED]
             )
         coroutines.ident = self
-        
+
         try:
             if self.state == self.STATE_RUNNING:
                 if self.debug:
                     traceback.print_stack(self.coro.gr_frame)
-                    
+
                 if isinstance(op, CoroutineException):
                     rop = self.coro.throw(*op.args)
                 else:
@@ -115,12 +115,12 @@ class CoroletInstance(coroutines.CoroutineInstance):
                 assert op is None
                 rop = self.coro.switch(*self.f_args, **self.f_kws)
                 self.state = self.STATE_RUNNING
-                    
+
                 del self.f_args
-                del self.f_kws 
+                del self.f_kws
             else:
                 return None
-                
+
         except StopIteration, e:
             self.state = self.STATE_COMPLETED
             self.result = e.args and e.args[0]
@@ -141,9 +141,9 @@ class CoroletInstance(coroutines.CoroutineInstance):
             coroutines.ident = None
         return rop
 
-        
+
 class Corolet(coroutines.Coroutine):
-    __doc__ = coroutines.CoroutineDocstring(""" 
+    __doc__ = coroutines.CoroutineDocstring("""
     A decorator function for generators.
     Example::
 
@@ -156,8 +156,8 @@ class Corolet(coroutines.Coroutine):
     __slots__ = ()
     def __init__(self, func, constructor=CoroletInstance):
         super(Corolet, self).__init__(func, constructor)
-        
-           
+
+
 corolet = Corolet
 
 class DebugCorolet(Corolet):
@@ -172,23 +172,23 @@ debug_corolet = DebugCorolet
 if __name__ == "__main__":
     from cogen.core.events import Sleep
     from cogen.core.schedulers import Scheduler
-    
+
     def bar():
         yield_(events.Sleep(1))
         print 2
         raise Exception('BOOOO!!!')
-        
+
     def foo():
         bar()
-    
+
     @corolet
     def some_func():
         "blablalbla"
         print 1
         foo()
         print 3
-    
-        
+
+
     m = Scheduler()
     m.add(some_func)
     m.run()

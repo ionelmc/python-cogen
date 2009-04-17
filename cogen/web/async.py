@@ -1,6 +1,6 @@
 """
-cogen.web.wsgi server is asynchronous by default. 
-If you need to run a app that uses wsgi.input synchronously you need to wrapp 
+cogen.web.wsgi server is asynchronous by default.
+If you need to run a app that uses wsgi.input synchronously you need to wrapp
 it in :class:`SynchronousInputMiddleware`.
 
 """
@@ -18,7 +18,7 @@ class COGENOperationWrapper(object):
     def __init__(self, gate, module):
         self.module = module
         self.gate = gate
-        
+
     def __getattr__(self, key):
         #~ if callable(self.module):
             #~ return COGENOperationCall(self.gate, self.module)
@@ -30,14 +30,14 @@ class COGENOperationWrapper(object):
 class COGENCallWrapper(object):
     def __init__(self, gate):
         self.gate = gate
-        
+
     def __call__(self, obj):
         return COGENOperationCall(self.gate, obj)
 
 class COGENSimpleWrapper(object):
     def __init__(self, gate):
         self.gate = gate
-        
+
     def __call__(self, obj):
         self.gate.operation = obj
 
@@ -45,7 +45,7 @@ class COGENOperationCall(object):
     def __init__(self, gate, obj):
         self.gate = gate
         self.obj = obj
-        
+
     def __call__(self, *args, **kwargs):
         self.gate.operation = self.obj(*args, **kwargs)
         return ""
@@ -53,14 +53,14 @@ class COGENProxy(object):
     __slots__ = (
         'content_length', 'read_count', 'operation', 'result', 'exception'
     )
-    
+
     def __init__(self, content_length=None, read_count=None, operation=None, result=None, exception=None):
         self.content_length = content_length
         self.read_count = read_count
         self.operation = operation
         self.result = result
         self.exception = exception
-        
+
     def __str__(self):
         return repr(self.__dict__)
 
@@ -73,7 +73,7 @@ class LazyStartResponseMiddleware:
     def __init__(self, app, global_conf={}):
         self.app = app
         self.sr_called = False
-        
+
     def start_response(self, status, headers, exc=None):
         self.sr_called = True
         self.status = status
@@ -81,7 +81,7 @@ class LazyStartResponseMiddleware:
         self.exc = exc
         self.out = StringIO()
         return self.out.write
-    
+
     def __call__(self, environ, start_response):
         started = False
         app_iter = self.app(environ, self.start_response)
@@ -127,7 +127,7 @@ class SynchronousInputMiddleware:
         iterator = self.app(environ, start_response)
         for i in iterator:
             yield i
-        if hasattr(iterator, 'close'): 
+        if hasattr(iterator, 'close'):
             iterator.close()
 
 sync_input = SynchronousInputMiddleware

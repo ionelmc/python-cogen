@@ -13,6 +13,6 @@ def bar(what):
     print 'bar'
     raise StopIteration("spam, %s and eggs" % what)
 
-sched = Scheduler() 
+sched = Scheduler()
 sched.add(foo)
 sched.run()

@@ -3,10 +3,10 @@ import sys
 
 
 m = Scheduler(
-    proactor_multiplex_first=False, 
-    ops_greedy=False, 
-    default_priority=priority.FIRST, 
-    proactor_default_size=102400, 
+    proactor_multiplex_first=False,
+    ops_greedy=False,
+    default_priority=priority.FIRST,
+    proactor_default_size=102400,
     proactor_greedy=True,
     proactor_resolution=5
 )
@@ -33,7 +33,7 @@ def server():
 @coroutine
 def handler(sock, addr):
     yield sock.recv(1024)
-    
+
 print 'Using:', proactors.DefaultProactor.__name__
 m.add(server)
 m.run()

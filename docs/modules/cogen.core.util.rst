@@ -1,4 +1,4 @@
-:mod:`cogen.core.util` 
+:mod:`cogen.core.util`
 ======================
 
 .. automodule:: cogen.core.util

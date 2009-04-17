@@ -22,20 +22,20 @@ class Client:
         self.name = name
     @coro
     def watch(self):
-        """This is a coroutine that runs permanently for each participant to the 
-        chat. If the participant has more than 10 unpulled messages this 
+        """This is a coroutine that runs permanently for each participant to the
+        chat. If the participant has more than 10 unpulled messages this
         coroutine will die.
-        
-        `pubsub` is a queue that hosts the messages from all the 
+
+        `pubsub` is a queue that hosts the messages from all the
         participants.
           * subscribe registers this coro to the queue
           * fetch pulls the recent messages from the queue or waits if there
         are no new ones.
-          
-        self.messages is another queue for the frontend comet client (the 
+
+        self.messages is another queue for the frontend comet client (the
         pull action from the ChatController will pop messages from this queue)
         """
-        yield pubsub.subscribe() 
+        yield pubsub.subscribe()
         while 1:
             messages = yield pubsub.fetch()
             print messages
@@ -46,7 +46,7 @@ class Client:
                 self.dead = True
                 break
 class ChatController(BaseController):
-    
+
     def push(self):
         """This action puts a message in the global queue that all the clients
         will get via the 'pull' action."""
@@ -54,12 +54,12 @@ class ChatController(BaseController):
         yield request.environ['cogen.call'](pubsub.publish)(
             "%s: %s" % (session['client'].name, request.body)
         )
-        # the request.environ['cogen.*'] objects are the the asynchronous 
+        # the request.environ['cogen.*'] objects are the the asynchronous
         # make the code here work as a coroutine and still work with any
-        # wsgi extensions offered by cogen - basicaly they do some magic to 
+        # wsgi extensions offered by cogen - basicaly they do some magic to
         # middleware
         yield str(request.environ['cogen.wsgi'].result)
-        
+
     def pull(self):
         """This action does some state checking (adds a object in the session
         that will identify this chat participant and adds a coroutine to manage
@@ -74,9 +74,9 @@ class ChatController(BaseController):
             return
         else:
             client = session['client']
-            
+
         yield request.environ['cogen.call'](client.messages.get)(timeout=10)
-        
+
         if isinstance(request.environ['cogen.wsgi'].result, events.OperationTimeout):
             pass
         elif isinstance(request.environ['cogen.wsgi'].result, Exception):

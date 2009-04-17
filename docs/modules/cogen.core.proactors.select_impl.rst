@@ -1,4 +1,4 @@
-:mod:`cogen.core.proactors.select_impl` 
+:mod:`cogen.core.proactors.select_impl`
 =======================================
 
 .. automodule:: cogen.core.proactors.select_impl
@@ -6,4 +6,4 @@
     :undoc-members:
     :show-inheritance:
 
-    
+

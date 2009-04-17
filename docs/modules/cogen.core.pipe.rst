@@ -1,4 +1,4 @@
-:mod:`cogen.core.pipe` 
+:mod:`cogen.core.pipe`
 ======================
 
 .. automodule:: cogen.core.pipe

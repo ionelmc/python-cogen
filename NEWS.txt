@@ -7,7 +7,7 @@
  * moved/renamed events.ConnectionError to sockets.SocketError
  * moved ConnectionClosed in sockets module
  * various plumbing (useless imports, typos etc)
- 
+
 0.2.0:
 
  * rewritten the network code
@@ -15,8 +15,8 @@
    like python's socket api)
  * added support for TransmitFile
  * added support for select.epoll and select.kqueue in python 2.6
- * added a ctypes iocp proactor (no dependency on pywin32) 
- 
+ * added a ctypes iocp proactor (no dependency on pywin32)
+
 0.1.9:
 
  * splited platform specific network code in separate modules
@@ -24,7 +24,7 @@
  * added reactor_greedy and ops_greedy options on the scheduler
  * removed qt reactor
  * improved the coroutine call
- 
+
 0.1.8:
 
  * added support for ConnectEx (via IOCPProactor)
