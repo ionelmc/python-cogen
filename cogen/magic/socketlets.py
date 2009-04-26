@@ -1,11 +1,12 @@
 from cogen.core.sockets import Send, Recv, SendAll, Accept, Connect, \
-        getdefaulttimeout, setdefaulttimeout
-from cogen.core import sockets
+    getdefaulttimeout, setdefaulttimeout, Socket as CogenSocket
+        
 from cogen.magic.corolets import yield_
 
-from socket import _fileobject, socket
 
-class Socket(sockets.Socket):
+from socket import _fileobject
+
+class Socket(CogenSocket):
     """
     A wrapper for socket objects, sets nonblocking mode and
     adds some internal bufers and wrappers. Regular calls to the usual 
@@ -47,7 +48,11 @@ class Socket(sockets.Socket):
         Returns a special fileobject that has corutines instead of the usual
         read/readline/write methods. Will work in the same manner though.
         """
-        return _fileobject(self, mode, bufsize)
+        return _fileobject(Socket(
+            _sock=self._fd._sock, 
+            _timeout=self._timeout, 
+            _proactor_added=self._proactor_added
+        ), mode, bufsize)
         
     def send(self, data, **kws):
         """Send data to the socket. The socket must be connected to a remote 
