@@ -12,7 +12,7 @@ __all__ = [
     'SocketOperation', 'SocketError', 'ConnectionClosed'
 ]
 
-from socket import socket
+from socket import socket as stdsocket, AF_INET, SOCK_STREAM
 
 import events
 from coroutines import coro
@@ -67,11 +67,14 @@ class Socket(object):
     A socket object represents one endpoint of a network connection.
     """
     __slots__ = ('_fd', '_timeout', '_proactor_added')
-    def __init__(self, *a, **k):
-        self._fd = socket(*a, **k)
+    
+    def __init__(self, family=AF_INET, type=SOCK_STREAM, proto=0, 
+            _timeout=None, _sock=None, _proactor_added=False):
+            
+        self._fd = _sock or stdsocket(family, type, proto)
         self._fd.setblocking(0)
-        self._timeout = _TIMEOUT
-        self._proactor_added = False
+        self._timeout = _timeout or _TIMEOUT
+        self._proactor_added = _proactor_added
             
     def recv(self, bufsize, **kws):
         """Receive data from the socket. The return value is a string 
