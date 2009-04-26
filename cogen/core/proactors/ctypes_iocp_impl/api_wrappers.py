@@ -7,7 +7,8 @@ from ctypes import WINFUNCTYPE, GetLastError, \
 from ctypes.wintypes import HANDLE, ULONG, DWORD, BOOL, LPCSTR, LPCWSTR, WinError
 
 from msvcrt import get_osfhandle
-
+from socket import socket as stdsocket
+    
 from api_consts import *
 
 import os
@@ -238,8 +239,7 @@ WSAIoctl.errcheck = _error_throw
 ConnectExType = WINFUNCTYPE(BOOL, c_int, POINTER(sockaddr), c_int, c_void_p, DWORD, POINTER(DWORD), POINTER(OVERLAPPED))
 
 def _GetConnectExPtr(given_socket=None):
-    from socket import socket
-    bogus_sock = given_socket or socket()
+    bogus_sock = given_socket or stdsocket()
     bogus_bytes = DWORD()
     ConnectEx = ConnectExType(0)
     ret = WSAIoctl(
@@ -255,8 +255,7 @@ ConnectEx.errcheck = _bool_error_check
 TransmitFileType = WINFUNCTYPE(BOOL, SOCKET, HANDLE, DWORD, DWORD, POINTER(OVERLAPPED), POINTER(TRANSMIT_FILE_BUFFERS), DWORD)
 
 def _GetTransmitFilePtr(given_socket=None):
-    from socket import socket
-    bogus_sock = given_socket or socket()
+    bogus_sock = given_socket or stdsocket()
     bogus_bytes = DWORD()
     TransmitFile = TransmitFileType(0)
     ret = WSAIoctl(
