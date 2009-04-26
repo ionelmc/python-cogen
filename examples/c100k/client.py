@@ -2,10 +2,10 @@ import sys, os, traceback, socket
 from cogen.common import *
 
 m = Scheduler(
-    proactor_multiplex_first=False, 
-    ops_greedy=True, 
-    default_priority=priority.FIRST, 
-    proactor_default_size=102400, 
+    proactor_multiplex_first=False,
+    ops_greedy=True,
+    default_priority=priority.FIRST,
+    proactor_default_size=102400,
     proactor_greedy=False,
     proactor_resolution=5
 )
@@ -23,12 +23,12 @@ def client(local, remote):
     if num == 100000:
         # actually we don't need to revive 100k coros
         sys.exit()
-        
+
         yield events.Signal('done')
     else:
         yield events.WaitForSignal('done')
-    
-        
+
+
 for i in xrange(50000):
     m.add(client, args=(("192.168.111.203", 10000+i), ("192.168.111.201", port)))
 for i in xrange(50000):

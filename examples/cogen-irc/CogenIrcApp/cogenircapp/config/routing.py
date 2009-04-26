@@ -17,11 +17,11 @@ def make_map():
     map.connect('error/:action/:id', controller='error')
 
     # CUSTOM ROUTES HERE
-        
+
     map.connect('connect/:server', controller='irc', action='connect')
     map.connect('pull/:id', controller='irc', action='pull')
     map.connect('push/:id', controller='irc', action='push')
-    
+
     map.connect(':controller/:action/:id')
-    
+
     return map

@@ -7,7 +7,7 @@ def foo():
     yield events.Signal("bar", 'spam')
     yield events.Signal("bar", 'ham')
     yield events.Signal("bar", 'eggs')
-    yield events.Sleep(3) 
+    yield events.Sleep(3)
 
 @coroutine
 def bar():
@@ -19,7 +19,7 @@ def bar():
     except events.OperationTimeout:
         print 'No more stuff !'
 
-sched = Scheduler() 
+sched = Scheduler()
 sched.add(bar)
 sched.add(foo)
 sched.run()

@@ -44,7 +44,7 @@ class OVERLAPPED(Structure):
     ]
 
     _anonymous_ = ("u",)
-    
+
 LPOVERLAPPED = POINTER(OVERLAPPED)
 
 class WSABUF(Structure):
@@ -103,7 +103,7 @@ class WSAPROTOCOL_INFO(Structure):
         ('dwProviderReserved', DWORD),
         ('szProtocol', c_char * (WSAPROTOCOL_LEN+1)),
     ]
-    
+
 class TRANSMIT_FILE_BUFFERS(Structure):
     _fields_ = [
         ('Head', c_void_p),
@@ -111,7 +111,7 @@ class TRANSMIT_FILE_BUFFERS(Structure):
         ('Tail', c_void_p),
         ('TailLength', DWORD)
     ]
- 
+
 class sockaddr(Structure):
     _fields_ = [
         ('sa_family', c_ushort),
@@ -119,7 +119,7 @@ class sockaddr(Structure):
     ]
 
 ACCEPT_BUFF_SZ = 2*sizeof(sockaddr)
-    
+
 class in_addr(Structure):
     _fields_ = [
         ('s_b1', c_ubyte),
@@ -135,10 +135,10 @@ class sockaddr_in(Structure):
         ('sin_addr', in_addr),
         ('sin_zero', c_char * 8)
     ]
-    
+
 class addrinfo(Structure):
     pass
-    
+
 addrinfo._fields_ = [
     ('ai_flags', c_int),
     ('ai_family', c_int),
@@ -171,7 +171,7 @@ def _bool_error_check(result, func, args):
     if not result:
         return GetLastError()
     return 0
-    
+
 CreateIoCompletionPort = windll.kernel32.CreateIoCompletionPort
 CreateIoCompletionPort.argtypes = (HANDLE, HANDLE, POINTER(c_ulong), DWORD)
 CreateIoCompletionPort.restype = HANDLE

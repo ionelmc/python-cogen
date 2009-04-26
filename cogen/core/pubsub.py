@@ -4,13 +4,13 @@ from util import priority
 
 class PSPut(events.Operation):
     __slots__ = ('queue', 'message', 'key')
-    
+
     def __init__(self, queue, message, key, **kws):
         super(PSPut, self).__init__(**kws)
         self.queue = queue
         self.message = message
         self.key = key
-    
+
     def process(self, sched, coro):
         super(PSPut, self).process(sched, coro)
         self.queue.messages.append(self.message)
@@ -32,15 +32,15 @@ class PSPut(events.Operation):
             else:
                 sched.active.append((self, coro))
             return None, None
-            
+
 class PSGet(events.TimedOperation):
     __slots__ = ('queue', 'result', 'key')
-    
+
     def __init__(self, queue, key, **kws):
         super(PSGet, self).__init__(**kws)
         self.queue = queue
         self.key = key
-    
+
     def process(self, sched, coro):
         super(PSGet, self).process(sched, coro)
         key = self.key or coro
@@ -49,33 +49,33 @@ class PSGet(events.TimedOperation):
         queue_level = len(self.queue.messages)
         if level < queue_level:
             self.result = self.queue.messages[level:] if level \
-                          else self.queue.messages  
+                          else self.queue.messages
             self.queue.subscribers[key] = queue_level
             return self, coro
         else:
             self.queue.active_subscribers[key] = self, coro
-    
+
     def finalize(self, sched):
         super(PSGet, self).finalize(sched)
         return self.result
-        
+
     def cleanup(self, sched, coro):
         for key in self.queue.active_subscribers:
             getop, getcoro = self.queue.active_subscribers[key]
             if coro is getcoro:
                 assert getop is self
-                
+
                 del self.queue.active_subscribers[key]
                 return True
 
 class PSSubscribe(events.Operation):
     __slots__ = ('queue', 'key')
-    
+
     def __init__(self, queue, key, **kws):
         super(PSSubscribe, self).__init__(**kws)
         self.queue = queue
         self.key = key
-    
+
     def process(self, sched, coro):
         super(PSSubscribe, self).process(sched, coro)
         self.queue.subscribers[self.key or coro] = 0
@@ -83,12 +83,12 @@ class PSSubscribe(events.Operation):
 
 class PSUnsubscribe(events.Operation):
     __slots__ = ('queue', 'key')
-    
+
     def __init__(self, queue, key, **kws):
         super(PSUnsubscribe, self).__init__(**kws)
         self.queue = queue
         self.key = key
-    
+
     def process(self, sched, coro):
         super(PSUnsubscribe, self).process(sched, coro)
         del self.queue.subscribers[self.key or coro]
@@ -104,31 +104,31 @@ class PublishSubscribeQueue:
         self.messages = []
         self.subscribers = {}
         self.active_subscribers = {} # holds waiting fetch ops
-        
+
     def publish(self, message, key=None, **kws):
-        """Put a message in the queue and updates any coroutine wating with 
+        """Put a message in the queue and updates any coroutine wating with
         fetch. *works as a coroutine operation*"""
         return PSPut(self, message, key, **kws)
-    
+
     def subscribe(self, key=None, **kws):
-        """Registers the calling coroutine to the queue. Sets the update index 
+        """Registers the calling coroutine to the queue. Sets the update index
         to 0 - on fetch, that coroutine will get all the messages from the
         queue. *works as a coroutine operation*"""
         return PSSubscribe(self, key, **kws)
-    
+
     def unsubscribe(self, key=None, **kws):
         """Unregisters the calling coroutine to the queue. """
         # TODO: unittest
         return PSUnsubscribe(self, key, **kws)
-    
+
     def fetch(self, key=None, **kws):
         """Get all the new messages since the last fetch. Returns a list
         of messages. *works as a coroutine operation*"""
         return PSGet(self, key, **kws)
-    
+
     def compact(self):
         """Compacts the queue: removes all the messages from the queue that
-        have been fetched by all the subscribed coroutines. 
+        have been fetched by all the subscribed coroutines.
         Returns the number of messages that have been removed."""
         if self.subscribers:
             level = min(self.subscribers.itervalues())

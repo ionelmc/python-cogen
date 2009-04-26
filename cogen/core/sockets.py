@@ -1,6 +1,6 @@
 """
 Socket-only coroutine operations and `Socket` wrapper.
-Really - the only thing you need to know for most stuff is 
+Really - the only thing you need to know for most stuff is
 the :class:`~cogen.core.sockets.Socket` class.
 """
 
@@ -8,7 +8,7 @@ the :class:`~cogen.core.sockets.Socket` class.
 
 __all__ = [
     'getdefaulttimeout', 'setdefaulttimeout', 'Socket', 'SendFile', 'Recv',
-    'Send', 'SendAll','Accept','Connect', 
+    'Send', 'SendAll','Accept','Connect',
     'SocketOperation', 'SocketError', 'ConnectionClosed'
 ]
 
@@ -16,23 +16,23 @@ from socket import socket as stdsocket, AF_INET, SOCK_STREAM
 
 import events
 from coroutines import coro
-    
+
 _TIMEOUT = None
 
 
 class SocketError(Exception):
     "Raised when a socket has a error flag (in epoll or select)"
-    
+
 class ConnectionClosed(SocketError):
     "Raised when the other peer has closed connection."
-    
+
 
 
 def getdefaulttimeout():
     return _TIMEOUT
 
 def setdefaulttimeout(timeout):
-    """Set the default timeout used by the socket wrapper 
+    """Set the default timeout used by the socket wrapper
     (`Socket <cogen.core.sockets.Socket.html>`_ class)"""
     global _TIMEOUT
     _TIMEOUT = timeout
@@ -41,23 +41,23 @@ def setdefaulttimeout(timeout):
 class Socket(object):
     """
     A wrapper for socket objects, sets nonblocking mode and
-    adds some internal bufers and wrappers. Regular calls to the usual 
+    adds some internal bufers and wrappers. Regular calls to the usual
     socket methods return operations for use in a coroutine.
-    
+
     So you use this in a coroutine like:
-    
+
     .. sourcecode:: python
-    
+
         sock = Socket(family, type, proto) # just like the builtin socket module
         yield sock.read(1024)
-    
-    
+
+
     Constructor details:
-    
+
     .. sourcecode:: python
-    
+
         Socket([family[, type[, proto]]]) -> socket object
-    
+
     Open a socket of the given type.  The family argument specifies the
     address family; it defaults to AF_INET.  The type argument specifies
     whether this is a stream (SOCK_STREAM, this is the default)
@@ -75,116 +75,116 @@ class Socket(object):
         self._fd.setblocking(0)
         self._timeout = _timeout or _TIMEOUT
         self._proactor_added = _proactor_added
-            
+
     def recv(self, bufsize, **kws):
-        """Receive data from the socket. The return value is a string 
+        """Receive data from the socket. The return value is a string
         representing the data received. The amount of data may be less than the
         ammount specified by _bufsize_. """
         return Recv(self, bufsize, timeout=self._timeout, **kws)
-        
-       
+
+
     def makefile(self, mode='r', bufsize=-1):
         """
         Returns a special fileobject that has corutines instead of the usual
         read/readline/write methods. Will work in the same manner though.
         """
         return _fileobject(self, mode, bufsize)
-        
+
     def send(self, data, **kws):
-        """Send data to the socket. The socket must be connected to a remote 
+        """Send data to the socket. The socket must be connected to a remote
         socket. Ammount sent may be less than the data provided."""
         return Send(self, data, timeout=self._timeout, **kws)
-        
+
     def sendall(self, data, **kws):
-        """Send data to the socket. The socket must be connected to a remote 
+        """Send data to the socket. The socket must be connected to a remote
         socket. All the data is guaranteed to be sent."""
         return SendAll(self, data, timeout=self._timeout, **kws)
-        
+
     def accept(self, **kws):
-        """Accept a connection. The socket must be bound to an address and 
-        listening for connections. The return value is a pair (conn, address) 
-        where conn is a new socket object usable to send and receive data on the 
-        connection, and address is the address bound to the socket on the other 
-        end of the connection. 
-        
+        """Accept a connection. The socket must be bound to an address and
+        listening for connections. The return value is a pair (conn, address)
+        where conn is a new socket object usable to send and receive data on the
+        connection, and address is the address bound to the socket on the other
+        end of the connection.
+
         Example:
         {{{
         conn, address = yield mysock.accept()
         }}}
         """
         return Accept(self, timeout=self._timeout, **kws)
-        
+
     def close(self):
-        """Close the socket. All future operations on the socket object will 
-        fail. The remote end will receive no more data (after queued data is 
-        flushed). Sockets are automatically closed when they are garbage-collected. 
+        """Close the socket. All future operations on the socket object will
+        fail. The remote end will receive no more data (after queued data is
+        flushed). Sockets are automatically closed when they are garbage-collected.
         """
         self._fd.close()
-        
+
     def bind(self, *args):
-        """Bind the socket to _address_. The socket must not already be bound. 
-        (The format of _address_ depends on the address family) 
+        """Bind the socket to _address_. The socket must not already be bound.
+        (The format of _address_ depends on the address family)
         """
         return self._fd.bind(*args)
-        
+
     def connect(self, address, **kws):
         """Connect to a remote socket at _address_. """
         return Connect(self, address, timeout=self._timeout, **kws)
-    
+
     def fileno(self):
         """Return the socket's file descriptor """
         return self._fd.fileno()
-        
+
     def listen(self, backlog):
-        """Listen for connections made to the socket. The _backlog_ argument 
-        specifies the maximum number of queued connections and should be at 
-        least 1; the maximum value is system-dependent (usually 5). 
+        """Listen for connections made to the socket. The _backlog_ argument
+        specifies the maximum number of queued connections and should be at
+        least 1; the maximum value is system-dependent (usually 5).
         """
         return self._fd.listen(backlog)
-        
+
     def getpeername(self):
         """Return the remote address to which the socket is connected."""
         return self._fd.getpeername()
-        
+
     def getsockname(self):
         """Return the socket's own address. """
         return self._fd.getsockname()
-        
+
     def settimeout(self, to):
-        """Set a timeout on blocking socket operations. The value argument can 
-        be a nonnegative float expressing seconds, timedelta or None. 
+        """Set a timeout on blocking socket operations. The value argument can
+        be a nonnegative float expressing seconds, timedelta or None.
         """
         self._timeout = to
-        
+
     def gettimeout(self):
         """Return the associated timeout value. """
         return self._timeout
-        
+
     def shutdown(self, *args):
-        """Shut down one or both halves of the connection. Same as the usual 
+        """Shut down one or both halves of the connection. Same as the usual
         socket method."""
         return self._fd.shutdown(*args)
-        
+
     def setblocking(self, val):
-        if val: 
+        if val:
             raise RuntimeError("You can't.")
     def setsockopt(self, *args):
-        """Set the value of the given socket option. Same as the usual socket 
+        """Set the value of the given socket option. Same as the usual socket
         method."""
         self._fd.setsockopt(*args)
-    
+
     def sendfile(self, file_handle, offset=None, length=None, blocksize=4096, **kws):
         return SendFile(file_handle, self, offset, length, blocksize, **kws)
-        
+
     def __repr__(self):
         return '<socket at 0x%X>' % id(self)
     def __str__(self):
         return 'sock@0x%X' % id(self)
-        
+
 class SocketOperation(events.TimedOperation):
     """
     This is a generic class for a operation that involves some socket call.
-        
+
     A socket operation should subclass WriteOperation or ReadOperation, define a
     `run` method and call the __init__ method of the superclass.
     """
@@ -193,54 +193,54 @@ class SocketOperation(events.TimedOperation):
     )
     def __init__(self, sock, **kws):
         """
-        All the socket operations have these generic properties that the 
+        All the socket operations have these generic properties that the
         poller and scheduler interprets:
-        
-          * timeout - the ammout of time in seconds or timedelta, or the datetime 
+
+          * timeout - the ammout of time in seconds or timedelta, or the datetime
             value till the poller should wait for this operation.
-          * weak_timeout - if this is True the timeout handling code will take 
+          * weak_timeout - if this is True the timeout handling code will take
             into account the time of last activity (that would be the time of last
             `try_run` call)
           * prio - a flag for the scheduler
         """
         assert isinstance(sock, Socket)
-        
+
         super(SocketOperation, self).__init__(**kws)
         self.sock = sock
-    
+
     def fileno(self):
         return self.sock._fd.fileno()
-        
+
     def cleanup(self, sched, coro):
         super(SocketOperation, self).cleanup(sched, coro)
         return sched.proactor.remove_token(self)
-    
-    
+
+
 class SendFile(SocketOperation):
     """
-    Uses underling OS sendfile (or equivalent) call or a regular memory copy 
+    Uses underling OS sendfile (or equivalent) call or a regular memory copy
     operation if there is no sendfile.
     You can use this as a WriteAll if you specify the length.
     Usage::
-        
-        yield sockets.SendFile(file_object, socket_object, 0) 
+
+        yield sockets.SendFile(file_object, socket_object, 0)
             # will send till send operations return 0
-            
+
         yield sockets.SendFile(file_object, socket_object, 0, blocksize=0)
             # there will be only one send operation (if successfull)
-            # that meas the whole file will be read in memory if there is 
+            # that meas the whole file will be read in memory if there is
             #no sendfile
-            
+
         yield sockets.SendFile(file_object, socket_object, 0, file_size)
             # this will hang if we can't read file_size bytes
             #from the file
 
     """
     __slots__ = (
-        'sent', 'file_handle', 'offset', 
+        'sent', 'file_handle', 'offset',
         'position', 'length', 'blocksize'
     )
-    
+
     def __init__(self, file_handle, sock, offset=None, length=None, blocksize=4096, **kws):
         super(SendFile, self).__init__(sock, **kws)
         self.file_handle = file_handle
@@ -248,11 +248,11 @@ class SendFile(SocketOperation):
         self.length = length
         self.sent = 0
         self.blocksize = blocksize
-        
+
     def process(self, sched, coro):
         super(SendFile, self).process(sched, coro)
         return sched.proactor.request_sendfile(self, coro)
-    
+
     def finalize(self, sched):
         super(SendFile, self).finalize(sched)
         return self.sent
@@ -261,25 +261,25 @@ class SendFile(SocketOperation):
 class Recv(SocketOperation):
     """
     Example usage:
-    
+
     .. sourcecode:: python
-        
+
         yield sockets.Read(socket_object, buffer_length)
-    
-    `buffer_length` is max read size, BUT, if if there are buffers from ReadLine 
-    return them first.    
+
+    `buffer_length` is max read size, BUT, if if there are buffers from ReadLine
+    return them first.
     """
     __slots__ = ('buff', 'len')
-        
+
     def __init__(self, sock, len = 4096, **kws):
         super(Recv, self).__init__(sock, **kws)
         self.len = len
         self.buff = None
-    
+
     def process(self, sched, coro):
         super(Recv, self).process(sched, coro)
         return sched.proactor.request_recv(self, coro)
-        
+
     def finalize(self, sched):
         super(Recv, self).finalize(sched)
         return self.buff
@@ -288,51 +288,51 @@ class Recv(SocketOperation):
 class Send(SocketOperation):
     """
     Write the buffer to the socket and return the number of bytes written.
-    """    
+    """
     __slots__ = ('sent', 'buff')
-    
+
     def __init__(self, sock, buff, **kws):
         super(Send, self).__init__(sock, **kws)
         self.buff = str(buff)
         self.sent = 0
-        
+
     def process(self, sched, coro):
         super(Send, self).process(sched, coro)
         return sched.proactor.request_send(self, coro)
-    
+
     def finalize(self, sched):
         super(Send, self).finalize(sched)
         return self.sent
-        
+
 class SendAll(SocketOperation):
     """
     Run this operation till all the bytes have been written.
     """
     __slots__ = ('sent', 'buff')
-    
+
     def __init__(self, sock, buff, **kws):
         super(SendAll, self).__init__(sock, **kws)
         self.buff = str(buff)
         self.sent = 0
-        
+
     def process(self, sched, coro):
         super(SendAll, self).process(sched, coro)
         return sched.proactor.request_sendall(self, coro)
-    
+
     def finalize(self, sched):
         super(SendAll, self).finalize(sched)
         return self.sent
- 
+
 class Accept(SocketOperation):
     """
     Returns a (conn, addr) tuple when the operation completes.
     """
     __slots__ = ('conn', 'addr', 'cbuff')
-    
+
     def __init__(self, sock, **kws):
         super(Accept, self).__init__(sock, **kws)
         self.conn = None
-        
+
     def process(self, sched, coro):
         super(Accept, self).process(sched, coro)
         return sched.proactor.request_accept(self, coro)
@@ -340,22 +340,22 @@ class Accept(SocketOperation):
     def finalize(self, sched):
         super(Accept, self).finalize(sched)
         return (self.conn, self.addr)
-        
+
     def __repr__(self):
         return "<%s at 0x%X %s conn:%r to:%s>" % (
-            self.__class__.__name__, 
-            id(self), 
-            self.sock, 
-            self.conn, 
+            self.__class__.__name__,
+            id(self),
+            self.sock,
+            self.conn,
             self.timeout
         )
-             
+
 class Connect(SocketOperation):
     """
-    
+
     """
     __slots__ = ('addr', 'conn', 'connect_attempted')
-    
+
     def __init__(self, sock, addr, **kws):
         """
         Connect to the given `addr` using `sock`.
@@ -367,7 +367,7 @@ class Connect(SocketOperation):
     def process(self, sched, coro):
         super(Connect, self).process(sched, coro)
         return sched.proactor.request_connect(self, coro)
-        
+
     def finalize(self, sched):
         super(Connect, self).finalize(sched)
         return self.sock
@@ -381,7 +381,7 @@ def RecvAll(sock, length, **k):
         recvd += len(chunk)
         data.append(chunk)
     assert recvd == length
-    
+
     raise StopIteration(''.join(data))
 
 class _fileobject(object):
@@ -416,7 +416,7 @@ class _fileobject(object):
     def _getclosed(self):
         return self._sock is None
     closed = property(_getclosed, doc="True if the file is closed")
-    
+
     @coro
     def close(self, **kws):
         try:

@@ -39,14 +39,14 @@ def parsemsg(s): # stolen from twisted.words
         args = s.split()
     command = args.pop(0)
     return prefix, command, args
-    
+
 class Connection:
     def __init__(self, server, reconnect_interval=60, sock_timo=45):
         self.server = server
         self.reconnect_interval = reconnect_interval
         self.connected = False
         self.sock_timo = sock_timo
-        self.events = queue.Queue(100) # Max pending events, well, messages 
+        self.events = queue.Queue(100) # Max pending events, well, messages
                     # from the server. After that we'll lose the connection.
         self.last_pull = time.time()
     @debug_coroutine
@@ -71,13 +71,13 @@ class Connection:
             except events.OperationTimeout, e:
                 yield self.events.put(('', 'CONNECT_TIMEOUT', str(e)), timeout=self.sock_timo)
                 yield events.Sleep(self.reconnect_interval)
-                
+
         yield self.events.put_nowait(('', 'CONNECTED', ''))
         fobj = self.sock.makefile()
         while 1:
             try:
                 line = yield fobj.readline(8192)
-                prefix, command, params = parsemsg(line.rstrip('\r\n'))    
+                prefix, command, params = parsemsg(line.rstrip('\r\n'))
                 if command in numeric_events:
                     command = numeric_events[command].upper()
                 print 'PULLME:', (prefix, command, params)
@@ -115,13 +115,13 @@ class IrcController(BaseController):
                     cmd = msg.pop(0).upper()
                     assert ' ' not in cmd, "Bad message"
                     if cmd in ('USER', ):
-                        sufix = " :"+msg.pop() 
+                        sufix = " :"+msg.pop()
                     else:
                         sufix = ''
                     assert not [i for i in msg if ' ' in i], "Bad message"
-                    
+
                     print 'PUSH:', (cmd, msg, sufix)
-                    
+
                     if msg:
                         payload = "%s %s%s\r\n" % (cmd, ' '.join(msg), sufix)
                     else:
@@ -136,24 +136,24 @@ class IrcController(BaseController):
                     yield simplejson.dumps(('', 'ERROR', str(e)))
         else:
             yield simplejson.dumps(('', 'ERROR', 'Invalid connection id.'))
-    
+
     def connect(self, server):
         "Connects to a server and return a connection id."
         if 'connections' not in session:
             session['connections'] = {}
             session.save()
-            
+
         conns = session['connections']
         id = str(len(conns))
         conn = Connection(server)
         conns[id] = conn
         yield request.environ['cogen.core'].events.AddCoro(conn.pull)
         yield id
-            
+
     def pull(self, id):
-        """Take the messages from the queue and if there are none wait 30 
+        """Take the messages from the queue and if there are none wait 30
         seconds till returning an empty message.
-        
+
         Also, cogen's wsgi async extensions are in the environ and prefixed with
         'cogen.'
         """
@@ -178,7 +178,7 @@ class IrcController(BaseController):
                     break
                 else:
                     ev_list.append(event)
-            if ev_list:        
+            if ev_list:
                 print 'PULL:', ev_list
                 yield simplejson.dumps(ev_list)
             else:
@@ -295,7 +295,7 @@ numeric_events = {
     "374": "endofinfo",
     "375": "motdstart",
     "376": "endofmotd",
-    "377": "motd2",      
+    "377": "motd2",
     "381": "youreoper",
     "382": "rehashing",
     "384": "myportis",
@@ -321,10 +321,10 @@ numeric_events = {
     "423": "noadmininfo",
     "424": "fileerror",
     "431": "nonicknamegiven",
-    "432": "erroneusnickname", 
+    "432": "erroneusnickname",
     "433": "nicknameinuse",
     "436": "nickcollision",
-    "437": "unavailresource",  
+    "437": "unavailresource",
     "441": "usernotinchannel",
     "442": "notonchannel",
     "443": "useronchannel",
@@ -336,7 +336,7 @@ numeric_events = {
     "462": "alreadyregistered",
     "463": "nopermforhost",
     "464": "passwdmismatch",
-    "465": "yourebannedcreep", 
+    "465": "yourebannedcreep",
     "466": "youwillbebanned",
     "467": "keyset",
     "471": "channelisfull",
@@ -345,12 +345,12 @@ numeric_events = {
     "474": "bannedfromchan",
     "475": "badchannelkey",
     "476": "badchanmask",
-    "477": "nochanmodes",  
+    "477": "nochanmodes",
     "478": "banlistfull",
     "481": "noprivileges",
     "482": "chanoprivsneeded",
     "483": "cantkillserver",
-    "484": "restricted",   
+    "484": "restricted",
     "485": "uniqopprivsneeded",
     "491": "nooperhost",
     "492": "noservicehost",

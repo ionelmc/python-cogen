@@ -5,7 +5,7 @@ from select import kqueue, kevent, \
                     KQ_FILTER_VNODE, KQ_FILTER_PROC, KQ_FILTER_NETDEV, \
                     KQ_FILTER_SIGNAL, KQ_FILTER_TIMER, KQ_EV_ADD, KQ_EV_DELETE, \
                     KQ_EV_ENABLE, KQ_EV_DISABLE, KQ_EV_ONESHOT, KQ_EV_CLEAR, \
-                    KQ_EV_SYSFLAGS, KQ_EV_FLAG1, KQ_EV_EOF, KQ_EV_ERROR 
+                    KQ_EV_SYSFLAGS, KQ_EV_FLAG1, KQ_EV_EOF, KQ_EV_ERROR
 
 from time import sleep
 
@@ -22,7 +22,7 @@ class StdlibKQueueProactor(ProactorBase):
         self.kcontrol = self.kq.control
         self.default_size = default_size
         self.shadow = {}
-    
+
     def unregister_fd(self, act, fd=None):
         fileno = fd or act.sock.fileno()
         try:
@@ -30,13 +30,13 @@ class StdlibKQueueProactor(ProactorBase):
         except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
-        
+
         try:
             self.kcontrol((kevent(fileno, act.flags, KQ_EV_DELETE),), 0)
         except OSError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
-    
+
     def register_fd(self, act, performer):
         fileno = act.sock.fileno()
         self.shadow[fileno] = act
@@ -46,14 +46,14 @@ class StdlibKQueueProactor(ProactorBase):
         self.kcontrol((ev,), 0)
 
     def run(self, timeout = 0):
-        """ 
-        Run a proactor loop and return new socket events. Timeout is a timedelta 
-        object, 0 if active coros or None. 
-        
+        """
+        Run a proactor loop and return new socket events. Timeout is a timedelta
+        object, 0 if active coros or None.
+
         kqueue timeout param is a integer number of nanoseconds (seconds/10**9).
         """
         ptimeout = float(
-            timeout.microseconds/1000000+timeout.seconds if timeout 
+            timeout.microseconds/1000000+timeout.seconds if timeout
             else (self.resolution if timeout is None else 0)
         )
         if self.tokens:
@@ -62,7 +62,7 @@ class StdlibKQueueProactor(ProactorBase):
             for nr, ev in enumerate(events):
                 fd = ev.ident
                 act = self.shadow.pop(fd)
-                
+
                 if ev.flags & KQ_EV_ERROR:
                     self.kcontrol((kevent(fd, act.flags, KQ_EV_DELETE),), 0)
                     self.handle_error_event(act, 'System error %s.'%ev.data)
@@ -81,4 +81,4 @@ class StdlibKQueueProactor(ProactorBase):
                             self.shadow[fd] = act
         else:
             sleep(timeout)
-            
+

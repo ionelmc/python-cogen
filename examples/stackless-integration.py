@@ -21,7 +21,7 @@ def tasklet():
         # complicated operation with side-effects
         print '.'
         time.sleep(0.1)
-        
+
         # run a cogen loop
         sched_iter.next()
 

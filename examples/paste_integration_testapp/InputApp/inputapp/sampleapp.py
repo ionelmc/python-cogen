@@ -20,4 +20,4 @@ def application(environ, start_response):
     content.append('</table></body></html>')
     return content
 
-                        
+

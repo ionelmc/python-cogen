@@ -1,4 +1,4 @@
-:mod:`cogen.core.events` 
+:mod:`cogen.core.events`
 ========================
 
 .. automodule:: cogen.core.events

@@ -22,11 +22,11 @@ class QGet(events.TimedOperation):
         self.caller = None
         self.result = None
         self.waiting = False
-        
+
     def finalize(self, sched):
         super(QGet, self).finalize(sched)
         return self.result
-        
+
     def cleanup(self, sched, coro):
         if self.waiting:
             self.queue.waiting_gets.remove(self)
@@ -69,7 +69,7 @@ class QGet(events.TimedOperation):
             self.block,
             self.result
         )
-        
+
 class QPut(events.TimedOperation):
     "A operation for the queue put call."
     __slots__ = ('queue', 'item', 'block', 'caller', 'result', 'waiting')
@@ -114,7 +114,7 @@ class QPut(events.TimedOperation):
                     else:
                         sched.active.append((getop, getop.caller))
                     return self, coro
-                    
+
             else:
                 self.queue._put(self.item)
                 return self, coro
@@ -126,16 +126,16 @@ class QPut(events.TimedOperation):
             self.block,
             self.item
         )
-                
-        
+
+
 class QDone(events.Operation):
     "A operation for the queue done_task call"
     __slots__ = ('queue',)
-    
+
     def __init__(self, queue, **kws):
         super(QDone, self).__init__(**kws)
         self.queue = queue
-        
+
     def process(self, sched, coro):
         super(QDone, self).process(sched, coro)
         if self.queue.joinees:
@@ -144,32 +144,32 @@ class QDone(events.Operation):
             else:
                 sched.active.extend(self.queue.joinees)
         return self, coro
-        
+
 class QJoin(events.Operation):
     "A operation for the queue join call."
     __slots__ = ('queue',)
-    
+
     def __init__(self, queue, **kws):
         super(QJoin, self).__init__(**kws)
         self.queue = queue
-        
+
     def process(self, sched, coro):
         super(QJoin, self).process(sched, coro)
         if self.queue.unfinished_tasks == 0:
             return self, coro
         else:
             self.queue.joinees.append( (self, coro) )
-            
+
 class Queue:
-    """This class attempts to mimic the exact functionality of the 
+    """This class attempts to mimic the exact functionality of the
     python standard library Queue.Queue class, but with a coroutine context:
-    
+
     * the queue calls return coroutine operations
-    
+
     So, to use this you write someting like:
-    
+
     .. sourcecode:: python
-    
+
         @coroutine
         def foo():
             q = cogen.core.queue.Queue(<size>)
@@ -182,7 +182,7 @@ class Queue:
         self.waiting_gets = collections.deque()
         self.unfinished_tasks = 0
         self.joinees = []
-        
+
     def __repr__(self):
         return "<%s %s wput:%s wget:%s>" % (
             self.__class__,
@@ -190,7 +190,7 @@ class Queue:
             self.waiting_puts,
             self.waiting_gets
         )
-            
+
     def task_done(self, **kws):
         """Indicate that a formerly enqueued task is complete.
 
@@ -213,7 +213,7 @@ class Queue:
             op = QDone(self, **kws)
         self.unfinished_tasks = unfinished
         return op
-        
+
     def join(self):
         """Blocks until all items in the Queue have been gotten and processed.
 
@@ -225,11 +225,11 @@ class Queue:
         """
         if self.unfinished_tasks:
             return QJoin(self)
-        
+
     def qsize(self):
         """Return the approximate size of the queue (not reliable!)."""
         return self._qsize()
-        
+
     def empty(self):
         """Return True if the queue is empty, False otherwise (not reliable!)."""
         return self._empty()
@@ -237,7 +237,7 @@ class Queue:
     def full(self):
         """Return True if the queue is full, False otherwise (not reliable!)."""
         return self._full()
-    
+
     def put(self, item, block=True, **kws):
         """Put an item into the queue.
 
@@ -250,7 +250,7 @@ class Queue:
         is ignored in that case).
         """
         return QPut(self, item, block, **kws)
-    
+
     def put_nowait(self, item):
         """Put an item into the queue without blocking.
 
@@ -258,7 +258,7 @@ class Queue:
         Otherwise raise the Full exception.
         """
         return self.put(item, False)
-    
+
     def get(self, block=True, **kws):
         """Remove and return an item from the queue.
 
@@ -271,7 +271,7 @@ class Queue:
         in that case).
         """
         return QGet(self, block, **kws)
-    
+
     def get_nowait(self):
         """Remove and return an item from the queue without blocking.
 
@@ -279,8 +279,8 @@ class Queue:
         raise the Empty exception.
         """
         return self.get(False)
-            
-        
+
+
     # Override these methods to implement other queue organizations
     # (e.g. stack or priority queue).
     # These will only be called with appropriate locks held
@@ -308,7 +308,7 @@ class Queue:
     # Get an item from the queue
     def _get(self):
         return self.queue.popleft()
-    
+
     def _repr(self):
         return repr(self.queue)
 

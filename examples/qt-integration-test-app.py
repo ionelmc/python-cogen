@@ -1,5 +1,5 @@
 #
-# NOTE: this example is obsolete. Qt reactor was removed in 2.0 - maybe will be 
+# NOTE: this example is obsolete. Qt reactor was removed in 2.0 - maybe will be
 #       readded, ask.
 #
 
@@ -31,7 +31,7 @@ def server():
 @coroutines.coro
 def handler(sock, addr):
     yield sock.write("WELCOME TO ECHO SERVER !\r\n")
-        
+
     while 1:
         line = yield sock.readline(8192)
         if line.strip() == 'exit':
@@ -44,11 +44,11 @@ def lorem_ipsum_app(environ, start_response):
     start_response('200 OK', [('Content-type','text/plain'), ('Content-Length','19')])
     return ['Lorem ipsum dolor..']
 
-server = wsgi.WSGIServer( 
-  ('0.0.0.0', 9001), 
-  lorem_ipsum_app, 
-  m, 
-  server_name='localhost', 
+server = wsgi.WSGIServer(
+  ('0.0.0.0', 9001),
+  lorem_ipsum_app,
+  m,
+  server_name='localhost',
   request_queue_size=2048,
   #~ sockoper_run_first=False
 )

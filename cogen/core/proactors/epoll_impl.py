@@ -17,7 +17,7 @@ class EpollProactor(ProactorBase):
         self.scheduler = scheduler
         self.epoll_fd = epoll_create(default_size)
         self.shadow = {}
-    
+
     def unregister_fd(self, act, fd=None):
         fileno = fd or act.sock.fileno()
         try:
@@ -25,7 +25,7 @@ class EpollProactor(ProactorBase):
         except KeyError, e:
             import warnings
             warnings.warn("fd remove error: %r" % e)
-            
+
         try:
             epoll_ctl(self.epoll_fd, EPOLL_CTL_DEL, fileno, 0)
         except OSError, e:
@@ -36,23 +36,23 @@ class EpollProactor(ProactorBase):
         fileno = act.sock.fileno()
         self.shadow[fileno] = act
         flag =  EPOLLIN if performer == perform_recv \
-                or performer == perform_accept else EPOLLOUT 
+                or performer == perform_accept else EPOLLOUT
         epoll_ctl(
-            self.epoll_fd, 
-            EPOLL_CTL_MOD if act.sock._proactor_added else EPOLL_CTL_ADD, 
-            fileno, 
+            self.epoll_fd,
+            EPOLL_CTL_MOD if act.sock._proactor_added else EPOLL_CTL_ADD,
+            fileno,
             flag | EPOLLONESHOT
         )
         act.sock._proactor_added = True
 
     def run(self, timeout = 0):
-        """ 
-        Run a proactor loop and return new socket events. Timeout is a timedelta 
-        object, 0 if active coros or None. 
-        
+        """
+        Run a proactor loop and return new socket events. Timeout is a timedelta
+        object, 0 if active coros or None.
+
         epoll timeout param is a integer number of miliseconds (seconds/1000).
         """
-        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000 
+        ptimeout = int(timeout.microseconds/1000+timeout.seconds*1000
                 if timeout else (self.m_resolution if timeout is None else 0))
         if self.tokens:
             epoll_fd = self.epoll_fd
@@ -77,7 +77,7 @@ class EpollProactor(ProactorBase):
                         if not self.handle_event(act):
                             epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, ev | EPOLLONESHOT)
                             self.shadow[fd] = act
-                
+
         else:
             sleep(timeout)
             # todo; fix this to timeout value

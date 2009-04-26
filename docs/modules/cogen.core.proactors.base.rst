@@ -1,4 +1,4 @@
-:mod:`cogen.core.proactors.base` 
+:mod:`cogen.core.proactors.base`
 ================================
 
 .. automodule:: cogen.core.proactors.base
@@ -6,4 +6,4 @@
     :undoc-members:
     :show-inheritance:
 
-    
+

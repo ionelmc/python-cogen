@@ -10,13 +10,13 @@ Your average example::
             if val is sentinel:
                 break
             # do something with val
-        
+
     @coro
     def producer():
         for i in xrange(100):
             yield chunk(i)
 
-        
+
 
 """
 from __future__ import with_statement
@@ -34,7 +34,7 @@ class IteratedCoroutineInstance(coroutines.CoroutineInstance):
             if self.iter_token:
                 self.iter_token.data = rop
                 return self.iter_token
-        return rop    
+        return rop
 
 class IterateToken(events.Operation):
     def __init__(self, iterator):
@@ -44,12 +44,12 @@ class IterateToken(events.Operation):
         self.ended = False
         self.data = None
 
-        
+
         coro, args, kwargs = iterator.iterated_coro
         coro.constructor = IteratedCoroutineInstance
         self.coro = coro(*args, **kwargs)
         self.coro.iter_token = self
-    
+
     def finalize(self, sched):
         if self.started:
             assert self.data
@@ -59,7 +59,7 @@ class IterateToken(events.Operation):
         else:
             self.started = True
             return self
-    
+
     #~ from cogen.core.util import debug
     #~ @debug(0)
     def process(self, sched, coro):
@@ -69,13 +69,13 @@ class IterateToken(events.Operation):
             else:
                 self.ended = True
                 self.coro.remove_waiter(coro, self.iterator)
-                
+
                 sched.active.appendleft((
                     coroutines.CoroutineException(
-                        IterationStopped, 
+                        IterationStopped,
                         IterationStopped(),
                         None
-                    ), 
+                    ),
                     self.coro
                 ))
                 return self.iterator, coro
@@ -87,20 +87,20 @@ class IterateToken(events.Operation):
                     return self, self.iterator.coro
                 else:
                     return None, self.coro
-    
+
     def stop(self):
         self.abort = True
         self.coro.iter_token = None
-        
+
         return self
-        
+
 class chunk(object):
     __slots__ = ('value',)
     def __init__(self, data):
         self.value = data
 
 class chunk_sentinel(object):
-    pass    
+    pass
 
 sentinel = end_sentinel = chunk_sentinel()
 
@@ -111,16 +111,16 @@ class Iterate(events.Operation):
         self.started = False
         self.sentinel = sentinel
         self.chunk = IterateToken(self)
-        
+
     def finalize(self, sched):
         self.chunk.ended = True
         return self.sentinel
-        
+
     def process(self, sched, coro):
         assert not self.started
         self.started = True
         self.coro = coro
         self.chunk.coro.add_waiter(coro, self)
         return self.chunk, self.coro
-    
+
 

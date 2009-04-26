@@ -35,7 +35,7 @@ def run():
         srv.start()
     except:
         srv.stop()
-    
+
 #~ debug()(cherrypy.quickstart)(HelloWorld(), config={'global':{'engine.autoreload_on':False}})
 
 run()

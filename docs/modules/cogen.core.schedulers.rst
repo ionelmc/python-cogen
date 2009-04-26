@@ -1,4 +1,4 @@
-:mod:`cogen.core.schedulers` 
+:mod:`cogen.core.schedulers`
 ============================
 
 .. automodule:: cogen.core.schedulers

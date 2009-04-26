@@ -1,4 +1,4 @@
-""" 
+"""
 Coroutine related boilerplate and wrappers.
 """
 __all__ = ['local', 'coro', 'coroutine', 'Coroutine', 'CoroutineInstance', 'CoroutineException']
@@ -6,7 +6,7 @@ __all__ = ['local', 'coro', 'coroutine', 'Coroutine', 'CoroutineInstance', 'Coro
 import types
 import sys
 import traceback
-        
+
 import events
 from util import priority
 
@@ -15,14 +15,14 @@ ident = None
 class local(object):
     """A threadlocal-like object that works in the context of coroutines.
     That means, the current running coroutine has the _ident_.
-    
+
     Coroutine.run_op sets the indent before running a step and unsets after.
-    
+
     Example:
-    
+
     .. sourcecode:: python
-    
-        loc = local() 
+
+        loc = local()
         loc.foo = 1
 
     The *loc* instance's values will be different for separate coroutines.
@@ -47,18 +47,18 @@ class local(object):
         return "<coroutine.local at 0x%X %r>" % (id(self), self.__dict__['__objs'])
 
 class CoroutineException(Exception):
-    """This is used intenally to carry exception state in the poller and 
+    """This is used intenally to carry exception state in the poller and
     scheduler."""
     prio = priority.DEFAULT
     def __str__(self):
         return "<%s [[[%s]]]>" % (
-            self.__class__.__name__, 
+            self.__class__.__name__,
             len(self.args)==3 and traceback.format_exception(*self.args) or
             traceback.format_exception_only(*self.args)
         )
 
 class CoroutineInstance(events.Operation):
-    ''' 
+    '''
     We need a coroutine wrapper for generators and functions alike because
     we want to run functions that don't return generators just like a
     coroutine, also, we do some exception handling here.
@@ -67,12 +67,12 @@ class CoroutineInstance(events.Operation):
         STATE_FAILED, STATE_FINALIZED = range(5)
     _state_names = "NOTSTARTED", "RUNNING", "COMPLETED", "FAILED", "FINALIZED"
     __slots__ = (
-        'f_args', 'f_kws', 'name', 'state', 
+        'f_args', 'f_kws', 'name', 'state',
         'exception', 'coro', 'caller', 'waiters', 'result',
         'prio', '__weakref__', 'lastop', 'debug', 'run_op',
     )
     running = property(lambda self: self.state < self.STATE_COMPLETED)
-    
+
     def __init__(self, coro, *args, **kws):
         self.debug = False
         self.f_args = args
@@ -86,13 +86,13 @@ class CoroutineInstance(events.Operation):
         else:
             self.state = self.STATE_FAILED
             self.exception = ValueError("Bad generator")
-            raise self.exception 
+            raise self.exception
         self.coro = coro
         self.caller = None
         self.prio = priority.FIRST
         self.waiters = []
         self.exception = None
-    
+
     def add_waiter(self, coro, op=None):
         assert self.state < self.STATE_COMPLETED
         assert coro not in self.waiters
@@ -103,22 +103,22 @@ class CoroutineInstance(events.Operation):
             self.waiters.remove((op or self, coro))
         except ValueError:
             pass
-        
+
     def _valid_gen(self, coro):
         if isinstance(coro, types.GeneratorType):
             return True
         elif hasattr(coro, 'send') and \
              hasattr(coro, 'throw'):
             return True
-    
+
     def finalize(self, sched):
         self.state = self.STATE_FINALIZED
         return self.result
-    
+
     def process(self, sched, coro):
         assert self.state < self.STATE_FINALIZED, \
             "%s called, expected state less than %s!" % (
-                self, 
+                self,
                 self._state_names[self.STATE_FINALIZED]
             )
         if self.state == self.STATE_NEED_INIT:
@@ -128,50 +128,50 @@ class CoroutineInstance(events.Operation):
             return None, self
         else:
             if self.caller:
-                if self.waiters:    
+                if self.waiters:
                     if sched.default_priority:
                         sched.active.extendleft(self.waiters)
                     else:
                         sched.active.extend(self.waiters)
                     self.waiters = None
-                
+
                 try:
                     if self.exception:
                         return CoroutineException(*self.exception), self.caller
-                    else:                
+                    else:
                         return self, self.caller
                 finally:
                     self.caller = None
             else:
-                if self.waiters:    
+                if self.waiters:
                     lucky_waiter = self.waiters.pop()
-                    
+
                     if sched.default_priority:
                         sched.active.extendleft(self.waiters)
                     else:
                         sched.active.extend(self.waiters)
-                    
+
                     self.waiters = []
-                    
+
                     return lucky_waiter
-                
-                
-    def run_op(self, op, sched): 
+
+
+    def run_op(self, op, sched):
         """
         Handle the operation:
-        
+
         * if coro is in STATE_RUNNING, send or throw the given op
-        
-        * if coro is in STATE_NEED_INIT, call the init function and if it 
+
+        * if coro is in STATE_NEED_INIT, call the init function and if it
           doesn't return a generator, set STATE_COMPLETED and set the result
-          to whatever the function returned. 
-          
+          to whatever the function returned.
+
           * if StopIteration is raised, set STATE_COMPLETED and return self.
-          
+
           * if any other exception is raised, set STATE_FAILED, handle error
             or send it to the caller, return self
-        
-        Return self is used as a optimization. Coroutine is also a Operation 
+
+        Return self is used as a optimization. Coroutine is also a Operation
         which handles it's own completion (resuming the caller and the waiters).
         """
         if op is self:
@@ -179,21 +179,21 @@ class CoroutineInstance(events.Operation):
             warnings.warn("Running coro %s with itself. Something is fishy."%op)
         assert self.state < self.STATE_COMPLETED, \
             "%s called with %s op %r, coroutine state (%s) should be less than %s!" % (
-                self, isinstance(op, CoroutineException) and op or 
+                self, isinstance(op, CoroutineException) and op or
                 (hasattr(op, 'state') and {0:'RUNNING', 1:'FINALIZED', 2:'ERRORED'}[op.state] or 'NOP'), op,
                 self._state_names[self.state],
                 self._state_names[self.STATE_COMPLETED]
             )
         #~ assert self.state < self.STATE_COMPLETED, \
             #~ "%s called with:%s, last one:%s, expected state less than %s!" % (
-                #~ self, 
+                #~ self,
                 #~ op,
                 #~ isinstance(self.lastop, CoroutineException) and ''.join(traceback.format_exception(*self.lastop.message)) or self.lastop,
                 #~ self._state_names[self.STATE_COMPLETED]
             #~ )
         #~ self.lastop = op
         if self.debug:
-            print 
+            print
             if isinstance(op, CoroutineException):
                 print 'Running %r with exception:' % self,
                 if len(op.args) == 3:
@@ -218,7 +218,7 @@ class CoroutineInstance(events.Operation):
                 assert op is None
                 self.coro = self.coro(*self.f_args, **self.f_kws)
                 del self.f_args
-                del self.f_kws 
+                del self.f_kws
                 if self._valid_gen(self.coro):
                     self.state = self.STATE_RUNNING
                     rop = None
@@ -229,11 +229,11 @@ class CoroutineInstance(events.Operation):
                     rop = self
             else:
                 return None
-                
+
         except StopIteration, e:
             self.state = self.STATE_COMPLETED
             self.result = e.args and e.args[0]
-            if hasattr(self.coro, 'close'): 
+            if hasattr(self.coro, 'close'):
                 self.coro.close()
             rop = self
         except (KeyboardInterrupt, GeneratorExit, SystemExit):
@@ -242,7 +242,7 @@ class CoroutineInstance(events.Operation):
             self.state = self.STATE_FAILED
             self.result = None
             self.exception = sys.exc_info()
-            if hasattr(self.coro, 'close'): 
+            if hasattr(self.coro, 'close'):
                 self.coro.close()
             if not self.caller:
                 self.handle_error(op)
@@ -253,18 +253,18 @@ class CoroutineInstance(events.Operation):
         if self.debug:
             print "Yields %s." % rop
         return rop
-    def handle_error(self, op):        
+    def handle_error(self, op):
         print>>sys.stderr, '-'*40
         print>>sys.stderr, 'Exception happened during processing of coroutine.'
         traceback.print_exception(*self.exception)
         print>>sys.stderr, "Coroutine %s killed. Last op: %s" % (self, op)
         print>>sys.stderr, '-'*40
-        
+
     def __repr__(self):
         return "<%s %s instance at 0x%08X wrapping %r, state: %s>" % (
-            self.name, 
+            self.name,
             self.__class__.__name__,
-            id(self), 
+            id(self),
             self.coro,
             self._state_names[self.state]
         )
@@ -273,24 +273,24 @@ class CoroutineInstance(events.Operation):
 class CoroutineDocstring(object):
     """
     Evil class to make docstrings accesable on different places like:
-    
+
       - the Corutine class
       - the Coroutine instance
       - the Coroutine instance as a descriptor (that means as a method in a class)
-    
+
     """
     def __init__(self, doc):
         self.doc = doc
-        
+
     def __get__(self, inst, ownr):
         if inst:
             return inst.wrapped_func.__doc__
         else:
             return self.doc
-        
-        
+
+
 class Coroutine(object):
-    __doc__ = CoroutineDocstring(""" 
+    __doc__ = CoroutineDocstring("""
     A decorator function for generators.
     Example::
 
@@ -304,35 +304,35 @@ class Coroutine(object):
     def __init__(self, func, constructor=CoroutineInstance):
         self.wrapped_func = func
         self.constructor = constructor
-        
+
     @property
     def __name__(self):
         #~ if hasattr(self, 'wrapped_func'):
             return self.wrapped_func.__name__
         #~ else:
             #~ return self.__name__
-    
+
     def __repr__(self):
         return "<Coroutine constructor at 0x%08X wrapping %r>" % (
-            id(self), 
+            id(self),
             self.wrapped_func,
         )
     __str__ = __repr__
-    
+
     def __get__(self, instance, owner):
         """
         Previously coroutine was a simple function-based decorator but we needed
         something like an instance (in order to expose the constructor and so on).
-        Decorating methods with a class, however need that class to be an 
+        Decorating methods with a class, however need that class to be an
         descriptor as the __call__ doesn't get automaticaly binded to the instance
         as functions do - btw, functions are decorators.
         """
         return self.__class__(self.wrapped_func.__get__(instance or owner))
-        
+
     def __call__(self, *args, **kwargs):
         "Return a CoroutineInstance instance" # funny wording
         return self.constructor(self.wrapped_func, *args, **kwargs)
-           
+
 coro = coroutine = Coroutine
 
 class DebugCoroutine(Coroutine):
@@ -349,13 +349,13 @@ if __name__ == "__main__":
     def some_func():
         "blablalbla"
         pass
-    
+
     class Foo:
         @Coroutine
         def some_func(*args):
             "Foo blablalbla"
             print args
-        
+
     print some_func()
     print repr(some_func)
     print `some_func.__doc__`
@@ -364,15 +364,15 @@ if __name__ == "__main__":
     print `Coroutine.__doc__`
     print '>', `Coroutine.__name__`
     print `Coroutine`
-    
+
     print `Foo.some_func.__doc__`
     print `Foo.some_func`
-    
+
     Foo.some_func(3,2,1).run_op(None)
-    
+
     foo = Foo()
-    
+
     print `foo.some_func.__doc__`
     print `foo.some_func`
-    
+
     foo.some_func(3,2,1).run_op(None)

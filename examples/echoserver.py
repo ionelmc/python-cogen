@@ -21,7 +21,7 @@ def handler(sock, addr):
     fh = sock.makefile()
     yield fh.write("WELCOME TO ECHO SERVER !\r\n")
     yield fh.flush()
-        
+
     while 1:
         line = yield fh.readline(1024)
         if line.strip() == 'exit':
