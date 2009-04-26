@@ -74,7 +74,7 @@ class CoroletInstance(coroutines.CoroutineInstance):
     
     #~ from cogen.core.util import debug as dbg
     #~ @dbg(0)
-    def run_op(self, op): 
+    def run_op(self, op, sched): 
         """
         Handle the operation:
         
@@ -110,7 +110,7 @@ class CoroletInstance(coroutines.CoroutineInstance):
                 if isinstance(op, CoroutineException):
                     rop = self.coro.throw(*op.args)
                 else:
-                    rop = self.coro.switch(op and op.finalize())
+                    rop = self.coro.switch(op and op.finalize(sched))
             elif self.state == self.STATE_NEED_INIT:
                 assert op is None
                 rop = self.coro.switch(*self.f_args, **self.f_kws)
