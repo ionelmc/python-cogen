@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 __license__ = u'''
-Copyright (c) 2007, Mărieş Ionel Cristian
+Copyright (c) 2007-2009, Mărieş Ionel Cristian
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
