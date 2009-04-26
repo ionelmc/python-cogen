@@ -66,7 +66,7 @@ class Operation(object):
         if self.prio == priority.DEFAULT:
             self.prio = sched.default_priority
     
-    def finalize(self):
+    def finalize(self, sched):
         """Called just before the Coroutine wrapper passes the operation back
         in the generator. Return value is the value actualy sent in the 
         generator. Subclasses might overwrite this method and call it from
@@ -85,6 +85,20 @@ class Operation(object):
             id(self),
             ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in set(_getslots(self.__class__)))
         )
+
+def heapremove(heap,item):
+    """
+    Removes item from heap.
+    (This function is missing from the standard heapq package.)
+    """
+    i=heap.index(item)
+    lastelt=heap.pop()
+    if item==lastelt:
+        return
+    heap[i]=lastelt
+    heapq._siftup(heap,i)
+    if i:
+        heapq._siftdown(heap,0,i)
 
 class TimedOperation(Operation):
     """Operations that have a timeout derive from this.
@@ -152,6 +166,13 @@ class TimedOperation(Operation):
         """
         return True
         
+    def finalize(self, sched):
+        if self.timeout and self.timeout != -1:
+            heapremove(sched.timeouts, self)
+        return super(TimedOperation, self).finalize(sched)
+    
+        
+        
 class WaitForSignal(TimedOperation):
     """The coroutine will resume when the same object is Signaled.
     
@@ -194,8 +215,8 @@ class WaitForSignal(TimedOperation):
                 del sig.coro
                 del sched.signals[self.name]
     
-    def finalize(self):
-        super(WaitForSignal, self).finalize()
+    def finalize(self, sched):
+        super(WaitForSignal, self).finalize(sched)
         return self.result
         
     def cleanup(self, sched, coro):
@@ -244,8 +265,8 @@ class Signal(Operation):
         self.value = value
         self.recipients = recipients
     
-    def finalize(self):
-        super(Signal, self).finalize()
+    def finalize(self, sched):
+        super(Signal, self).finalize(sched)
         return self.result
             
     def process(self, sched, coro):
@@ -294,9 +315,9 @@ class AddCoro(Operation):
         self.args = args or ()
         self.kwargs = kwargs or {}
     
-    def finalize(self):
+    def finalize(self, sched):
         """Return a reference to the instance of the newly added coroutine."""
-        super(AddCoro, self).finalize()
+        super(AddCoro, self).finalize(sched)
         return self.result
     
     def process(self, sched, coro):
@@ -397,4 +418,5 @@ class Sleep(TimedOperation):
         #we manualy add the coro back in the sched and don't return the cleanup
         #as valid (valid cleanup means return true in cleanup)
         
-        
+    def finalize(self, sched):
+        pass

@@ -191,7 +191,7 @@ class Scheduler(object):
                 op, coro = urgent or self.active.popleft()
                 urgent = None
                 while True:
-                    op, coro = self.process_op(coro.run_op(op), coro)
+                    op, coro = self.process_op(coro.run_op(op, self), coro)
                     if not op and not coro:
                         break  
             

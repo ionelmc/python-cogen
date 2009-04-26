@@ -357,6 +357,7 @@ class CTYPES_IOCPProactor(ProactorBase):
             if timeout else (self.m_resolution if timeout is None else 0)
         )
         if self.tokens:
+            scheduler = self.scheduler
             urgent = None
             # we use urgent as a optimisation: the last operation is returned 
             #directly to the scheduler (the sched might just run it till it 
@@ -403,16 +404,16 @@ class CTYPES_IOCPProactor(ProactorBase):
                         urgent = None
                         if op.prio & priority.OP:
                             # imediately run the asociated coroutine step
-                            op, coro = self.scheduler.process_op(
-                                coro.run_op(op), 
+                            op, coro = scheduler.process_op(
+                                coro.run_op(op, scheduler), 
                                 coro
                             )
                         if coro:
                             #TODO, what "op and "
                             if op and (op.prio & priority.CORO):
-                                self.scheduler.active.appendleft( (op, coro) )
+                                scheduler.active.appendleft( (op, coro) )
                             else:
-                                self.scheduler.active.append( (op, coro) )                     
+                                scheduler.active.append( (op, coro) )                     
                     if overlap.object:
                         assert overlap.object in self.tokens
                         urgent = self.process_op(rc, nbytes, overlap)

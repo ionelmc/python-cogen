@@ -253,8 +253,8 @@ class SendFile(SocketOperation):
         super(SendFile, self).process(sched, coro)
         return sched.proactor.request_sendfile(self, coro)
     
-    def finalize(self):
-        super(SendFile, self).finalize()
+    def finalize(self, sched):
+        super(SendFile, self).finalize(sched)
         return self.sent
 
 
@@ -280,8 +280,8 @@ class Recv(SocketOperation):
         super(Recv, self).process(sched, coro)
         return sched.proactor.request_recv(self, coro)
         
-    def finalize(self):
-        super(Recv, self).finalize()
+    def finalize(self, sched):
+        super(Recv, self).finalize(sched)
         return self.buff
 
 
@@ -300,8 +300,8 @@ class Send(SocketOperation):
         super(Send, self).process(sched, coro)
         return sched.proactor.request_send(self, coro)
     
-    def finalize(self):
-        super(Send, self).finalize()
+    def finalize(self, sched):
+        super(Send, self).finalize(sched)
         return self.sent
         
 class SendAll(SocketOperation):
@@ -319,8 +319,8 @@ class SendAll(SocketOperation):
         super(SendAll, self).process(sched, coro)
         return sched.proactor.request_sendall(self, coro)
     
-    def finalize(self):
-        super(SendAll, self).finalize()
+    def finalize(self, sched):
+        super(SendAll, self).finalize(sched)
         return self.sent
  
 class Accept(SocketOperation):
@@ -337,8 +337,8 @@ class Accept(SocketOperation):
         super(Accept, self).process(sched, coro)
         return sched.proactor.request_accept(self, coro)
 
-    def finalize(self):
-        super(Accept, self).finalize()
+    def finalize(self, sched):
+        super(Accept, self).finalize(sched)
         return (self.conn, self.addr)
         
     def __repr__(self):
@@ -368,8 +368,8 @@ class Connect(SocketOperation):
         super(Connect, self).process(sched, coro)
         return sched.proactor.request_connect(self, coro)
         
-    def finalize(self):
-        super(Connect, self).finalize()
+    def finalize(self, sched):
+        super(Connect, self).finalize(sched)
         return self.sock
 
 @coro

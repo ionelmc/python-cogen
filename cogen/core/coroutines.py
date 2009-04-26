@@ -53,7 +53,8 @@ class CoroutineException(Exception):
     def __str__(self):
         return "<%s [[[%s]]]>" % (
             self.__class__.__name__, 
-            traceback.format_exception(*self.args)
+            len(self.args)==3 and traceback.format_exception(*self.args) or
+            traceback.format_exception_only(*self.args)
         )
 
 class CoroutineInstance(events.Operation):
@@ -110,7 +111,7 @@ class CoroutineInstance(events.Operation):
              hasattr(coro, 'throw'):
             return True
     
-    def finalize(self):
+    def finalize(self, sched):
         self.state = self.STATE_FINALIZED
         return self.result
     
@@ -155,7 +156,7 @@ class CoroutineInstance(events.Operation):
                     return lucky_waiter
                 
                 
-    def run_op(self, op): 
+    def run_op(self, op, sched): 
         """
         Handle the operation:
         
@@ -212,7 +213,7 @@ class CoroutineInstance(events.Operation):
                 if isinstance(op, CoroutineException):
                     rop = self.coro.throw(*op.args)
                 else:
-                    rop = self.coro.send(op and op.finalize())
+                    rop = self.coro.send(op and op.finalize(sched))
             elif self.state == self.STATE_NEED_INIT:
                 assert op is None
                 self.coro = self.coro(*self.f_args, **self.f_kws)
@@ -244,7 +245,7 @@ class CoroutineInstance(events.Operation):
             if hasattr(self.coro, 'close'): 
                 self.coro.close()
             if not self.caller:
-                self.handle_error()
+                self.handle_error(op)
             rop = self
             sys.exc_clear()
         finally:
@@ -252,11 +253,11 @@ class CoroutineInstance(events.Operation):
         if self.debug:
             print "Yields %s." % rop
         return rop
-    def handle_error(self):        
+    def handle_error(self, op):        
         print>>sys.stderr, '-'*40
         print>>sys.stderr, 'Exception happened during processing of coroutine.'
         traceback.print_exception(*self.exception)
-        print>>sys.stderr, "Coroutine %s killed. " % self
+        print>>sys.stderr, "Coroutine %s killed. Last op: %s" % (self, op)
         print>>sys.stderr, '-'*40
         
     def __repr__(self):

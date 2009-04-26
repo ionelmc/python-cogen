@@ -256,25 +256,25 @@ class ProactorBase(object):
         
         Calls the scheduler to run or schedule the associated coroutine.
         """
-        
+        scheduler = self.scheduler
         if act in self.tokens:
             coro = act.coro
             op = self.try_run_act(act, self.tokens[act])
             if op:
                 del self.tokens[act]
-                if self.scheduler.ops_greedy:
+                if scheduler.ops_greedy:
                     while True:
-                        op, coro = self.scheduler.process_op(coro.run_op(op), coro)
+                        op, coro = scheduler.process_op(coro.run_op(op, scheduler), coro)
                         if not op and not coro:
                             break  
                 else:
                     if op.prio & priority.OP:
-                        op, coro = self.scheduler.process_op(coro.run_op(op), coro)
+                        op, coro = scheduler.process_op(coro.run_op(op, scheduler), coro)
                     if coro and op:
                         if op.prio & priority.CORO:
-                            self.scheduler.active.appendleft( (op, coro) )
+                            scheduler.active.appendleft( (op, coro) )
                         else:
-                            self.scheduler.active.append( (op, coro) )    
+                            scheduler.active.append( (op, coro) )    
             else:
                 return
         else:

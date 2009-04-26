@@ -55,8 +55,8 @@ class PSGet(events.TimedOperation):
         else:
             self.queue.active_subscribers[key] = self, coro
     
-    def finalize(self):
-        super(PSGet, self).finalize()
+    def finalize(self, sched):
+        super(PSGet, self).finalize(sched)
         return self.result
         
     def cleanup(self, sched, coro):

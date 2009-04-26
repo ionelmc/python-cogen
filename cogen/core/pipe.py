@@ -28,8 +28,8 @@ class IterationStopped(Exception):
 
 class IteratedCoroutineInstance(coroutines.CoroutineInstance):
     __slots__ = ('iter_token',)
-    def run_op(self, op):
-        rop = super(IteratedCoroutineInstance, self).run_op(op)
+    def run_op(self, op, sched):
+        rop = super(IteratedCoroutineInstance, self).run_op(op, sched)
         if isinstance(rop, chunk):
             if self.iter_token:
                 self.iter_token.data = rop
@@ -50,7 +50,7 @@ class IterateToken(events.Operation):
         self.coro = coro(*args, **kwargs)
         self.coro.iter_token = self
     
-    def finalize(self):
+    def finalize(self, sched):
         if self.started:
             assert self.data
             data = self.data.value
@@ -112,7 +112,7 @@ class Iterate(events.Operation):
         self.sentinel = sentinel
         self.chunk = IterateToken(self)
         
-    def finalize(self):
+    def finalize(self, sched):
         self.chunk.ended = True
         return self.sentinel
         

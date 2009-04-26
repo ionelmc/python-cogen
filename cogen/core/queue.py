@@ -23,8 +23,8 @@ class QGet(events.TimedOperation):
         self.result = None
         self.waiting = False
         
-    def finalize(self):
-        super(QGet, self).finalize()
+    def finalize(self, sched):
+        super(QGet, self).finalize(sched)
         return self.result
         
     def cleanup(self, sched, coro):
