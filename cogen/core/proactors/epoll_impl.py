@@ -19,6 +19,7 @@ class EpollProactor(ProactorBase):
         self.shadow = {}
 
     def unregister_fd(self, act, fd=None):
+        act.sock._proactor_added = False
         fileno = fd or act.sock.fileno()
         try:
             del self.shadow[fileno]
