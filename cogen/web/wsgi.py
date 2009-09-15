@@ -152,13 +152,11 @@ class WSGIConnection(object):
     "wsgi.file_wrapper": WSGIFileWrapper,
   }
 
-  def __init__(self, sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout):
-    #~ print sock, wsgi_app, environ, sockoper_timeout, sendfile_timeout
+  def __init__(self, sock, wsgi_app, environ, sendfile_timeout):
     self.conn = sock
     self.wsgi_app = wsgi_app
     self.server_environ = environ
     self.sendfile_timeout = sendfile_timeout
-    self.sockoper_timeout = sockoper_timeout
     self.conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     self.connfh = self.conn.makefile()
 
@@ -507,11 +505,8 @@ class WSGIConnection(object):
           yield sockets.SendAll(self.conn, "0\r\n\r\n")
         if self.close_connection:
           return
-        #~ while (yield async.Read(self.conn, ENVIRON['cogen.wsgi'],
-                     #~ timeout=self.sockoper_timeout)):
-          #~ # we need to consume any unread input data to read the next
-          #pipelined request
-          #~ pass
+        # TODO: consume any unread data
+
     except (socket.error, OSError, pywinerror), e:
       errno = e.args[0]
       if errno not in useless_socket_errors:
@@ -689,6 +684,7 @@ class WSGIServer(object):
       while True:
         try:
           s, addr = yield sockets.Accept(self.socket, timeout=-1)
+          s.settimeout(self.sockoper_timeout)
         except Exception, exc:
           # make acceptor more robust in the face of weird
           # accept bugs, XXX: but we might get a infinite loop
@@ -720,7 +716,7 @@ class WSGIServer(object):
           environ["REMOTE_PORT"] = str(addr[1])
 
         conn = self.ConnectionClass(s, self.wsgi_app, environ,
-          self.sockoper_timeout, self.sendfile_timeout)
+          self.sendfile_timeout)
         yield events.AddCoro(conn.run, prio=priority.LAST if
                                      self.sockaccept_greedy else priority.FIRST)
 
@@ -799,4 +795,3 @@ def server_factory(global_conf, host, port, **options):
     runner = Runner(host, port, app, options)
     runner.run()
   return serve
-
