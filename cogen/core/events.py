@@ -6,7 +6,7 @@ __all__ = [
     'Join', 'Sleep', 'Operation', 'TimedOperation'
 ]
 import datetime
-import heapq
+import bisect
 
 from util import priority
 #~ from sockets import SocketError as ConnectionError
@@ -86,20 +86,6 @@ class Operation(object):
             ' '.join("%s:%r" % (i, getattr(self, i, 'n/a')) for i in set(_getslots(self.__class__)))
         )
 
-def heapremove(heap,item):
-    """
-    Removes item from heap.
-    (This function is missing from the standard heapq package.)
-    """
-    i=heap.index(item)
-    lastelt=heap.pop()
-    if item==lastelt:
-        return
-    heap[i]=lastelt
-    heapq._siftup(heap,i)
-    if i:
-        heapq._siftdown(heap,0,i)
-
 class TimedOperation(Operation):
     """Operations that have a timeout derive from this.
 
@@ -156,7 +142,7 @@ class TimedOperation(Operation):
             else:
                 self.last_checkpoint = self.delta = None
 
-            heapq.heappush(sched.timeouts, self)
+            bisect.insort(sched.timeouts, self)
 
     def cleanup(self, sched, coro):
         """
@@ -168,7 +154,7 @@ class TimedOperation(Operation):
 
     def finalize(self, sched):
         if self.timeout and self.timeout != -1:
-            heapremove(sched.timeouts, self)
+            sched.timeouts.remove(self)
         return super(TimedOperation, self).finalize(sched)
     
         

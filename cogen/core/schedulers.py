@@ -18,8 +18,7 @@ correctly (pylons relies heavily on threadlocals).
 __all__ = ['Scheduler']
 import collections
 import datetime
-import heapq
-#~ import weakref
+import bisect
 import sys
 import errno
 import select
@@ -28,7 +27,6 @@ from cogen.core.proactors import DefaultProactor
 from cogen.core import events
 from cogen.core.util import priority
 from cogen.core.coroutines import CoroutineException
-#~ getnow = debug(0)(datetime.datetime.now)
 getnow = datetime.datetime.now
 
 class Scheduler(object):
@@ -138,14 +136,14 @@ class Scheduler(object):
         now = getnow()
         #~ print '>to:', self.timeouts, self.timeouts and self.timeouts[0].timeout <= now
         while self.timeouts and self.timeouts[0].timeout <= now:
-            op = heapq.heappop(self.timeouts)
+            op = self.timeouts.pop(0)
 
             coro = op.coro
             if op.weak_timeout and hasattr(op, 'last_update'):
                 if op.last_update > op.last_checkpoint:
                     op.last_checkpoint = op.last_update
                     op.timeout = op.last_checkpoint + op.delta
-                    heapq.heappush(self.timeouts, op)
+                    bisect.insort(self.timeouts, op)
                     continue
 
             if op.state is events.RUNNING and coro and coro.running and \

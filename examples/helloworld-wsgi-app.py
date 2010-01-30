@@ -14,14 +14,14 @@ def lorem_ipsum_app(environ, start_response):
 import cogen
 from cogen.web.wsgi import WSGIServer
 sched = cogen.core.schedulers.Scheduler(
-    default_timeout=-1,
-    default_priority=cogen.core.util.priority.FIRST,
+    #default_timeout=-1,
+    #default_priority=cogen.core.util.priority.FIRST,
     proactor=getattr(cogen.core.proactors, 'has_'+(sys.argv[1] if len(sys.argv) > 1 else 'any'))(),
-    proactor_resolution=1,
+    #proactor_resolution=1,
 
-    proactor_greedy=False,
+    #proactor_greedy=False,
     #~ ops_greedy=True,
-    proactor_multiplex_first=True
+    #proactor_multiplex_first=True
 )
 print 'Using', sched.proactor.__class__.__name__
 
@@ -30,10 +30,10 @@ server = WSGIServer(
   lorem_ipsum_app,
   sched,
   server_name='localhost',
-  request_queue_size=2048,
-  sockaccept_greedy=False,
-  sockoper_timeout=-1,
-  sendfile_timeout=-1
+  #request_queue_size=2048,
+  #sockaccept_greedy=False,
+  #sockoper_timeout=-1,
+  #sendfile_timeout=-1
 )
 sched.add(server.serve)
 #~ sched.run()
