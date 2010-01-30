@@ -62,7 +62,9 @@ class COGENProxy(object):
         self.exception = exception
 
     def __str__(self):
-        return repr(self.__dict__)
+        return "<COGENProxy content_length:%s read_count:%s operation:%s result:%s exception:%s>" % (
+            self.content_length, self.read_count, self.operation, self.result, self.exception
+        )
 
 class LazyStartResponseMiddleware:
     """This is a evil piece of middleware that proxyes the start_response
