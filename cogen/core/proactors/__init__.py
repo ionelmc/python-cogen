@@ -58,7 +58,7 @@ def has_stdlib_kqueue():
 def has_iocp():
     try:
         import win32file
-        if not hasattr(win32file, 'ConnextEx'):
+        if not hasattr(win32file, 'ConnectEx'):
             import warnings
             warnings.warn("IOCPProactor implementation requires a newer pywin32 module.")
             return
