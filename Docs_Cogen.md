@@ -1,0 +1,1 @@
+Docs were moved here: http://cogen.googlecode.com/svn/trunk/docs/build/index.html
